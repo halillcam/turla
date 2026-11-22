@@ -1,0 +1,8 @@
+# Satır sonları depoda LF olarak tutulur.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.ico binary

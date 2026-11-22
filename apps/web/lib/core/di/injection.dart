@@ -9,5 +9,13 @@ final GetIt getIt = GetIt.instance;
 /// Yeni bir feature eklendiğinde datasource → repository → bloc sırasıyla
 /// buraya kaydedilir.
 void configureDependencies() {
-  getIt.registerLazySingleton<SupabaseClient>(() => TurlaSupabase.client);
+  getIt
+    ..registerLazySingleton<SupabaseClient>(() => TurlaSupabase.client)
+    // İller: ilk istekte sunucudan çekilir, sonra cihazdan okunur.
+    ..registerLazySingleton<CityRepository>(
+      () => CityRepositoryImpl(
+        remoteDataSource: CityRemoteDataSourceImpl(getIt<SupabaseClient>()),
+        localDataSource: CityLocalDataSourceImpl(),
+      ),
+    );
 }

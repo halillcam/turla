@@ -1,0 +1,11 @@
+name: turla_workspace
+description: Turla monorepo (mobil uygulama, web panel ve ortak paket).
+publish_to: none
+
+environment:
+  sdk: ^3.12.2
+
+workspace:
+  - apps/mobile
+  - apps/web
+  - packages/core

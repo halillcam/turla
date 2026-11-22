@@ -1,0 +1,12 @@
+{
+  "name": "turla-supabase-tests",
+  "private": true,
+  "type": "module",
+  "description": "Turla migration ve iş kuralı testleri (PGlite üzerinde, Supabase gerekmez).",
+  "scripts": {
+    "test": "node migrations.test.mjs"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.3.16"
+  }
+}

@@ -28,7 +28,10 @@ void main() {
       return LoginCubit(auth);
     },
     act: (cubit) => cubit.submit(identity: 'ali@example.com', password: 'gizli123'),
-    expect: () => [const LoginState(isSubmitting: true), const LoginState(isSuccess: true)],
+    expect: () => [
+      const LoginState(isSubmitting: true),
+      const LoginState(signedInRole: UserRole.customer),
+    ],
     verify: (_) {
       verify(() => auth.signInWithEmail(email: 'ali@example.com', password: 'gizli123')).called(1);
       verifyNever(
@@ -52,7 +55,10 @@ void main() {
       return LoginCubit(auth);
     },
     act: (cubit) => cubit.submit(identity: 'REH-1234', password: 'gizli123'),
-    expect: () => [const LoginState(isSubmitting: true), const LoginState(isSuccess: true)],
+    expect: () => [
+      const LoginState(isSubmitting: true),
+      const LoginState(signedInRole: UserRole.guide),
+    ],
     verify: (_) =>
         verify(() => auth.signInWithLoginId(loginId: 'REH-1234', password: 'gizli123')).called(1),
   );

@@ -8,11 +8,12 @@ import '../../../../core/constants/strings.dart';
 import '../../../../core/di/injection.dart';
 import '../cubit/login_cubit.dart';
 import '../utils/auth_failure_message.dart';
+import '../utils/auth_navigation.dart';
 import '../widgets/auth_footer_link.dart';
 import '../widgets/auth_header.dart';
 import '../widgets/login_form.dart';
 
-/// Başarılı girişten sonra yönlendirmeyi router yapar (oturum değişince).
+/// Başarılı girişten sonra ekran [AuthNavigation] ile kapatılır.
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
 
@@ -21,10 +22,17 @@ class LoginScreen extends StatelessWidget {
     return BlocProvider(
       create: (_) => getIt<LoginCubit>(),
       child: BlocListener<LoginCubit, LoginState>(
-        listenWhen: (previous, current) => current.failure != null,
-        listener: (context, state) => ScaffoldMessenger.of(context)
-          ..hideCurrentSnackBar()
-          ..showSnackBar(SnackBar(content: Text(state.failure!.message))),
+        listenWhen: (previous, current) => current.failure != null || current.isSuccess,
+        listener: (context, state) {
+          final role = state.signedInRole;
+          if (role != null) {
+            AuthNavigation.afterSignIn(context, role);
+            return;
+          }
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(SnackBar(content: Text(state.failure!.message)));
+        },
         child: Scaffold(
           appBar: AppBar(),
           body: SafeArea(

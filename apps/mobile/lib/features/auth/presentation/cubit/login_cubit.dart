@@ -25,7 +25,7 @@ class LoginCubit extends Cubit<LoginState> {
         emit(const LoginState(failure: AuthFailureReason.roleNotAllowed));
         return;
       }
-      emit(const LoginState(isSuccess: true));
+      emit(LoginState(signedInRole: profile.role));
     } on AuthFailure catch (failure) {
       emit(LoginState(failure: failure.reason));
     }

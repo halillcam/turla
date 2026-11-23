@@ -9,6 +9,7 @@ import '../../../../core/di/injection.dart';
 import '../../../../core/widgets/status_view.dart';
 import '../cubit/register_cubit.dart';
 import '../utils/auth_failure_message.dart';
+import '../utils/auth_navigation.dart';
 import '../widgets/auth_footer_link.dart';
 import '../widgets/auth_header.dart';
 import '../widgets/register_form.dart';
@@ -21,10 +22,18 @@ class RegisterScreen extends StatelessWidget {
     return BlocProvider(
       create: (_) => getIt<RegisterCubit>(),
       child: BlocConsumer<RegisterCubit, RegisterState>(
-        listenWhen: (previous, current) => current.status == RegisterStatus.failure,
-        listener: (context, state) => ScaffoldMessenger.of(context)
-          ..hideCurrentSnackBar()
-          ..showSnackBar(SnackBar(content: Text(state.failure!.message))),
+        listenWhen: (previous, current) =>
+            current.status == RegisterStatus.failure || current.status == RegisterStatus.signedIn,
+        listener: (context, state) {
+          if (state.status == RegisterStatus.signedIn) {
+            // Mobilden kayıt olan her zaman müşteridir.
+            AuthNavigation.afterSignIn(context, UserRole.customer);
+            return;
+          }
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(SnackBar(content: Text(state.failure!.message)));
+        },
         builder: (context, state) {
           if (state.status == RegisterStatus.confirmationRequired) {
             return Scaffold(

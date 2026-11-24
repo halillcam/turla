@@ -14,6 +14,8 @@ const db = new PGlite({ extensions: { pgcrypto } });
 await db.exec(`
   create role anon nologin;
   create role authenticated nologin;
+  -- Edge Function'larin kullandigi rol: RLS'i atlar ama tablo yetkisi ister.
+  create role service_role nologin bypassrls;
   create schema auth;
   create schema extensions;
   create schema storage;
@@ -260,6 +262,115 @@ await expectOk('admin kendi şirket klasörüne görsel yükler', () => asUser(a
   `insert into storage.objects (bucket_id, name) values ('tour-images', $1)`, [`${company}/kapak.jpg`]));
 await expectError('admin başka şirket klasörüne yükleyemez', 'row-level security', () => asUser(admin,
   `insert into storage.objects (bucket_id, name) values ('tour-images', $1)`, [`${otherCompany}/kapak.jpg`]));
+
+// ─── Web paneli (migration 8) ──────────────────────────────────────────────
+
+// Tur programı
+await expectOk('admin programı kaydeder: sıra = gün no, boş aktiviteler atılır', async () => {
+  const days = [
+    { title: ' Göksun ', activities: ['Kahvaltı', '  ', ' Yürüyüş '] },
+    { title: 'Dönüş', activities: [] },
+  ];
+  await asUser(admin, `select * from public.save_tour_program($1, $2::jsonb)`, [tour, JSON.stringify(days)]);
+  const r = (await db.query(`select day_no, title, activities from public.tour_program_days
+    where tour_id = $1 order by day_no`, [tour])).rows;
+  if (r.length !== 2 || r[0].day_no !== 1 || r[0].title !== 'Göksun'
+      || JSON.stringify(r[0].activities) !== '["Kahvaltı","Yürüyüş"]' || r[1].day_no !== 2) {
+    throw new Error(JSON.stringify(r));
+  }
+});
+await expectOk('program yeniden kaydedilince eskisi silinir', async () => {
+  await asUser(admin, `select * from public.save_tour_program($1, $2::jsonb)`,
+    [tour, JSON.stringify([{ title: 'Tek gün', activities: ['Gezi'] }])]);
+  const r = await scalar(`select count(*)::int n from public.tour_program_days where tour_id = $1`, [tour]);
+  if (r.n !== 1) throw new Error('gün sayısı ' + r.n);
+});
+await expectError('başka şirket admini programı değiştiremez', 'not_allowed', () => asUser(otherAdmin,
+  `select * from public.save_tour_program($1, '[]'::jsonb)`, [tour]));
+await expectError('program dizi olmalı', 'invalid_program', () => asUser(admin,
+  `select * from public.save_tour_program($1, '{}'::jsonb)`, [tour]));
+await expectError('misafir program kaydedemez', 'permission denied', () => asUser(null,
+  `select * from public.save_tour_program($1, '[]'::jsonb)`, [tour]));
+
+// Hesap aktif / pasif
+const guide2 = await mkUser('guide', company, 'Rehber Rana');
+const otherGuide = await mkUser('guide', otherCompany, 'Başka Rehber');
+await expectError('admin başka şirketin rehberini pasif yapamaz', 'not_allowed', () => asUser(admin,
+  `select public.set_profile_active($1, false)`, [otherGuide]));
+await expectError('admin başka bir admini pasif yapamaz', 'not_allowed', () => asUser(admin,
+  `select public.set_profile_active($1, false)`, [otherAdmin]));
+await expectError('kimse kendi hesabını pasif yapamaz', 'cannot_change_self', () => asUser(superAdmin,
+  `select public.set_profile_active($1, false)`, [superAdmin]));
+await expectError('rehber hesap durumu değiştiremez', 'not_allowed', () => asUser(guide,
+  `select public.set_profile_active($1, false)`, [guide2]));
+await expectOk('admin kendi rehberini pasif yapar → rehber yetkisini kaybeder', async () => {
+  await asUser(admin, `select public.set_profile_active($1, false)`, [guide2]);
+  const dep = (await scalar(`insert into public.tour_departures (tour_id, departure_at, capacity)
+    values ($1, now() + interval '5 days', 3) returning id`, [tour])).id;
+  await expectError('pasif rehber tarihe atanamaz', 'invalid_guide', () => asUser(admin,
+    `update public.tour_departures set guide_id = $2 where id = $1`, [dep, guide2]));
+  const r = await asUser(guide2, `select public.current_user_role() r`);
+  if (r.rows[0].r !== null) throw new Error('rol: ' + r.rows[0].r);
+  await asUser(admin, `select public.set_profile_active($1, true)`, [guide2]);
+  await asUser(admin, `update public.tour_departures set guide_id = $2 where id = $1`, [dep, guide2]);
+});
+await expectOk('super admin firma adminini pasif/aktif yapar', async () => {
+  await asUser(superAdmin, `select public.set_profile_active($1, false)`, [otherAdmin]);
+  await asUser(superAdmin, `select public.set_profile_active($1, true)`, [otherAdmin]);
+});
+await expectError('admin profil aktifliğini doğrudan yazamaz', 'permission denied', () => asUser(admin,
+  `update public.profiles set is_active = false where id = $1`, [guide2]));
+
+// Pasif şirket
+await expectOk('super admin firmayı pasif yapar → admin yönetemez, turlar gizlenir', async () => {
+  await asUser(superAdmin, `update public.companies set is_active = false where id = $1`, [company]);
+  await expectError('pasif firmanın admini tur ekleyemez', 'row-level security', () => asUser(admin,
+    `insert into public.tours (company_id, title, price, city_id, region)
+     values ($1, 'Pasif Tur', 10, 46, 'ege')`, [company]));
+  const r = await asUser(customer, `select count(*)::int n from public.tours where company_id = $1`, [company]);
+  if (r.rows[0].n !== 0) throw new Error('müşteri pasif firmanın turunu görüyor: ' + r.rows[0].n);
+  const s = await asUser(superAdmin, `select count(*)::int n from public.tours where company_id = $1`, [company]);
+  if (s.rows[0].n === 0) throw new Error('super admin pasif firmanın turunu görmeli');
+  await asUser(superAdmin, `update public.companies set is_active = true where id = $1`, [company]);
+});
+await expectError('admin firma oluşturamaz', 'row-level security', () => asUser(admin,
+  `insert into public.companies (name) values ('Yetkisiz Firma')`));
+await expectOk('super admin firma oluşturur', () => asUser(superAdmin,
+  `insert into public.companies (name, city_id) values ('Yeni Firma', 46)`));
+
+// Auth Admin API önce metadata'sız ekler, app_metadata'yı sonra yazar — migration 10
+await expectOk('admin API sırası: rol/şirket/kimlik sonradan yazılınca profil eşitlenir', async () => {
+  const id = (await scalar(`insert into auth.users (raw_app_meta_data, raw_user_meta_data)
+    values ('{"provider":"email"}', '{"full_name":"Sonradan Rehber"}') returning id`)).id;
+  const before = await scalar(`select role from public.profiles where id = $1`, [id]);
+  if (before.role !== 'customer') throw new Error('başlangıç: ' + before.role);
+  await db.query(`update auth.users set raw_app_meta_data = raw_app_meta_data || $2::jsonb where id = $1`,
+    [id, JSON.stringify({ role: 'guide', company_id: company, login_id: 'REH-9999' })]);
+  const r = await scalar(`select role, company_id, login_id from public.profiles where id = $1`, [id]);
+  if (r.role !== 'guide' || r.company_id !== company || r.login_id !== 'REH-9999') throw new Error(JSON.stringify(r));
+});
+await expectOk('user_metadata değişikliği rolü etkilemez', async () => {
+  await db.query(`update auth.users set raw_user_meta_data = '{"role":"super_admin"}' where id = $1`, [customer]);
+  const r = await scalar(`select role from public.profiles where id = $1`, [customer]);
+  if (r.role !== 'customer') throw new Error(r.role);
+});
+
+// create-account Edge Function (service_role) yetkileri — migration 9
+const asService = async (sql, params = []) => {
+  await db.exec('set role service_role;');
+  try { return await db.query(sql, params); } finally { await db.exec('reset role;'); }
+};
+await expectOk('service_role çağıranın profilini ve şirketi okur', async () => {
+  const r = await asService(`select (select role from public.profiles where id = $1) r,
+    (select count(*)::int from public.companies where id = $2) c`, [admin, company]);
+  if (r.rows[0].r !== 'admin' || r.rows[0].c !== 1) throw new Error(JSON.stringify(r.rows[0]));
+});
+await expectOk('service_role yeni hesabın telefonunu yazar', () => asService(
+  `update public.profiles set phone = '0555' where id = $1`, [guide2]));
+await expectError('service_role rol değiştiremez', 'permission denied', () => asService(
+  `update public.profiles set role = 'super_admin' where id = $1`, [guide2]));
+await expectError('service_role bilete yazamaz', 'permission denied', () => asService(
+  `delete from public.tickets`));
 
 console.log(failures === 0 ? '\nTÜM TESTLER GEÇTİ' : `\n${failures} TEST BAŞARISIZ`);
 process.exit(failures === 0 ? 0 : 1);

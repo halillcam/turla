@@ -23,6 +23,12 @@ abstract final class AppSizes {
   // Web panel yerleşimi
   static const double sidebarWidth = 260;
   static const double panelMaxContentWidth = 1200;
+  static const double loginFormMaxWidth = 420;
+  static const double dialogWidth = 480;
+  static const double panelImagePreviewWidth = 320;
+  static const double panelImagePreviewHeight = 180;
+  static const double progressStroke = 2;
+  static const double dropdownMenuMaxHeight = 320;
 
   // Görsel yükleme: en uzun kenar bu değere küçültülür (piksel).
   static const int uploadImageMaxDimension = 1280;

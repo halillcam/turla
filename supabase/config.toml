@@ -1,0 +1,6 @@
+# Supabase CLI ayarları (sadece Edge Function ayarı; proje bağlantısı CLI ile yapılır).
+project_id = "turla"
+
+# Oturum token'ı fonksiyon içinde auth.getUser ile doğrulanır.
+[functions.create-account]
+verify_jwt = false

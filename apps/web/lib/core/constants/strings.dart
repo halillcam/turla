@@ -2,6 +2,183 @@
 /// Ortak metinler `turla_core` paketindeki `CoreStrings` içindedir.
 abstract final class AppStrings {
   static const String panelTitle = 'Turla Panel';
-  static const String homeTagline = 'Tur firmaları için yönetim paneli.';
-  static const String homeSetupNotice = 'Altyapı hazır. Panel ekranları Faz 2 ile gelecek.';
+
+  // Genel
+  static const String retry = 'Tekrar dene';
+  static const String save = 'Kaydet';
+  static const String cancel = 'Vazgeç';
+  static const String create = 'Oluştur';
+  static const String edit = 'Düzenle';
+  static const String delete = 'Sil';
+  static const String close = 'Kapat';
+  static const String confirm = 'Onayla';
+  static const String add = 'Ekle';
+  static const String active = 'Aktif';
+  static const String passive = 'Pasif';
+  static const String makeActive = 'Aktif yap';
+  static const String makePassive = 'Pasif yap';
+  static const String empty = '—';
+  static const String saved = 'Kaydedildi.';
+  static const String deleted = 'Silindi.';
+  static const String signOut = 'Çıkış yap';
+  static const String deleteConfirmTitle = 'Silinsin mi?';
+  static const String deleteConfirmMessage = 'Bu işlem geri alınamaz.';
+
+  // Form doğrulama
+  static const String fieldRequired = 'Bu alan zorunlu.';
+  static const String invalidEmail = 'Geçerli bir e-posta adresi girin.';
+  static const String passwordTooShort = 'Şifre en az 8 karakter olmalı.';
+  static const String nameTooShort = 'En az 3 karakter girin.';
+  static const String titleTooShort = 'Başlık en az 3 karakter olmalı.';
+  static const String invalidNumber = 'Geçerli bir sayı girin.';
+  static const String invalidPrice = 'Geçerli bir fiyat girin (ör. 750 veya 750,50).';
+  static const String capacityMustBePositive = 'Kontenjan en az 1 olmalı.';
+  static const String phoneTooLong = 'Telefon en fazla 20 karakter olabilir.';
+
+  // Giriş
+  static const String loginTitle = 'Panele giriş';
+  static const String loginSubtitle = 'Şirket yöneticisi veya super admin hesabınızla giriş yapın.';
+  static const String emailLabel = 'E-posta';
+  static const String passwordLabel = 'Şifre';
+  static const String loginButton = 'Giriş yap';
+
+  // Giriş hataları
+  static const String errorInvalidCredentials = 'E-posta veya şifre hatalı.';
+  static const String errorEmailNotConfirmed = 'E-posta adresi henüz doğrulanmamış.';
+  static const String errorRateLimited = 'Çok fazla deneme yapıldı. Biraz sonra tekrar deneyin.';
+  static const String errorAccountDisabled = 'Bu hesap kullanıma kapatılmış.';
+  static const String errorProfileMissing = 'Hesap bilgileri bulunamadı.';
+  static const String errorRoleNotAllowed =
+      'Bu hesap panele giremez. Müşteri ve tur sorumlusu hesapları mobil uygulamayı kullanır.';
+  static const String errorCompanyInactive =
+      'Firmanız pasif durumda. Panel kullanımı için Turla ile iletişime geçin.';
+
+  // Panel hataları
+  static const String errorNotAllowed = 'Bu işlem için yetkiniz yok.';
+  static const String errorNotFound = 'Kayıt bulunamadı.';
+  static const String errorHasTickets =
+      'Bu kayda bağlı satılmış bilet var; silinemez. Bunun yerine pasif yapabilirsiniz.';
+  static const String errorCapacityBelowSold =
+      'Kontenjan satılan bilet sayısının altına düşürülemez.';
+  static const String errorInvalidGuide = 'Seçilen tur sorumlusu bu firmada aktif değil.';
+  static const String errorAlreadyReviewed = 'Bu talep zaten sonuçlandırılmış.';
+  static const String errorEmailExists = 'Bu e-posta ile zaten bir hesap var.';
+  static const String errorWeakPassword = 'Şifre çok zayıf. En az 8 karakterli bir şifre seçin.';
+  static const String errorInvalidInput = 'Girilen bilgiler geçersiz. Alanları kontrol edin.';
+  static const String errorCannotChangeSelf = 'Kendi hesabınızın durumunu değiştiremezsiniz.';
+  static const String errorInvalidImage = 'Görsel okunamadı. JPEG, PNG veya WebP bir dosya seçin.';
+
+  // Menü
+  static const String navCompanies = 'Firmalar';
+  static const String navTours = 'Turlar';
+  static const String navStaff = 'Personel ve müşteriler';
+  static const String navCompletions = 'Tur bitirme talepleri';
+  static const String backToCompanies = 'Tüm firmalar';
+
+  // Firmalar (super admin)
+  static const String companiesTitle = 'Firmalar';
+  static const String newCompany = 'Yeni firma';
+  static const String editCompany = 'Firmayı düzenle';
+  static const String companyName = 'Firma adı';
+  static const String companyCity = 'İl';
+  static const String companyPhone = 'Telefon';
+  static const String companiesEmpty = 'Henüz firma yok.';
+  static const String manageCompany = 'Firmayı yönet';
+  static const String companyAdmins = 'Firma yöneticileri';
+  static const String companyAdminsEmpty = 'Bu firmanın yöneticisi yok.';
+  static const String newAdmin = 'Yönetici hesabı aç';
+  static const String companyInactiveBanner =
+      'Bu firma pasif: turları müşterilere görünmez ve yöneticisi panele giremez.';
+
+  // Hesap açma
+  static const String fullNameLabel = 'Ad soyad';
+  static const String phoneLabel = 'Telefon (isteğe bağlı)';
+  static const String temporaryPasswordLabel = 'Geçici şifre';
+  static const String temporaryPasswordHelper = 'En az 8 karakter. Hesap sahibine siz iletirsiniz.';
+  static const String accountCreatedTitle = 'Hesap açıldı';
+  static const String accountCreatedLoginId = 'Giriş kimliği';
+  static const String accountCreatedEmail = 'Giriş e-postası';
+  static const String accountCreatedHint =
+      'Bu bilgileri ve belirlediğiniz geçici şifreyi hesap sahibine iletin. '
+      'Şifre burada tekrar gösterilmez.';
+
+  // Personel
+  static const String staffTitle = 'Personel ve müşteriler';
+  static const String guidesTab = 'Tur sorumluları';
+  static const String customersTab = 'Dışarıdan eklenen müşteriler';
+  static const String newGuide = 'Tur sorumlusu ekle';
+  static const String newCustomer = 'Müşteri ekle';
+  static const String guidesEmpty = 'Henüz tur sorumlusu yok.';
+  static const String customersEmpty = 'Henüz dışarıdan eklenen müşteri yok.';
+  static const String loginIdColumn = 'Giriş kimliği';
+  static const String statusColumn = 'Durum';
+  static const String nameColumn = 'Ad soyad';
+  static const String phoneColumn = 'Telefon';
+
+  // Turlar
+  static const String toursTitle = 'Turlar';
+  static const String newTour = 'Yeni tur';
+  static const String toursEmpty = 'Henüz tur yok. "Yeni tur" ile ekleyin.';
+  static const String tourTitle = 'Tur adı';
+  static const String tourDescription = 'Açıklama';
+  static const String tourExtraDetail = 'Ek bilgi (dahil olanlar, notlar)';
+  static const String tourPrice = 'Fiyat (₺)';
+  static const String tourCity = 'Kalkış ili';
+  static const String tourRegion = 'Bölge';
+  static const String tourActive = 'Satışta (müşterilere görünür)';
+  static const String tourImage = 'Kapak görseli';
+  static const String uploadImage = 'Görsel yükle';
+  static const String replaceImage = 'Görseli değiştir';
+  static const String noImage = 'Görsel yok';
+  static const String imageUploaded = 'Görsel yüklendi.';
+  static const String tourInfoTab = 'Bilgiler';
+  static const String tourProgramTab = 'Program';
+  static const String tourDeparturesTab = 'Tarihler';
+  static const String saveTourFirst = 'Program ve tarih eklemek için önce turu kaydedin.';
+  static const String departuresColumn = 'Tarih sayısı';
+  static const String priceColumn = 'Fiyat';
+
+  // Program
+  static const String programEmpty = 'Program henüz eklenmedi.';
+  static const String addDay = 'Gün ekle';
+  static const String dayLabel = 'Gün';
+  static const String dayTitle = 'Gün başlığı';
+  static const String dayActivities = 'Etkinlikler (her satıra bir tane)';
+  static const String moveUp = 'Yukarı taşı';
+  static const String moveDown = 'Aşağı taşı';
+  static const String removeDay = 'Günü kaldır';
+  static const String saveProgram = 'Programı kaydet';
+  static const String programUnsaved = 'Kaydedilmemiş değişiklikler var.';
+
+  // Tarihler
+  static const String departuresEmpty = 'Henüz tarih yok.';
+  static const String newDeparture = 'Tarih ekle';
+  static const String editDeparture = 'Tarihi düzenle';
+  static const String departureDate = 'Kalkış tarihi';
+  static const String departureTime = 'Kalkış saati';
+  static const String departureCapacity = 'Kontenjan';
+  static const String departureGuide = 'Tur sorumlusu';
+  static const String noGuide = 'Atanmadı';
+  static const String busPlate = 'Araç plakası';
+  static const String driverName = 'Şoför adı';
+  static const String driverPhone = 'Şoför telefonu';
+  static const String seatsColumn = 'Dolu / kontenjan';
+  static const String departureLocked = 'Bu tarih kapandı; düzenlenemez.';
+
+  // Tur bitirme talepleri
+  static const String completionsTitle = 'Tur bitirme talepleri';
+  static const String completionsEmpty = 'Bekleyen veya geçmiş talep yok.';
+  static const String completionPending = 'Bekliyor';
+  static const String completionApproved = 'Onaylandı';
+  static const String completionRejected = 'Reddedildi';
+  static const String approve = 'Onayla';
+  static const String reject = 'Reddet';
+  static const String approveConfirmTitle = 'Tur bitirilsin mi?';
+  static const String approveConfirmMessage =
+      'Sadece bu tarih kapanır. QR okutulan yolcular "Tamamlandı", okutulmayanlar '
+      '"Gelmedi" olarak işaretlenir.';
+  static const String rejectConfirmTitle = 'Talep reddedilsin mi?';
+  static const String rejectConfirmMessage = 'Tarih yeniden aktif olur; rehber turu sürdürür.';
+  static const String requestedBy = 'Talep eden';
+  static const String requestedAt = 'Talep zamanı';
 }

@@ -25,6 +25,8 @@ abstract final class AppSizes {
   static const double panelMaxContentWidth = 1200;
   static const double loginFormMaxWidth = 420;
   static const double dialogWidth = 480;
+  static const double wideDialogWidth = 820;
+  static const double wideDialogHeight = 560;
   static const double panelImagePreviewWidth = 320;
   static const double panelImagePreviewHeight = 180;
   static const double progressStroke = 2;

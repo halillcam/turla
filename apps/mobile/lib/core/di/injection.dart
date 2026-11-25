@@ -9,6 +9,13 @@ import '../../features/city_choice/data/repositories/selected_city_repository_im
 import '../../features/city_choice/domain/repositories/selected_city_repository.dart';
 import '../../features/city_choice/presentation/cubit/city_choice_cubit.dart';
 import '../../features/city_choice/presentation/cubit/selected_city_cubit.dart';
+import '../../features/tickets/data/datasources/ticket_local_data_source.dart';
+import '../../features/tickets/data/datasources/ticket_remote_data_source.dart';
+import '../../features/tickets/data/repositories/ticket_repository_impl.dart';
+import '../../features/tickets/domain/repositories/ticket_repository.dart';
+import '../../features/tickets/presentation/cubit/checkout_cubit.dart';
+import '../../features/tickets/presentation/cubit/my_tickets_cubit.dart';
+import '../../features/tickets/presentation/cubit/ticket_detail_cubit.dart';
 import '../../features/tours/data/datasources/tour_local_data_source.dart';
 import '../../features/tours/data/datasources/tour_remote_data_source.dart';
 import '../../features/tours/data/repositories/tour_repository_impl.dart';
@@ -48,6 +55,13 @@ void configureDependencies() {
         localDataSource: TourLocalDataSourceImpl(),
       ),
     )
+    // Biletler cihazda kullanıcı bazında saklanır (QR internetsiz açılır).
+    ..registerLazySingleton<TicketRepository>(
+      () => TicketRepositoryImpl(
+        remoteDataSource: TicketRemoteDataSourceImpl(getIt()),
+        localDataSource: TicketLocalDataSourceImpl(),
+      ),
+    )
     // Uygulama genelinde yaşayan Bloc'lar
     ..registerLazySingleton<SessionBloc>(() => SessionBloc(getIt()))
     ..registerLazySingleton<SelectedCityCubit>(
@@ -58,5 +72,8 @@ void configureDependencies() {
     ..registerFactory<RegisterCubit>(() => RegisterCubit(getIt()))
     ..registerFactory<CityChoiceCubit>(() => CityChoiceCubit(getIt()))
     ..registerFactory<TourListCubit>(() => TourListCubit(getIt()))
-    ..registerFactory<TourDetailCubit>(() => TourDetailCubit(getIt()));
+    ..registerFactory<TourDetailCubit>(() => TourDetailCubit(getIt()))
+    ..registerFactory<CheckoutCubit>(() => CheckoutCubit(getIt()))
+    ..registerFactory<MyTicketsCubit>(() => MyTicketsCubit(getIt()))
+    ..registerFactory<TicketDetailCubit>(() => TicketDetailCubit(getIt()));
 }

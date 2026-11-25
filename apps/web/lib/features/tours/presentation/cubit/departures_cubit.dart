@@ -68,6 +68,15 @@ class DeparturesCubit extends Cubit<DeparturesState> {
     emit(state.copyWith(departures: state.departures.where((d) => d.id != departureId).toList()));
   });
 
+  /// Katılımcı penceresinde bilet kesilip iptal edilince satılan koltuk yerelde güncellenir.
+  void setSoldSeats(String departureId, int soldSeats) => emit(
+    state.copyWith(
+      departures: [
+        for (final d in state.departures) d.id == departureId ? d.withSoldSeats(soldSeats) : d,
+      ],
+    ),
+  );
+
   Future<ActionResult<T>> _busy<T>(Future<T> Function() action) async {
     emit(state.copyWith(isBusy: true));
     final result = await runAction(action);

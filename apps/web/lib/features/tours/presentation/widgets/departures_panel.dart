@@ -8,6 +8,7 @@ import '../../../../core/utils/failure_messages.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/widgets/dialogs.dart';
 import '../../../../core/widgets/status_view.dart';
+import '../../../tickets/presentation/widgets/participants_dialog.dart';
 import '../../domain/entities/departure.dart';
 import '../cubit/departures_cubit.dart';
 import 'departure_form_dialog.dart';
@@ -28,6 +29,16 @@ class DeparturesPanel extends StatelessWidget {
       onSubmit: (draft) =>
           departure == null ? cubit.create(draft) : cubit.update(departure.id, draft),
     );
+  }
+
+  Future<void> _openParticipants(BuildContext context, Departure departure) async {
+    final cubit = context.read<DeparturesCubit>();
+    final soldSeats = await showParticipantsDialog(
+      context,
+      companyId: cubit.companyId,
+      departure: departure,
+    );
+    if (soldSeats != null) cubit.setSoldSeats(departure.id, soldSeats);
   }
 
   Future<void> _delete(BuildContext context, Departure departure) async {
@@ -99,6 +110,13 @@ class DeparturesPanel extends StatelessWidget {
                                   Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
+                                      IconButton(
+                                        onPressed: state.isBusy
+                                            ? null
+                                            : () => _openParticipants(context, departure),
+                                        icon: const Icon(Icons.people_outline),
+                                        tooltip: AppStrings.participants,
+                                      ),
                                       IconButton(
                                         onPressed: state.isBusy || !departure.isEditable
                                             ? null

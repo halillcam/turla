@@ -80,14 +80,14 @@ begin
       '08:30 Kahramanmaraş çıkış', 'Yerköprü Şelalesi', 'Doğa yürüyüşü (yaklaşık 2 saat)',
       'Alabalık öğle yemeği', '17:00 dönüş'], 1);
 
-  -- 4) Karadeniz
+  -- 4) Doğu Karadeniz
   insert into public.tours (company_id, title, description, extra_detail, price, city_id, region)
   values (
     v_company,
     'Karadeniz Yaylaları (4 Gün)',
     'Uzungöl, Ayder ve Pokut yaylaları, Sümela Manastırı ve Rize''de çay bahçeleri.',
     'Fiyata ulaşım, 3 gece konaklama, sabah ve akşam yemekleri dahildir.',
-    6500, 46, 'karadeniz'
+    6500, 46, 'dogu_karadeniz'
   ) returning id into v_tour;
   insert into public.tour_departures (tour_id, departure_at, capacity, bus_plate, driver_name)
   values

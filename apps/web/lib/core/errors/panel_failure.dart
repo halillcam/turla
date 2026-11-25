@@ -15,6 +15,11 @@ enum PanelFailureReason {
   invalidInput,
   cannotChangeSelf,
   invalidImage,
+  invalidCustomer,
+  alreadyHasTicket,
+  noSeatsLeft,
+  departureNotBookable,
+  ticketNotCancellable,
   unknown,
 }
 

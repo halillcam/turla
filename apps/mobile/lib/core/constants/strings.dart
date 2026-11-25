@@ -90,7 +90,84 @@ abstract final class AppStrings {
   static const String pricePerPerson = 'Kişi başı';
   static const String buyTicket = 'Bilet al';
   static const String loginToBuy = 'Bilet almak için giriş yap';
-  static const String purchaseComingSoon = 'Bilet satın alma bir sonraki sürümde açılacak.';
+  static const String selectDeparture = 'Bir kalkış tarihi seç';
+
+  // Satın alma (demo ödeme)
+  static const String checkoutTitle = 'Bilet al';
+  static const String checkoutMissing =
+      'Satın alma bilgisi bulunamadı. Tur sayfasından tekrar dene.';
+  static const String tripSummary = 'Tur bilgisi';
+  static const String passengerSection = 'Yolcu bilgisi';
+  static const String passengerHint = 'Bilet bu hesaba ve bu isme kesilir.';
+  static const String paymentSection = 'Ödeme';
+  static const String demoPaymentTitle = 'Demo ödeme';
+  static const String demoPaymentNote =
+      'Bu bir demo ödeme ekranıdır: gerçek tahsilat yapılmaz, kart bilgisi istenmez.';
+  static const String totalAmount = 'Toplam';
+  static const String completePayment = 'Ödemeyi tamamla';
+  static const String cancellationPolicy =
+      'Kalkıştan 1 saat öncesine kadar iptal edebilirsin; ödediğin tutarın tamamı iade edilir.';
+  static const String purchaseSuccessTitle = 'Biletin hazır!';
+  static const String purchaseSuccessMessage =
+      'Biletine her zaman Turlarım sekmesinden, internet olmadan da ulaşabilirsin.';
+  static const String goToMyTickets = 'Turlarıma git';
+  static const String backToTours = 'Turlara dön';
+
+  // Turlarım
+  static const String navMyTickets = 'Turlarım';
+  static const String myTicketsTitle = 'Turlarım';
+  static const String upcomingTickets = 'Yaklaşan';
+  static const String pastTickets = 'Geçmiş';
+  static const String noTickets = 'Henüz biletin yok. Turlara göz atıp ilk biletini alabilirsin.';
+  static const String noUpcomingTickets = 'Yaklaşan turun yok.';
+  static const String guestTicketsMessage = 'Biletlerini görmek için giriş yap.';
+  static const String ticketsLoadError = 'Biletler yüklenemedi. İnternet bağlantını kontrol et.';
+  static const String showingCachedTickets =
+      'İnternet bağlantısı yok. Cihazdaki biletlerin gösteriliyor.';
+  static const String browseTours = 'Turlara göz at';
+
+  // Bilet detayı
+  static const String ticketDetailTitle = 'Bilet';
+  static const String ticketNotFound = 'Bilet bu cihazda bulunamadı. Turlarım ekranını yenile.';
+  static const String showQrToGuide = 'Tur günü bu kodu tur sorumlusuna okut.';
+  static const String passenger = 'Yolcu';
+  static const String departureDate = 'Kalkış';
+  static const String vehicle = 'Araç';
+  static const String driver = 'Şoför';
+  static const String companyPhone = 'Firma telefonu';
+  static const String pricePaid = 'Ödenen tutar';
+  static const String ticketStatus = 'Durum';
+  static const String cancelTicket = 'Bileti iptal et';
+  static const String cancelDeadlinePrefix = 'Son iptal';
+  static const String cancelWindowClosed =
+      'Kalkışa 1 saatten az kaldığı için bu bilet artık uygulamadan iptal edilemez. '
+      'Firmayı arayabilirsin.';
+  static const String cancelDialogTitle = 'Bilet iptal edilsin mi?';
+  static const String cancelDialogRefundPrefix = 'İade edilecek tutar:';
+  static const String cancelDialogFreeTour = 'Bu tur ücretsiz; iade yapılmaz.';
+  static const String cancelDialogConfirm = 'İptal et';
+  static const String cancelDialogDismiss = 'Vazgeç';
+  static const String ticketCancelledMessage = 'Biletin iptal edildi.';
+  static const String refundedPrefix = 'İade';
+  static const String cancelledAtPrefix = 'İptal tarihi';
+  static const String notSpecified = 'Belirtilmedi';
+
+  // Bilet hataları (sunucu kodları)
+  static const String errorNotSignedIn = 'Bu işlem için giriş yapmalısın.';
+  static const String errorOnlyCustomersCanBook = 'Bilet sadece müşteri hesabıyla alınabilir.';
+  static const String errorDepartureNotFound = 'Bu kalkış tarihi artık yok.';
+  static const String errorTourNotAvailable = 'Bu tur şu an satışta değil.';
+  static const String errorDepartureNotBookable =
+      'Bu tarih için satış kapandı (tarih geçti veya tur iptal edildi).';
+  static const String errorAlreadyHasTicket =
+      'Bu tarih için zaten bir biletin var. Turlarım sekmesinden görebilirsin.';
+  static const String errorNoSeatsLeft = 'Üzgünüz, bu tarihte boş koltuk kalmadı.';
+  static const String errorTicketNotFound = 'Bilet bulunamadı.';
+  static const String errorNotAllowed = 'Bu işlem için yetkin yok.';
+  static const String errorTicketNotCancellable =
+      'Bu bilet iptal edilemez (kullanıldı, tur tamamlandı veya zaten iptal edildi).';
+  static const String errorCancellationWindowClosed =
+      'Kalkışa 1 saatten az kaldı; bilet artık iptal edilemez.';
 
   // Profil
   static const String profileTitle = 'Profil';

@@ -23,7 +23,8 @@ abstract final class CoreStrings {
 
   // Bölgeler
   static const String regionMediterranean = 'Akdeniz';
-  static const String regionBlackSea = 'Karadeniz';
+  static const String regionWesternBlackSea = 'Batı Karadeniz';
+  static const String regionEasternBlackSea = 'Doğu Karadeniz';
   static const String regionMarmara = 'Marmara';
   static const String regionAegean = 'Ege';
   static const String regionCentralAnatolia = 'İç Anadolu';

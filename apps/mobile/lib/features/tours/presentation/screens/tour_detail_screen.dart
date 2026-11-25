@@ -7,6 +7,7 @@ import '../../../../core/constants/strings.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/widgets/status_view.dart';
 import '../../../auth/presentation/bloc/session_bloc.dart';
+import '../../../tickets/presentation/screens/checkout_screen.dart';
 import '../../domain/entities/tour_failure.dart';
 import '../cubit/tour_detail_cubit.dart';
 import '../widgets/tour_detail_bottom_bar.dart';
@@ -17,15 +18,28 @@ class TourDetailScreen extends StatelessWidget {
 
   final String tourId;
 
-  void _onBuyPressed(BuildContext context, {required bool isSignedIn}) {
+  Future<void> _onBuyPressed(BuildContext context, {required bool isSignedIn}) async {
     if (!isSignedIn) {
-      context.push(AppRoutes.login);
+      await context.push(AppRoutes.login);
       return;
     }
-    // Bilet satın alma Faz 3'te eklenecek.
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(const SnackBar(content: Text(AppStrings.purchaseComingSoon)));
+    final cubit = context.read<TourDetailCubit>();
+    final tour = cubit.state.tour;
+    final departure = cubit.state.selectedDeparture;
+    if (tour == null || departure == null) return;
+
+    await context.push(
+      AppRoutes.checkout,
+      extra: CheckoutArgs(
+        tourTitle: tour.title,
+        companyName: tour.companyName,
+        price: tour.price,
+        departureId: departure.id,
+        departureAt: departure.departureAt,
+      ),
+    );
+    // Satın alma yarıda bırakıldıysa boş koltuk sayısı değişmiş olabilir.
+    if (!cubit.isClosed) await cubit.load(tourId);
   }
 
   @override
@@ -53,11 +67,15 @@ class TourDetailScreen extends StatelessWidget {
               ),
             ),
             TourDetailStatus.ready => Scaffold(
-              body: TourDetailContent(tour: tour!),
+              body: TourDetailContent(
+                tour: tour!,
+                selectedDepartureId: state.selectedDepartureId,
+                onDepartureSelected: context.read<TourDetailCubit>().selectDeparture,
+              ),
               bottomNavigationBar: TourDetailBottomBar(
                 price: tour.price,
                 isSignedIn: isSignedIn,
-                isEnabled: tour.hasAvailableSeats,
+                isEnabled: state.canBuy,
                 onPressed: () => _onBuyPressed(context, isSignedIn: isSignedIn),
               ),
             ),

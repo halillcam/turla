@@ -6,7 +6,7 @@ import '../../../../core/constants/strings.dart';
 import '../cubit/login_cubit.dart';
 import '../utils/auth_validators.dart';
 import 'password_field.dart';
-import 'submit_button.dart';
+import '../../../../core/widgets/submit_button.dart';
 
 class LoginForm extends StatefulWidget {
   const LoginForm({super.key});

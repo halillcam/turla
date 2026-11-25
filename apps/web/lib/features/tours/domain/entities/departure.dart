@@ -33,6 +33,20 @@ class Departure extends Equatable {
   bool get isEditable =>
       status == DepartureStatus.scheduled || status == DepartureStatus.finishRequested;
 
+  /// Bilet satışı / iptali sonrası boş koltuk sayısı (sunucudaki seats_left ile aynı kural).
+  Departure withSoldSeats(int soldSeats) => Departure(
+    id: id,
+    tourId: tourId,
+    departureAt: departureAt,
+    capacity: capacity,
+    seatsLeft: capacity - soldSeats,
+    status: status,
+    guideId: guideId,
+    busPlate: busPlate,
+    driverName: driverName,
+    driverPhone: driverPhone,
+  );
+
   DepartureDraft toDraft() => DepartureDraft(
     departureAt: departureAt,
     capacity: capacity,

@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:turla_core/turla_core.dart';
 
-import '../../../../core/constants/strings.dart';
+import '../constants/strings.dart';
 
-/// İnternet yokken önbellekteki liste gösterildiğini belirtir.
+/// İnternet yokken cihazda kayıtlı verinin gösterildiğini belirtir.
 class StaleDataBanner extends StatelessWidget {
-  const StaleDataBanner({super.key});
+  const StaleDataBanner({this.message = AppStrings.showingCachedTours, super.key});
+
+  final String message;
 
   @override
   Widget build(BuildContext context) {
@@ -20,12 +22,7 @@ class StaleDataBanner extends StatelessWidget {
         children: [
           const Icon(Icons.wifi_off, size: AppSizes.iconMd, color: AppColors.warning),
           const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            child: Text(
-              AppStrings.showingCachedTours,
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-          ),
+          Expanded(child: Text(message, style: Theme.of(context).textTheme.bodyMedium)),
         ],
       ),
     );

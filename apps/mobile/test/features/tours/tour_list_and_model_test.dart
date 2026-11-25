@@ -13,14 +13,19 @@ void main() {
         tourWith(id: '1', title: 'Yerköprü Şelalesi', region: TourRegion.dayTrip),
         tourWith(id: '2', title: 'Kapadokya', region: TourRegion.centralAnatolia),
         tourWith(id: '3', title: 'Gaziantep Lezzet', region: TourRegion.dayTrip),
-        tourWith(id: '4', title: 'Uzungöl', region: TourRegion.blackSea, companyName: 'Rize Tur'),
+        tourWith(
+          id: '4',
+          title: 'Uzungöl',
+          region: TourRegion.easternBlackSea,
+          companyName: 'Rize Tur',
+        ),
       ],
     );
 
     test('turlar bölge sırasına göre gruplanır, boş bölge çıkmaz', () {
       final sections = state.sections;
       expect(sections.map((section) => section.region), [
-        TourRegion.blackSea,
+        TourRegion.easternBlackSea,
         TourRegion.centralAnatolia,
         TourRegion.dayTrip,
       ]);

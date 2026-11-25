@@ -1,7 +1,8 @@
 /// Turla ortak çekirdek paketi.
 library;
 
-export 'package:supabase_flutter/supabase_flutter.dart' show SupabaseClient;
+export 'package:supabase_flutter/supabase_flutter.dart'
+    show AuthException, AuthRetryableFetchException, PostgrestException, SupabaseClient;
 
 export 'src/bloc/turla_bloc_observer.dart';
 export 'src/config/env.dart';

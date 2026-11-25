@@ -3,7 +3,8 @@ import '../constants/core_strings.dart';
 /// Veritabanındaki `tour_region` tipinin karşılığı.
 enum TourRegion {
   mediterranean('akdeniz', CoreStrings.regionMediterranean),
-  blackSea('karadeniz', CoreStrings.regionBlackSea),
+  westernBlackSea('bati_karadeniz', CoreStrings.regionWesternBlackSea),
+  easternBlackSea('dogu_karadeniz', CoreStrings.regionEasternBlackSea),
   marmara('marmara', CoreStrings.regionMarmara),
   aegean('ege', CoreStrings.regionAegean),
   centralAnatolia('ic_anadolu', CoreStrings.regionCentralAnatolia),

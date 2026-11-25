@@ -83,5 +83,13 @@ abstract final class PanelErrorMapper {
     'invalid_email': PanelFailureReason.invalidInput,
     'invalid_phone': PanelFailureReason.invalidInput,
     'invalid_body': PanelFailureReason.invalidInput,
+    // Biletler (Faz 3)
+    'ticket_not_found': PanelFailureReason.notFound,
+    'departure_not_found': PanelFailureReason.notFound,
+    'invalid_customer': PanelFailureReason.invalidCustomer,
+    'already_has_ticket': PanelFailureReason.alreadyHasTicket,
+    'no_seats_left': PanelFailureReason.noSeatsLeft,
+    'departure_not_bookable': PanelFailureReason.departureNotBookable,
+    'ticket_not_cancellable': PanelFailureReason.ticketNotCancellable,
   };
 }

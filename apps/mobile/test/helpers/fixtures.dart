@@ -1,4 +1,5 @@
 import 'package:turla_core/turla_core.dart';
+import 'package:turla_mobile/features/tickets/domain/entities/ticket.dart';
 import 'package:turla_mobile/features/tours/domain/entities/tour.dart';
 import 'package:turla_mobile/features/tours/domain/entities/tour_departure.dart';
 import 'package:turla_mobile/features/tours/domain/entities/tour_program_day.dart';
@@ -37,4 +38,31 @@ Tour tourWith({
   programDays: const [
     TourProgramDay(dayNo: 1, title: 'Göreme', activities: ['Müze']),
   ],
+);
+
+Ticket ticketWith({
+  String id = 'ticket-1',
+  TicketStatus status = TicketStatus.paid,
+  DepartureStatus departureStatus = DepartureStatus.scheduled,
+  DateTime? departureAt,
+  double pricePaid = 1850,
+  double? refundAmount,
+  String tourTitle = 'Kapadokya Turu',
+}) => Ticket(
+  id: id,
+  qrToken: 'qr-$id',
+  status: status,
+  passengerName: 'Test Kullanıcı',
+  pricePaid: pricePaid,
+  createdAt: DateTime.utc(2026, 11, 20, 10),
+  departureId: 'dep-$id',
+  departureAt: departureAt ?? DateTime.utc(2026, 12, 5, 7),
+  departureStatus: departureStatus,
+  busPlate: '46 ABC 101',
+  driverName: 'Mehmet Kaya',
+  tourId: 'tour-1',
+  tourTitle: tourTitle,
+  companyName: 'Demo Turizm',
+  companyPhone: '0344 000 00 00',
+  refundAmount: refundAmount,
 );

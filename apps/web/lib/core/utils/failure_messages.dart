@@ -20,6 +20,11 @@ extension PanelFailureMessage on PanelFailureReason {
     PanelFailureReason.invalidInput => AppStrings.errorInvalidInput,
     PanelFailureReason.cannotChangeSelf => AppStrings.errorCannotChangeSelf,
     PanelFailureReason.invalidImage => AppStrings.errorInvalidImage,
+    PanelFailureReason.invalidCustomer => AppStrings.errorInvalidCustomer,
+    PanelFailureReason.alreadyHasTicket => AppStrings.errorAlreadyHasTicket,
+    PanelFailureReason.noSeatsLeft => AppStrings.errorNoSeatsLeft,
+    PanelFailureReason.departureNotBookable => AppStrings.errorDepartureNotBookable,
+    PanelFailureReason.ticketNotCancellable => AppStrings.errorTicketNotCancellable,
     PanelFailureReason.unknown => CoreStrings.unexpectedError,
   };
 }

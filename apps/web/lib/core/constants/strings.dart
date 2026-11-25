@@ -67,6 +67,15 @@ abstract final class AppStrings {
   static const String errorInvalidInput = 'Girilen bilgiler geçersiz. Alanları kontrol edin.';
   static const String errorCannotChangeSelf = 'Kendi hesabınızın durumunu değiştiremezsiniz.';
   static const String errorInvalidImage = 'Görsel okunamadı. JPEG, PNG veya WebP bir dosya seçin.';
+  static const String errorInvalidCustomer =
+      'Bilet sadece firmanın panelden eklediği aktif müşterilere kesilebilir.';
+  static const String errorAlreadyHasTicket =
+      'Bu müşterinin bu tarih için zaten geçerli bir bileti var.';
+  static const String errorNoSeatsLeft = 'Bu tarihte boş koltuk kalmadı.';
+  static const String errorDepartureNotBookable =
+      'Bu tarihe bilet kesilemez (kalkış saati geçti veya tarih kapandı).';
+  static const String errorTicketNotCancellable =
+      'Bu bilet iptal edilemez (kullanıldı, tur tamamlandı veya zaten iptal edildi).';
 
   // Menü
   static const String navCompanies = 'Firmalar';
@@ -164,6 +173,34 @@ abstract final class AppStrings {
   static const String driverPhone = 'Şoför telefonu';
   static const String seatsColumn = 'Dolu / kontenjan';
   static const String departureLocked = 'Bu tarih kapandı; düzenlenemez.';
+
+  // Katılımcılar ve biletler (tarih bazında)
+  static const String participants = 'Katılımcılar';
+  static const String participantsTitle = 'Katılımcılar ve biletler';
+  static const String participantsEmpty = 'Bu tarihe henüz bilet satılmadı.';
+  static const String soldSeatsLabel = 'Satılan koltuk';
+  static const String passengerColumn = 'Yolcu';
+  static const String ticketSourceColumn = 'Kaynak';
+  static const String pricePaidColumn = 'Ödenen';
+  static const String purchasedAtColumn = 'Alış';
+  static const String ticketSourceApp = 'Uygulama';
+  static const String ticketSourcePanel = 'Panel';
+  static const String issueTicket = 'Bilet kes';
+  static const String issueTicketTitle = 'Müşteriye bilet kes';
+  static const String issueTicketHint =
+      'Panelden eklenen (MUS-) müşterilere kesilir. Ödeme "elden / havale" olarak kaydedilir.';
+  static const String issueTicketCustomer = 'Müşteri';
+  static const String issueTicketPassenger = 'Yolcu adı (boşsa müşterinin adı)';
+  static const String issueTicketNoCustomers =
+      'Aktif müşteri yok. Önce "Personel ve müşteriler" sayfasından müşteri hesabı açın.';
+  static const String issueTicketClosed = 'Bu tarih kapandı; bilet kesilemez.';
+  static const String ticketIssued = 'Bilet kesildi.';
+  static const String cancelTicket = 'Bileti iptal et';
+  static const String cancelTicketTitle = 'Bilet iptal edilsin mi?';
+  static const String cancelTicketMessage =
+      'Koltuk geri açılır, ödeme varsa tamamı iade olarak kaydedilir. Yönetici iptali 1 saat '
+      'kuralından muaftır.';
+  static const String ticketCancelled = 'Bilet iptal edildi.';
 
   // Tur bitirme talepleri
   static const String completionsTitle = 'Tur bitirme talepleri';

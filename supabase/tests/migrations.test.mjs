@@ -79,6 +79,13 @@ const expectError = async (label, code, fn) => {
 };
 const scalar = async (sql, params = []) => (await db.query(sql, params)).rows[0];
 
+// ─── Bölgeler (migration 11) ─────────────────────────────────────────────
+await expectOk('tour_region: Karadeniz Batı/Doğu olarak ayrıldı, sıra uygulamayla aynı', async () => {
+  const r = await scalar(`select array_to_string(enum_range(null::public.tour_region), ',') v`);
+  const expected = 'akdeniz,bati_karadeniz,dogu_karadeniz,marmara,ege,ic_anadolu,dogu_anadolu,guneydogu_anadolu,gunubirlik,yurtdisi';
+  if (r.v !== expected) throw new Error(r.v);
+});
+
 // ─── Test verisi ───────────────────────────────────────────────────────────
 const company = (await scalar(`insert into public.companies (name, city_id) values ('Maraş Turizm', 46) returning id`)).id;
 const otherCompany = (await scalar(`insert into public.companies (name, city_id) values ('Başka Firma', 34) returning id`)).id;
@@ -144,7 +151,8 @@ const t1 = await expectOk('müşteri 1 bilet alır', async () => (await asUser(c
   `select * from public.book_ticket($1, 'Mehmet Yılmaz')`, [futureDep.id])).rows[0]);
 const t2 = await expectOk('müşteri 2 son koltuğu alır', async () => (await asUser(customer2,
   `select * from public.book_ticket($1, 'Ayşe Kaya')`, [futureDep.id])).rows[0]);
-await expectError('kontenjan dolunca bilet satılmaz', 'no_seats_left', () => asUser(customer,
+const customer3 = await mkUser(null, null, 'Müşteri Can');
+await expectError('kontenjan dolunca bilet satılmaz', 'no_seats_left', () => asUser(customer3,
   `select public.book_ticket($1, 'Fazla')`, [futureDep.id]));
 await expectError('kalkmış tura bilet alınamaz', 'departure_not_bookable', () => asUser(customer,
   `select public.book_ticket($1, 'Geç')`, [startedDep]));
@@ -327,7 +335,7 @@ await expectOk('super admin firmayı pasif yapar → admin yönetemez, turlar gi
   await expectError('pasif firmanın admini tur ekleyemez', 'row-level security', () => asUser(admin,
     `insert into public.tours (company_id, title, price, city_id, region)
      values ($1, 'Pasif Tur', 10, 46, 'ege')`, [company]));
-  const r = await asUser(customer, `select count(*)::int n from public.tours where company_id = $1`, [company]);
+  const r = await asUser(customer3, `select count(*)::int n from public.tours where company_id = $1`, [company]);
   if (r.rows[0].n !== 0) throw new Error('müşteri pasif firmanın turunu görüyor: ' + r.rows[0].n);
   const s = await asUser(superAdmin, `select count(*)::int n from public.tours where company_id = $1`, [company]);
   if (s.rows[0].n === 0) throw new Error('super admin pasif firmanın turunu görmeli');
@@ -371,6 +379,95 @@ await expectError('service_role rol değiştiremez', 'permission denied', () => 
   `update public.profiles set role = 'super_admin' where id = $1`, [guide2]));
 await expectError('service_role bilete yazamaz', 'permission denied', () => asService(
   `delete from public.tickets`));
+
+// ─── Faz 3: biletler (migration 12) ────────────────────────────────────────
+const f3Tour = (await scalar(`insert into public.tours (company_id, title, price, city_id, region)
+  values ($1, 'Faz 3 Turu', 500, 46, 'dogu_karadeniz') returning id`, [company])).id;
+const f3Dep = (await scalar(`insert into public.tour_departures (tour_id, departure_at, capacity)
+  values ($1, now() + interval '4 days', 3) returning id`, [f3Tour])).id;
+const buyer = await mkUser(null, null, 'Alıcı Zeynep');
+const outsider = await mkUser(null, null, 'Başka Müşteri');
+const panelCustomer = await mkUser('customer', company, 'Panel Müşterisi');
+const otherPanelCustomer = await mkUser('customer', otherCompany, 'Başka Firma Müşterisi');
+
+const f3Ticket = await expectOk('müşteri bilet alır', async () =>
+  (await asUser(buyer, `select * from public.book_ticket($1, 'Zeynep Ak')`, [f3Dep])).rows[0]);
+await expectError('aynı tarihe ikinci bilet alınamaz', 'already_has_ticket', () => asUser(buyer,
+  `select public.book_ticket($1, 'Zeynep Ak')`, [f3Dep]));
+await expectOk('iptal edince aynı tarihe yeniden bilet alınır', async () => {
+  await asUser(buyer, `select public.cancel_ticket($1)`, [f3Ticket.id]);
+  await asUser(buyer, `select public.book_ticket($1, 'Zeynep Ak')`, [f3Dep]);
+  const r = await scalar(`select seats_left from public.tour_departures where id = $1`, [f3Dep]);
+  if (r.seats_left !== 2) throw new Error('seats_left ' + r.seats_left);
+});
+
+await expectOk('tur satıştan kalkınca ve firma pasifleşince bilet sahibi turu/tarihi/firmayı görür', async () => {
+  await db.query(`update public.tours set is_active = false where id = $1`, [f3Tour]);
+  await db.query(`update public.companies set is_active = false where id = $1`, [company]);
+  try {
+    const q = `select tk.id, d.id dep, t.title, c.name
+      from public.tickets tk
+      join public.tour_departures d on d.id = tk.departure_id
+      join public.tours t on t.id = d.tour_id
+      join public.companies c on c.id = t.company_id
+      where tk.departure_id = $1`;
+    const own = await asUser(buyer, q, [f3Dep]);
+    if (own.rows.length !== 2 || own.rows[0].title !== 'Faz 3 Turu') throw new Error(JSON.stringify(own.rows));
+    const other = await asUser(outsider, `select count(*)::int n from public.tours where id = $1`, [f3Tour]);
+    if (other.rows[0].n !== 0) throw new Error('başka müşteri pasif turu görüyor');
+    const guest = await asUser(null, `select count(*)::int n from public.tour_departures where id = $1`, [f3Dep]);
+    if (guest.rows[0].n !== 0) throw new Error('misafir pasif turun tarihini görüyor');
+  } finally {
+    await db.query(`update public.companies set is_active = true where id = $1`, [company]);
+    await db.query(`update public.tours set is_active = true where id = $1`, [f3Tour]);
+  }
+});
+await expectOk('bilet sahibi ödeme ve iade kaydını görür', async () => {
+  const r = await asUser(buyer, `select string_agg(type::text, ',' order by type) t from public.payments`);
+  if (r.rows[0].t !== 'payment,payment,refund') throw new Error(r.rows[0].t);
+});
+
+// Panelden bilet
+await expectError('müşteri panelden bilet kesemez', 'not_allowed', () => asUser(buyer,
+  `select public.admin_issue_ticket($1, $2)`, [f3Dep, panelCustomer]));
+await expectError('misafir panelden bilet kesemez', 'permission denied', () => asUser(null,
+  `select public.admin_issue_ticket($1, $2)`, [f3Dep, panelCustomer]));
+await expectError('başka firmanın admini bilet kesemez', 'not_allowed', () => asUser(otherAdmin,
+  `select public.admin_issue_ticket($1, $2)`, [f3Dep, panelCustomer]));
+await expectError('uygulamadan kayıtlı müşteriye panelden bilet kesilmez', 'invalid_customer', () => asUser(admin,
+  `select public.admin_issue_ticket($1, $2)`, [f3Dep, outsider]));
+await expectError('başka firmanın müşterisine bilet kesilmez', 'invalid_customer', () => asUser(admin,
+  `select public.admin_issue_ticket($1, $2)`, [f3Dep, otherPanelCustomer]));
+await expectError('rehbere bilet kesilmez', 'invalid_customer', () => asUser(admin,
+  `select public.admin_issue_ticket($1, $2)`, [f3Dep, guide]));
+const panelTicket = await expectOk('admin firmanın müşterisine bilet keser → paid, panel, manual ödeme, ad profilden', async () => {
+  const t = (await asUser(admin, `select * from public.admin_issue_ticket($1, $2)`, [f3Dep, panelCustomer])).rows[0];
+  const r = await scalar(`select (select method from public.payments where ticket_id = $1 and type = 'payment') m,
+    (select seats_left from public.tour_departures where id = $2) s`, [t.id, f3Dep]);
+  if (t.status !== 'paid' || t.source !== 'panel' || t.passenger_name !== 'Panel Müşterisi'
+      || t.price_paid !== '500.00' || r.m !== 'manual' || r.s !== 1) throw new Error(JSON.stringify({ t, r }));
+  return t;
+});
+await expectError('panelden aynı müşteriye ikinci bilet kesilmez', 'already_has_ticket', () => asUser(admin,
+  `select public.admin_issue_ticket($1, $2)`, [f3Dep, panelCustomer]));
+await expectOk('panel müşterisi kendi biletini görür', async () => {
+  const r = await asUser(panelCustomer, `select count(*)::int n from public.tickets`);
+  if (r.rows[0].n !== 1) throw new Error('görülen ' + r.rows[0].n);
+});
+await expectOk('admin panel biletini iptal eder → manual iade', async () => {
+  await asUser(admin, `select public.cancel_ticket($1)`, [panelTicket.id]);
+  const r = await scalar(`select method from public.payments where ticket_id = $1 and type = 'refund'`, [panelTicket.id]);
+  if (r.method !== 'manual') throw new Error(JSON.stringify(r));
+});
+await expectOk('super admin de panelden bilet keser', () => asUser(superAdmin,
+  `select public.admin_issue_ticket($1, $2, 'Elle Yazılan Ad')`, [f3Dep, panelCustomer]));
+await expectError('kontenjan dolunca panelden de bilet kesilmez', 'no_seats_left', async () => {
+  await asUser(admin, `select public.admin_issue_ticket($1, $2)`, [f3Dep, await mkUser('customer', company, 'Son Koltuk')]);
+  const c = await mkUser('customer', company, 'Fazla Müşteri');
+  await asUser(admin, `select public.admin_issue_ticket($1, $2)`, [f3Dep, c]);
+});
+await expectError('kalkmış tarihe panelden bilet kesilmez', 'departure_not_bookable', () => asUser(admin,
+  `select public.admin_issue_ticket($1, $2)`, [startedDep, panelCustomer]));
 
 console.log(failures === 0 ? '\nTÜM TESTLER GEÇTİ' : `\n${failures} TEST BAŞARISIZ`);
 process.exit(failures === 0 ? 0 : 1);

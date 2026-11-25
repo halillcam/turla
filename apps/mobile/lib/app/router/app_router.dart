@@ -7,6 +7,9 @@ import '../../features/city_choice/presentation/cubit/selected_city_cubit.dart';
 import '../../features/city_choice/presentation/screens/city_choice_screen.dart';
 import '../../features/guide/presentation/screens/guide_home_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
+import '../../features/tickets/presentation/screens/checkout_screen.dart';
+import '../../features/tickets/presentation/screens/my_tickets_screen.dart';
+import '../../features/tickets/presentation/screens/ticket_detail_screen.dart';
 import '../../features/tours/presentation/screens/tour_detail_screen.dart';
 import '../../features/tours/presentation/screens/tour_list_screen.dart';
 import '../shell/main_shell.dart';
@@ -33,6 +36,11 @@ class AppRouter {
         GoRoute(path: AppRoutes.register, builder: (_, _) => const RegisterScreen()),
         GoRoute(path: AppRoutes.citySelection, builder: (_, _) => const CityChoiceScreen()),
         GoRoute(path: AppRoutes.guideHome, builder: (_, _) => const GuideHomeScreen()),
+        // Satın alma alt menüsüz, tam ekran açılır.
+        GoRoute(
+          path: AppRoutes.checkout,
+          builder: (_, state) => CheckoutScreen(args: state.extra as CheckoutArgs?),
+        ),
         StatefulShellRoute.indexedStack(
           builder: (_, _, navigationShell) => MainShell(navigationShell: navigationShell),
           branches: [
@@ -46,6 +54,22 @@ class AppRouter {
                       path: ':${AppRoutes.tourDetailParam}',
                       builder: (_, state) => TourDetailScreen(
                         tourId: state.pathParameters[AppRoutes.tourDetailParam]!,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            StatefulShellBranch(
+              routes: [
+                GoRoute(
+                  path: AppRoutes.myTickets,
+                  builder: (_, _) => const MyTicketsScreen(),
+                  routes: [
+                    GoRoute(
+                      path: ':${AppRoutes.ticketDetailParam}',
+                      builder: (_, state) => TicketDetailScreen(
+                        ticketId: state.pathParameters[AppRoutes.ticketDetailParam]!,
                       ),
                     ),
                   ],

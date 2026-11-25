@@ -15,8 +15,12 @@ import '../../features/completions/presentation/cubit/completions_cubit.dart';
 import '../../features/staff/data/repositories/account_repository_impl.dart';
 import '../../features/staff/domain/repositories/account_repository.dart';
 import '../../features/staff/presentation/cubit/staff_cubit.dart';
+import '../../features/tickets/data/repositories/ticket_admin_repository_impl.dart';
+import '../../features/tickets/domain/repositories/ticket_admin_repository.dart';
+import '../../features/tickets/presentation/cubit/participants_cubit.dart';
 import '../../features/tours/data/repositories/tour_admin_repository_impl.dart';
 import '../../features/tours/data/services/image_resizer.dart';
+import '../../features/tours/domain/entities/departure.dart';
 import '../../features/tours/domain/repositories/tour_admin_repository.dart';
 import '../../features/tours/presentation/cubit/departures_cubit.dart';
 import '../../features/tours/presentation/cubit/tour_info_cubit.dart';
@@ -47,6 +51,7 @@ void configureDependencies() {
     ..registerLazySingleton<AccountRepository>(() => AccountRepositoryImpl(getIt()))
     ..registerLazySingleton<TourAdminRepository>(() => TourAdminRepositoryImpl(getIt()))
     ..registerLazySingleton<CompletionRepository>(() => CompletionRepositoryImpl(getIt()))
+    ..registerLazySingleton<TicketAdminRepository>(() => TicketAdminRepositoryImpl(getIt()))
     ..registerLazySingleton<PanelAuthRepository>(
       () => PanelAuthRepositoryImpl(
         authRepository: getIt(),
@@ -92,6 +97,14 @@ void configureDependencies() {
         companyId: companyId,
         tourId: tourId,
         tourRepository: getIt(),
+        accountRepository: getIt(),
+      ),
+    )
+    ..registerFactoryParam<ParticipantsCubit, String, Departure>(
+      (companyId, departure) => ParticipantsCubit(
+        companyId: companyId,
+        departure: departure,
+        ticketRepository: getIt(),
         accountRepository: getIt(),
       ),
     )

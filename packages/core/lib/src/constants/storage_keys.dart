@@ -8,6 +8,9 @@ abstract final class StorageKeys {
 
   /// İl bazında tur listesi önbelleği: `<önek><il_id>`.
   static const String toursByCityPrefix = 'turla.tours.city.';
+
+  /// Kullanıcı bazında bilet önbelleği: `<önek><kullanıcı_id>`.
+  static const String ticketsByUserPrefix = 'turla.tickets.user.';
 }
 
 /// Yerel önbellek sürümleri.
@@ -18,5 +21,9 @@ abstract final class CacheVersions {
   static const int cities = 1;
 
   /// Tur listesi önbelleğinin biçimi değişirse artırılır.
-  static const int tours = 1;
+  /// 2: Karadeniz, Batı/Doğu Karadeniz olarak ikiye ayrıldı (eski bölge değeri atılır).
+  static const int tours = 2;
+
+  /// Bilet önbelleğinin biçimi değişirse artırılır.
+  static const int tickets = 1;
 }

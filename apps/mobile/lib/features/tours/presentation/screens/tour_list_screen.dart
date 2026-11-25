@@ -10,7 +10,7 @@ import '../../../../core/widgets/status_view.dart';
 import '../../../city_choice/presentation/cubit/selected_city_cubit.dart';
 import '../cubit/tour_list_cubit.dart';
 import '../widgets/region_section_view.dart';
-import '../widgets/stale_data_banner.dart';
+import '../../../../core/widgets/stale_data_banner.dart';
 import '../widgets/tour_list_header.dart';
 
 class TourListScreen extends StatelessWidget {

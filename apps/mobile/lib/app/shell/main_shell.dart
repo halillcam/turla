@@ -24,6 +24,11 @@ class MainShell extends StatelessWidget {
             label: AppStrings.navTours,
           ),
           NavigationDestination(
+            icon: Icon(Icons.confirmation_number_outlined),
+            selectedIcon: Icon(Icons.confirmation_number),
+            label: AppStrings.navMyTickets,
+          ),
+          NavigationDestination(
             icon: Icon(Icons.person_outline),
             selectedIcon: Icon(Icons.person),
             label: AppStrings.navProfile,

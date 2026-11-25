@@ -10,9 +10,16 @@ import 'tour_image.dart';
 
 /// Tur detayının kaydırılabilir içeriği.
 class TourDetailContent extends StatelessWidget {
-  const TourDetailContent({required this.tour, super.key});
+  const TourDetailContent({
+    required this.tour,
+    required this.selectedDepartureId,
+    required this.onDepartureSelected,
+    super.key,
+  });
 
   final Tour tour;
+  final String? selectedDepartureId;
+  final ValueChanged<String> onDepartureSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -55,7 +62,12 @@ class TourDetailContent extends StatelessWidget {
               if (tour.departures.isEmpty)
                 Text(AppStrings.noUpcomingDepartures, style: textTheme.bodyMedium)
               else
-                for (final departure in tour.departures) DepartureTile(departure: departure),
+                for (final departure in tour.departures)
+                  DepartureTile(
+                    departure: departure,
+                    isSelected: departure.id == selectedDepartureId,
+                    onSelected: () => onDepartureSelected(departure.id),
+                  ),
             ],
           ),
         ),

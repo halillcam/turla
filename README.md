@@ -4,7 +4,21 @@ Turla, butik tur firmaları ile müşterilerini aynı yerde buluşturan bir tur 
 
 Küçük ve orta ölçekli tur firmaları satışlarını çoğunlukla telefon, mesajlaşma uygulamaları ve el ile tutulan listelerle yürütüyor. Kontenjanın ne kadarının dolduğu, kimin ödeme yaptığı, otobüse kimin bindiği ve yolculara son dakika bilgisinin nasıl ulaştırılacağı gibi işler hem firma hem de müşteri için yorucu ve hataya açık. Turla bu süreci tek bir sistemde topluyor: müşteri turu telefonundan bulup bilet alıyor, firma turlarını ve katılımcılarını panelden yönetiyor, tur sorumlusu da tur günü yolcuları QR kod ile karşılayıp onlarla uygulama üzerinden iletişim kuruyor.
 
-Proje Kahramanmaraş'ta geliştiriliyor ve şu an MVP aşamasında. Mobil uygulama müşteriler ve tur sorumluları için, web paneli ise tur firmaları ve sistem yöneticisi için.
+Proje şu an MVP aşamasında. Mobil uygulama müşteriler ve tur sorumluları için, web paneli ise tur firmaları ve sistem yöneticisi için.
+
+## Bu projeyi neden geliştiriyorum
+
+Turla benim girişim projem. Yazılım dünyası yapay zekâ ile hızla değişiyor ve ben de bu değişimin dışında kalmak yerine ona uyum sağlamak istiyorum. Kendi kendime öğrendiğim Flutter ve mobil geliştirme bilgimi, bugün sektörde giderek yaygınlaşan yapay zekâ destekli geliştirme yöntemleriyle birleştirip gerçek bir ürün ortaya çıkarmayı hedefliyorum.
+
+Benim için bu proje iki şey ifade ediyor: bir yandan küçük tur firmalarının gerçek bir sorununu çözen bir ürün, öte yandan yapay zekâyı bir geliştirme ortağı olarak nasıl verimli kullanabileceğimi öğrendiğim bir çalışma alanı.
+
+## Yapay zekâ ile geliştirme
+
+Bu projeyi yapay zekâyla birlikte geliştiriyorum ve bunu açıkça belirtmek istiyorum. Kodun ve commit mesajlarının büyük bölümü, benim yönlendirmemle Anthropic'in yapay zekâ modeli Claude (Claude Code) tarafından yazıldı.
+
+Ürünün ne yapacağına, iş kurallarına ve önceliklere ben karar veriyorum: hangi rollerin olacağı, biletin ne zamana kadar iptal edilebileceği, iadenin nasıl yapılacağı, verinin neden cihazda saklanacağı, hangi özelliğin ne zaman geleceği gibi. Mimarinin kurallarını birlikte belirledik; her aşamanın sonunda çıkan işi uygulamada deniyor, hataları bulup düzelttiriyor ve ancak bu kontrollerden sonra yayınlıyorum.
+
+Projenin teknik ayrıntıları [teknik dokümanda](docs/teknik-dokuman.md) anlatılıyor.
 
 ## Roller
 

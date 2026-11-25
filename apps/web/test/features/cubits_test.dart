@@ -66,6 +66,32 @@ void main() {
       await cubit.close();
     });
 
+    test('şifre sıfırlama yeni şifreyi döndürür, liste değişmez ve yeniden çekilmez', () async {
+      when(() => accounts.resetPassword('g1')).thenAnswer((_) async => 'Yeni2345ab');
+      final cubit = StaffCubit(companyId: companyA, accountRepository: accounts);
+      await cubit.load();
+      final before = cubit.state.members;
+
+      final result = await cubit.resetPassword(cubit.state.guides.single);
+
+      expect(result.value, 'Yeni2345ab');
+      expect(cubit.state.members, before);
+      expect(cubit.state.isBusy, isFalse);
+      verify(() => accounts.listMembers(companyA, roles: StaffCubit.managedRoles)).called(1);
+      await cubit.close();
+    });
+
+    test('sıfırlanamayan hesap hatası döner', () async {
+      when(
+        () => accounts.resetPassword('g1'),
+      ).thenThrow(const PanelFailure(PanelFailureReason.notResettable));
+      final cubit = StaffCubit(companyId: companyA, accountRepository: accounts);
+      await cubit.load();
+      final result = await cubit.resetPassword(cubit.state.guides.single);
+      expect(result.failure, PanelFailureReason.notResettable);
+      await cubit.close();
+    });
+
     test('aktif/pasif hatası durumu değiştirmez', () async {
       when(
         () => accounts.setActive('g1', isActive: false),

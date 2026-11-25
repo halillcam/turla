@@ -15,6 +15,10 @@ abstract interface class AccountRepository {
   /// `create-account` Edge Function'ı ile hesap açar.
   Future<CreatedAccount> createAccount(NewAccount account);
 
+  /// `create-account` Edge Function'ının `reset_password` aksiyonu: giriş kimlikli
+  /// hesaba (REH-/MUS-) yeni geçici şifre verir, şifreyi döndürür (bir kez gösterilir).
+  Future<String> resetPassword(String profileId);
+
   /// `set_profile_active` ile hesabı aktif / pasif yapar.
   Future<void> setActive(String profileId, {required bool isActive});
 }

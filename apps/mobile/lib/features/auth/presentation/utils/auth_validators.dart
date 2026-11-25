@@ -4,6 +4,8 @@ import '../../../../core/constants/strings.dart';
 abstract final class AuthValidators {
   static const int minPasswordLength = 8;
   static const int minFullNameLength = 3;
+  // Sunucudaki normalize_phone ile aynı kural: rakam, boşluk, +, -, parantez; 7-20 karakter.
+  static final RegExp _phone = RegExp(r'^[0-9+() -]{7,20}$');
   static final RegExp _email = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
 
   static String? required(String? value) =>
@@ -25,6 +27,12 @@ abstract final class AuthValidators {
     final requiredError = required(value);
     if (requiredError != null) return requiredError;
     return value!.trim().length < minFullNameLength ? AppStrings.fullNameTooShort : null;
+  }
+
+  static String? phone(String? value) {
+    final requiredError = required(value);
+    if (requiredError != null) return requiredError;
+    return _phone.hasMatch(value!.trim()) ? null : AppStrings.invalidPhone;
   }
 
   static String? Function(String?) passwordConfirmation(String Function() password) =>

@@ -18,6 +18,8 @@ class Ticket extends Equatable {
     required this.tourTitle,
     required this.companyName,
     this.cancelledAt,
+    this.scannedAt,
+    this.passengerPhone,
     this.busPlate,
     this.driverName,
     this.driverPhone,
@@ -30,9 +32,13 @@ class Ticket extends Equatable {
   final String qrToken;
   final TicketStatus status;
   final String passengerName;
+  final String? passengerPhone;
   final double pricePaid;
   final DateTime createdAt;
   final DateTime? cancelledAt;
+
+  /// Tur sorumlusu QR kodunu okuttuğu (veya elle işaretlediği) an.
+  final DateTime? scannedAt;
   final String departureId;
   final DateTime departureAt;
   final DepartureStatus departureStatus;
@@ -74,9 +80,11 @@ class Ticket extends Equatable {
     qrToken: qrToken,
     status: status ?? this.status,
     passengerName: passengerName,
+    passengerPhone: passengerPhone,
     pricePaid: pricePaid,
     createdAt: createdAt,
     cancelledAt: cancelledAt ?? this.cancelledAt,
+    scannedAt: scannedAt,
     departureId: departureId,
     departureAt: departureAt,
     departureStatus: departureStatus,
@@ -97,9 +105,11 @@ class Ticket extends Equatable {
     qrToken,
     status,
     passengerName,
+    passengerPhone,
     pricePaid,
     createdAt,
     cancelledAt,
+    scannedAt,
     departureId,
     departureAt,
     departureStatus,

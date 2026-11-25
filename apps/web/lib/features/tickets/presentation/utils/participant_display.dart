@@ -9,6 +9,12 @@ extension ParticipantTicketDisplay on ParticipantTicket {
   String get priceLabel => Formatters.price(pricePaid);
 
   String get purchasedAtLabel => Formatters.dateTime(createdAt);
+
+  String get phoneLabel => passengerPhone ?? AppStrings.empty;
+
+  /// "Tura katıldı (elle)" — rehber QR yerine listeden işaretlediyse.
+  String get statusLabel =>
+      isManualCheckIn ? '${status.label} ${AppStrings.manualCheckInSuffix}' : status.label;
 }
 
 extension CustomerOptionDisplay on StaffMember {

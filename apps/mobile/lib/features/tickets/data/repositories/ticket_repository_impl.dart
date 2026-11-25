@@ -39,12 +39,17 @@ class TicketRepositoryImpl implements TicketRepository {
   }
 
   @override
-  Future<Ticket> bookTicket({required String departureId, required String passengerName}) async {
+  Future<Ticket> bookTicket({
+    required String departureId,
+    required String passengerName,
+    required String passengerPhone,
+  }) async {
     final userId = _requireUser();
     final ticket = await _guard(() async {
       final ticketId = await _remote.bookTicket(
         departureId: departureId,
         passengerName: passengerName.trim(),
+        passengerPhone: passengerPhone.trim(),
       );
       return _remote.fetchTicket(ticketId);
     });
@@ -131,6 +136,7 @@ abstract final class TicketErrorMapper {
     'departure_not_bookable': TicketFailureReason.departureNotBookable,
     'already_has_ticket': TicketFailureReason.alreadyHasTicket,
     'no_seats_left': TicketFailureReason.noSeatsLeft,
+    'invalid_phone': TicketFailureReason.invalidPhone,
     'ticket_not_found': TicketFailureReason.ticketNotFound,
     'not_allowed': TicketFailureReason.notAllowed,
     'ticket_not_cancellable': TicketFailureReason.ticketNotCancellable,

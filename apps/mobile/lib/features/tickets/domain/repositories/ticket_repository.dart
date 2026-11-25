@@ -12,8 +12,13 @@ abstract interface class TicketRepository {
   /// Biletleri sunucudan çeker ve cihaza yazar.
   Future<List<Ticket>> refreshTickets();
 
-  /// Demo ödemeyle bilet alır (`book_ticket`), cihazdaki listeye ekler.
-  Future<Ticket> bookTicket({required String departureId, required String passengerName});
+  /// Demo ödemeyle bilet alır (`book_ticket`), cihazdaki listeye ekler. Telefon bilete
+  /// kopyalanır (rehber arayabilsin); profilde telefon yoksa sunucu oraya da yazar.
+  Future<Ticket> bookTicket({
+    required String departureId,
+    required String passengerName,
+    required String passengerPhone,
+  });
 
   /// Bileti iptal eder (`cancel_ticket`), cihazdaki kaydı günceller.
   Future<Ticket> cancelTicket(Ticket ticket);

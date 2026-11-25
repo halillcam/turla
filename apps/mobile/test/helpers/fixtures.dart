@@ -4,14 +4,16 @@ import 'package:turla_mobile/features/tours/domain/entities/tour.dart';
 import 'package:turla_mobile/features/tours/domain/entities/tour_departure.dart';
 import 'package:turla_mobile/features/tours/domain/entities/tour_program_day.dart';
 
-UserProfile profileWith(UserRole role, {int? selectedCityId}) => UserProfile(
-  id: 'user-1',
-  email: 'test@example.com',
-  fullName: 'Test Kullanıcı',
-  role: role,
-  isActive: true,
-  selectedCityId: selectedCityId,
-);
+UserProfile profileWith(UserRole role, {int? selectedCityId, String? phone = '0532 111 22 33'}) =>
+    UserProfile(
+      id: 'user-1',
+      email: 'test@example.com',
+      fullName: 'Test Kullanıcı',
+      role: role,
+      isActive: true,
+      selectedCityId: selectedCityId,
+      phone: phone,
+    );
 
 const maras = City(id: 46, name: 'Kahramanmaraş');
 const istanbul = City(id: 34, name: 'İstanbul');

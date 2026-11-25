@@ -72,6 +72,10 @@ class StaffCubit extends Cubit<StaffState> {
     );
   });
 
+  /// Yeni geçici şifre; liste değişmez, yeniden istek atılmaz.
+  Future<ActionResult<String>> resetPassword(StaffMember member) =>
+      _busy(() => _accounts.resetPassword(member.id));
+
   Future<ActionResult<T>> _busy<T>(Future<T> Function() action) async {
     emit(state.copyWith(isBusy: true));
     final result = await runAction(action);

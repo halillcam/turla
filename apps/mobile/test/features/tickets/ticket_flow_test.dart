@@ -81,12 +81,16 @@ void main() {
 
   tearDown(() => getIt.reset());
 
-  testWidgets('demo ödeme: ad profilden gelir, ödeme sonrası QR ve Turlarım geçişi', (
+  testWidgets('demo ödeme: ad ve telefon profilden gelir, ödeme sonrası QR ve Turlarım geçişi', (
     tester,
   ) async {
     final ticket = ticketWith(id: 'new');
     when(
-      () => repository.bookTicket(departureId: 'dep-1', passengerName: 'Test Kullanıcı'),
+      () => repository.bookTicket(
+        departureId: 'dep-1',
+        passengerName: 'Test Kullanıcı',
+        passengerPhone: '0532 111 22 33',
+      ),
     ).thenAnswer((_) async => ticket);
 
     await tester.pumpWidget(_app(CheckoutScreen(args: _args), session));
@@ -94,6 +98,7 @@ void main() {
 
     expect(find.text(AppStrings.demoPaymentNote), findsOneWidget);
     expect(find.widgetWithText(TextFormField, 'Test Kullanıcı'), findsOneWidget);
+    expect(find.widgetWithText(TextFormField, '0532 111 22 33'), findsOneWidget);
 
     await _tapVisible(tester, find.textContaining(AppStrings.completePayment));
     await tester.pumpAndSettle();
@@ -106,7 +111,7 @@ void main() {
     expect(find.text(_myTicketsText), findsOneWidget);
   });
 
-  testWidgets('ad boşsa ödeme yapılmaz; sunucu hatası Türkçe gösterilir', (tester) async {
+  testWidgets('ad/telefon boşsa ödeme yapılmaz; sunucu hatası Türkçe gösterilir', (tester) async {
     when(() => session.state).thenReturn(
       const SessionState.signedIn(
         UserProfile(id: 'u', email: 'a@b.c', fullName: '', role: UserRole.customer, isActive: true),
@@ -116,6 +121,7 @@ void main() {
       () => repository.bookTicket(
         departureId: any(named: 'departureId'),
         passengerName: any(named: 'passengerName'),
+        passengerPhone: any(named: 'passengerPhone'),
       ),
     ).thenThrow(const TicketFailure(TicketFailureReason.noSeatsLeft));
 
@@ -124,15 +130,23 @@ void main() {
 
     await _tapVisible(tester, find.textContaining(AppStrings.completePayment));
     await tester.pumpAndSettle();
-    expect(find.text(AppStrings.fieldRequired), findsOneWidget);
+    // Ad ve telefon ikisi de boş.
+    expect(find.text(AppStrings.fieldRequired), findsNWidgets(2));
     verifyNever(
       () => repository.bookTicket(
         departureId: any(named: 'departureId'),
         passengerName: any(named: 'passengerName'),
+        passengerPhone: any(named: 'passengerPhone'),
       ),
     );
 
-    await tester.enterText(find.byType(TextFormField), 'Ali Veli');
+    await tester.enterText(find.byType(TextFormField).first, 'Ali Veli');
+    await tester.enterText(find.byKey(const Key('checkout-phone')), 'telefon');
+    await _tapVisible(tester, find.textContaining(AppStrings.completePayment));
+    await tester.pumpAndSettle();
+    expect(find.text(AppStrings.invalidPhone), findsOneWidget);
+
+    await tester.enterText(find.byKey(const Key('checkout-phone')), '0532 111 22 33');
     await _tapVisible(tester, find.textContaining(AppStrings.completePayment));
     await tester.pumpAndSettle();
     expect(find.text(AppStrings.errorNoSeatsLeft), findsOneWidget);

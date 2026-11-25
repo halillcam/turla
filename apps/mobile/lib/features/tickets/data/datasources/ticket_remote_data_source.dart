@@ -14,7 +14,11 @@ abstract interface class TicketRemoteDataSource {
   Future<Ticket> fetchTicket(String ticketId);
 
   /// `book_ticket` çağırır, yeni biletin id'sini döndürür.
-  Future<String> bookTicket({required String departureId, required String passengerName});
+  Future<String> bookTicket({
+    required String departureId,
+    required String passengerName,
+    required String passengerPhone,
+  });
 
   /// `cancel_ticket` çağırır, iptal zamanını döndürür.
   Future<DateTime> cancelTicket(String ticketId);
@@ -47,10 +51,18 @@ class TicketRemoteDataSourceImpl implements TicketRemoteDataSource {
   }
 
   @override
-  Future<String> bookTicket({required String departureId, required String passengerName}) async {
+  Future<String> bookTicket({
+    required String departureId,
+    required String passengerName,
+    required String passengerPhone,
+  }) async {
     final row = await _client.rpc<Map<String, dynamic>>(
       'book_ticket',
-      params: {'p_departure_id': departureId, 'p_passenger_name': passengerName},
+      params: {
+        'p_departure_id': departureId,
+        'p_passenger_name': passengerName,
+        'p_passenger_phone': passengerPhone,
+      },
     );
     return row['id'] as String;
   }

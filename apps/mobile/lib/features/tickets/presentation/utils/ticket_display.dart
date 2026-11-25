@@ -1,3 +1,5 @@
+import 'package:turla_core/turla_core.dart';
+
 import '../../../../core/constants/strings.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../domain/entities/ticket.dart';
@@ -35,6 +37,17 @@ extension TicketDisplay on Ticket {
   String? get cancelledAtLabel {
     final at = cancelledAt;
     return at == null ? null : '${Formatters.shortDate(at)} ${Formatters.time(at)}';
+  }
+
+  /// Tur sorumlusu okuttu: QR yerine "QR kodun okutuldu" gösterilir.
+  bool get showsScannedNotice => status == TicketStatus.checkedIn;
+
+  /// "QR kodun okutuldu · 08:12"
+  String get scannedLabel {
+    final at = scannedAt;
+    return at == null
+        ? AppStrings.qrScannedTitle
+        : '${AppStrings.qrScannedTitle} · ${Formatters.time(at)}';
   }
 
   /// QR sadece kullanılmamış geçerli bilette gösterilir.

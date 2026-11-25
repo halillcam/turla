@@ -8,10 +8,16 @@ import 'seats_badge.dart';
 import 'tour_image.dart';
 
 class TourCard extends StatelessWidget {
-  const TourCard({required this.tour, required this.onTap, super.key});
+  const TourCard({
+    required this.tour,
+    required this.onTap,
+    this.margin = AppMargins.cardList,
+    super.key,
+  });
 
   final Tour tour;
   final VoidCallback onTap;
+  final EdgeInsets margin;
 
   @override
   Widget build(BuildContext context) {
@@ -19,11 +25,12 @@ class TourCard extends StatelessWidget {
     final next = tour.nextDeparture;
 
     return Card(
-      margin: AppMargins.cardList,
+      margin: margin,
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: onTap,
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             TourImage(imageUrl: tour.imageUrl, height: AppSizes.tourCardImageHeight),
@@ -32,9 +39,19 @@ class TourCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(tour.title, style: textTheme.titleMedium),
+                  Text(
+                    tour.title,
+                    style: textTheme.titleMedium,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                   const SizedBox(height: AppSpacing.xxs),
-                  Text(tour.companyName, style: textTheme.bodySmall),
+                  Text(
+                    tour.companyName,
+                    style: textTheme.bodySmall,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                   const SizedBox(height: AppSpacing.md),
                   Row(
                     children: [

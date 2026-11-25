@@ -91,5 +91,7 @@ abstract final class PanelErrorMapper {
     'no_seats_left': PanelFailureReason.noSeatsLeft,
     'departure_not_bookable': PanelFailureReason.departureNotBookable,
     'ticket_not_cancellable': PanelFailureReason.ticketNotCancellable,
+    'not_resettable': PanelFailureReason.notResettable,
+    'account_not_found': PanelFailureReason.notFound,
   };
 }

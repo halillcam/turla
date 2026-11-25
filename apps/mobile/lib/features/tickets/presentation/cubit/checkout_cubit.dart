@@ -14,7 +14,11 @@ class CheckoutCubit extends Cubit<CheckoutState> {
 
   final TicketRepository _ticketRepository;
 
-  Future<void> purchase({required String departureId, required String passengerName}) async {
+  Future<void> purchase({
+    required String departureId,
+    required String passengerName,
+    required String passengerPhone,
+  }) async {
     if (state.status == CheckoutStatus.submitting || state.status == CheckoutStatus.success) {
       return;
     }
@@ -23,6 +27,7 @@ class CheckoutCubit extends Cubit<CheckoutState> {
       final ticket = await _ticketRepository.bookTicket(
         departureId: departureId,
         passengerName: passengerName,
+        passengerPhone: passengerPhone,
       );
       if (isClosed) return;
       emit(CheckoutState(status: CheckoutStatus.success, ticket: ticket));

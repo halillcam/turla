@@ -1,6 +1,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- Supabase'e bağlanmak için (release derlemelerinde de gerekli). -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Tur sorumlusu yolcu biletinin QR kodunu okutur. Kamerası olmayan cihazda da kurulabilsin. -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
     <application
         android:label="Turla"
         android:name="${applicationName}"
@@ -39,6 +42,11 @@
 
          In particular, this is used by the Flutter engine in io.flutter.plugin.text.ProcessTextPlugin. -->
     <queries>
+        <!-- Rehber yolcuyu / şoförü arar (tel: bağlantısı). -->
+        <intent>
+            <action android:name="android.intent.action.DIAL" />
+            <data android:scheme="tel" />
+        </intent>
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>

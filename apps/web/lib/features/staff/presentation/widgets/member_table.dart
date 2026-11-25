@@ -10,6 +10,7 @@ class MemberTable extends StatelessWidget {
     required this.members,
     required this.emptyMessage,
     required this.onToggleActive,
+    this.onResetPassword,
     this.enabled = true,
     this.showLoginId = true,
     super.key,
@@ -18,6 +19,9 @@ class MemberTable extends StatelessWidget {
   final List<StaffMember> members;
   final String emptyMessage;
   final ValueChanged<StaffMember> onToggleActive;
+
+  /// Verilirse giriş kimlikli hesaplarda "Şifre sıfırla" gösterilir.
+  final ValueChanged<StaffMember>? onResetPassword;
   final bool enabled;
   final bool showLoginId;
 
@@ -51,9 +55,21 @@ class MemberTable extends StatelessWidget {
                     ),
                   ),
                   DataCell(
-                    TextButton(
-                      onPressed: enabled ? () => onToggleActive(member) : null,
-                      child: Text(member.isActive ? AppStrings.makePassive : AppStrings.makeActive),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (member.loginId != null && onResetPassword != null)
+                          TextButton(
+                            onPressed: enabled ? () => onResetPassword!(member) : null,
+                            child: const Text(AppStrings.resetPassword),
+                          ),
+                        TextButton(
+                          onPressed: enabled ? () => onToggleActive(member) : null,
+                          child: Text(
+                            member.isActive ? AppStrings.makePassive : AppStrings.makeActive,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],

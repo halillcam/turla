@@ -3,7 +3,9 @@
 import {
   generateLoginId,
   loginIdToEmail,
+  generatePassword,
   planAccount,
+  planPasswordReset,
 } from '../functions/create-account/rules.ts';
 
 const company = '11111111-1111-4111-8111-111111111111';
@@ -68,6 +70,32 @@ check('giriş kimliği biçimi', { id, ok: /^REH-\d{4}$/.test(id) }, { ok: true 
 check('kimlik 4 hane sınırında', { a: generateLoginId('MUS', () => 0), b: generateLoginId('MUS', () => 0.99999) },
   { a: 'MUS-1000', b: 'MUS-9999' });
 check('kimlik e-postaya çevrilir', { e: loginIdToEmail(' REH-4821 ') }, { e: 'reh-4821@staff.turla.app' });
+
+// ─── Şifre sıfırlama ─────────────────────────────────────────────────────
+const rehber = { id: 'r', role: 'guide', companyId: company, loginId: 'REH-1234' };
+check('admin kendi firmasının rehberinin şifresini sıfırlar',
+  planPasswordReset(admin, rehber), { ok: true, userId: 'r', loginId: 'REH-1234' });
+check('super admin her firmanın MUS hesabını sıfırlar',
+  planPasswordReset(superAdmin, { id: 'm', role: 'customer', companyId: other, loginId: 'MUS-5555' }), { ok: true });
+check('admin başka firmanın rehberini sıfırlayamaz',
+  planPasswordReset(admin, { ...rehber, companyId: other }), { ok: false, code: 'not_allowed' });
+check('rehber şifre sıfırlayamaz', planPasswordReset(guide, rehber), { ok: false, code: 'not_allowed' });
+check('müşteri şifre sıfırlayamaz', planPasswordReset(customer, rehber), { ok: false, code: 'not_allowed' });
+check('pasif admin şifre sıfırlayamaz',
+  planPasswordReset({ ...admin, isActive: false }, rehber), { ok: false, code: 'not_allowed' });
+check('e-postayla kayıt olan uygulama müşterisi sıfırlanmaz',
+  planPasswordReset(superAdmin, { id: 'c', role: 'customer', companyId: null, loginId: null }),
+  { ok: false, code: 'not_resettable' });
+check('firma admini bu yoldan sıfırlanmaz',
+  planPasswordReset(superAdmin, { id: 'a', role: 'admin', companyId: company, loginId: null }),
+  { ok: false, code: 'not_resettable' });
+check('olmayan hesap', planPasswordReset(admin, null), { ok: false, code: 'account_not_found' });
+{
+  let i = 0;
+  const p = generatePassword((max) => (i++ * 7) % max);
+  check('geçici şifre 10 karakter, karışan harf yok',
+    { ok: p.length === 10 && !/[0O1lI]/.test(p) }, { ok: true });
+}
 
 console.log(failures === 0 ? '\nTÜM KURAL TESTLERİ GEÇTİ' : `\n${failures} TEST BAŞARISIZ`);
 process.exit(failures === 0 ? 0 : 1);

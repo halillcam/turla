@@ -7,6 +7,9 @@
 // İstek:  POST { role, company_id?, full_name, email?, password, phone? }
 // Yanıt:  201 { user_id, email, login_id }   |   4xx/5xx { code }
 //
+// Şifre sıfırlama (Faz 4): POST { action: 'reset_password', user_id }
+// Yanıt:  200 { user_id, login_id, password }  (yeni geçici şifre bir kez gösterilir)
+//
 // verify_jwt kapalıdır; oturum token'ı burada auth.getUser ile doğrulanır.
 
 import { createClient } from 'npm:@supabase/supabase-js@2.49.4';
@@ -15,8 +18,10 @@ import {
   type Caller,
   type Role,
   generateLoginId,
+  generatePassword,
   loginIdToEmail,
   planAccount,
+  planPasswordReset,
 } from './rules.ts';
 
 const MAX_LOGIN_ID_ATTEMPTS = 8;
@@ -75,6 +80,8 @@ Deno.serve(async (req) => {
   } catch {
     return json(400, { code: 'invalid_body' });
   }
+
+  if (body?.action === 'reset_password') return resetPassword(admin, caller, body.user_id);
 
   const plan = planAccount(caller, body ?? {});
   if (!plan.ok) return json(plan.status, { code: plan.code });
@@ -135,3 +142,64 @@ Deno.serve(async (req) => {
 
   return json(409, { code: 'login_id_unavailable' });
 });
+
+/** Güvenli rastgele tam sayı: 0..max-1 (modulo sapması olmadan). */
+function secureRandomInt(max: number): number {
+  const limit = Math.floor(0x100000000 / max) * max;
+  const buffer = new Uint32Array(1);
+  do {
+    crypto.getRandomValues(buffer);
+  } while (buffer[0] >= limit);
+  return buffer[0] % max;
+}
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+async function resetPassword(
+  admin: ReturnType<typeof createClient>,
+  caller: Caller,
+  userId: unknown,
+): Promise<Response> {
+  if (typeof userId !== 'string' || !UUID_RE.test(userId)) return json(400, { code: 'invalid_body' });
+
+  const { data: target, error } = await admin
+    .from('profiles')
+    .select('id, role, company_id, login_id')
+    .eq('id', userId)
+    .maybeSingle();
+  if (error) {
+    console.error('reset_password: profile read failed', error.code, error.message);
+    return json(500, { code: 'server_error' });
+  }
+
+  const plan = planPasswordReset(
+    caller,
+    target
+      ? {
+          id: target.id,
+          role: target.role as Role,
+          companyId: target.company_id,
+          loginId: target.login_id,
+        }
+      : null,
+  );
+  if (!plan.ok) return json(plan.status, { code: plan.code });
+
+  // Pasif firmanın admini işlem yapamaz (can_manage_company ile aynı kural).
+  if (caller.role !== 'super_admin') {
+    const { data: company } = await admin
+      .from('companies')
+      .select('is_active')
+      .eq('id', target!.company_id)
+      .maybeSingle();
+    if (!company?.is_active) return json(403, { code: 'company_inactive' });
+  }
+
+  const password = generatePassword(secureRandomInt);
+  const { error: updateError } = await admin.auth.admin.updateUserById(plan.userId, { password });
+  if (updateError) {
+    console.error('reset_password: update failed', updateError.code, updateError.message);
+    return json(500, { code: 'reset_failed' });
+  }
+  return json(200, { user_id: plan.userId, login_id: plan.loginId, password });
+}

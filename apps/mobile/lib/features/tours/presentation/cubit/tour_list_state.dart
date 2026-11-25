@@ -19,6 +19,7 @@ final class TourListState extends Equatable {
     this.cityId,
     this.tours = const [],
     this.query = '',
+    this.region,
     this.isStale = false,
     this.failure,
   });
@@ -27,6 +28,9 @@ final class TourListState extends Equatable {
   final int? cityId;
   final List<Tour> tours;
   final String query;
+
+  /// Doluysa sadece bu bölgenin turları gösterilir ("Tümünü gör" ekranı).
+  final TourRegion? region;
 
   /// İnternet yokken önbellekteki eski liste gösteriliyor.
   final bool isStale;
@@ -45,7 +49,9 @@ final class TourListState extends Equatable {
         .toList();
 
     final sections = <RegionSection>[];
+    final onlyRegion = region;
     for (final region in TourRegion.values) {
+      if (onlyRegion != null && region != onlyRegion) continue;
       final regionTours = visible.where((tour) => tour.region == region).toList();
       if (regionTours.isNotEmpty) {
         sections.add(RegionSection(region: region, tours: regionTours));
@@ -54,11 +60,15 @@ final class TourListState extends Equatable {
     return sections;
   }
 
+  /// Seçili bölgenin (veya tüm bölgelerin) turları, tek dikey liste için.
+  List<Tour> get visibleTours => [for (final section in sections) ...section.tours];
+
   TourListState copyWith({
     TourListStatus? status,
     int? cityId,
     List<Tour>? tours,
     String? query,
+    TourRegion? region,
     bool? isStale,
     TourFailureReason? failure,
   }) => TourListState(
@@ -66,10 +76,11 @@ final class TourListState extends Equatable {
     cityId: cityId ?? this.cityId,
     tours: tours ?? this.tours,
     query: query ?? this.query,
+    region: region ?? this.region,
     isStale: isStale ?? this.isStale,
     failure: failure,
   );
 
   @override
-  List<Object?> get props => [status, cityId, tours, query, isStale, failure];
+  List<Object?> get props => [status, cityId, tours, query, region, isStale, failure];
 }

@@ -11,11 +11,15 @@ import '../utils/ticket_failure_message.dart';
 import 'demo_payment_card.dart';
 import 'info_row.dart';
 
-/// Tur özeti, yolcu adı ve demo ödeme. Bilet sadece hesap sahibine kesilir.
+/// Yolcu bilgisi: ad ve telefon.
+typedef PassengerSubmit = void Function(String name, String phone);
+
+/// Tur özeti, yolcu adı/telefonu ve demo ödeme. Bilet sadece hesap sahibine kesilir.
 class CheckoutForm extends StatefulWidget {
   const CheckoutForm({
     required this.args,
     required this.initialPassengerName,
+    required this.initialPhone,
     required this.isSubmitting,
     required this.onSubmit,
     this.failure,
@@ -24,9 +28,10 @@ class CheckoutForm extends StatefulWidget {
 
   final CheckoutArgs args;
   final String initialPassengerName;
+  final String initialPhone;
   final bool isSubmitting;
   final TicketFailureReason? failure;
-  final ValueChanged<String> onSubmit;
+  final PassengerSubmit onSubmit;
 
   @override
   State<CheckoutForm> createState() => _CheckoutFormState();
@@ -35,15 +40,19 @@ class CheckoutForm extends StatefulWidget {
 class _CheckoutFormState extends State<CheckoutForm> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _name = TextEditingController(text: widget.initialPassengerName);
+  late final TextEditingController _phone = TextEditingController(text: widget.initialPhone);
 
   @override
   void dispose() {
     _name.dispose();
+    _phone.dispose();
     super.dispose();
   }
 
   void _submit() {
-    if (_formKey.currentState?.validate() ?? false) widget.onSubmit(_name.text.trim());
+    if (_formKey.currentState?.validate() ?? false) {
+      widget.onSubmit(_name.text.trim(), _phone.text.trim());
+    }
   }
 
   @override
@@ -74,6 +83,18 @@ class _CheckoutFormState extends State<CheckoutForm> {
               helperText: AppStrings.passengerHint,
             ),
             validator: AuthValidators.fullName,
+          ),
+          const SizedBox(height: AppSpacing.md),
+          TextFormField(
+            key: const Key('checkout-phone'),
+            controller: _phone,
+            enabled: !widget.isSubmitting,
+            keyboardType: TextInputType.phone,
+            decoration: const InputDecoration(
+              labelText: AppStrings.phoneLabel,
+              helperText: AppStrings.phoneHint,
+            ),
+            validator: AuthValidators.phone,
           ),
           const SizedBox(height: AppSpacing.xl),
           Text(AppStrings.paymentSection, style: textTheme.titleMedium),

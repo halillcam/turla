@@ -3,6 +3,7 @@ import 'package:turla_core/turla_core.dart';
 
 import '../../../../core/constants/strings.dart';
 import '../../../../core/utils/formatters.dart';
+import '../../../../core/widgets/info_banner.dart';
 import '../../domain/entities/ticket.dart';
 import '../utils/ticket_display.dart';
 import 'info_row.dart';
@@ -45,6 +46,12 @@ class TicketDetailView extends StatelessWidget {
           TicketQrCard(qrToken: ticket.qrToken),
           const SizedBox(height: AppSpacing.lg),
         ],
+        if (ticket.showsScannedNotice)
+          InfoBanner(
+            message: '${ticket.scannedLabel}\n${AppStrings.qrScannedMessage}',
+            icon: Icons.verified,
+            color: AppColors.success,
+          ),
         InfoRow(
           icon: Icons.person_outline,
           label: AppStrings.passenger,

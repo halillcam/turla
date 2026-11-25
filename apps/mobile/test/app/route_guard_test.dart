@@ -48,9 +48,13 @@ void main() {
     expect(redirect(AppRoutes.tours, guide, noCity), AppRoutes.guideHome);
     expect(redirect(AppRoutes.login, guide, withCity), AppRoutes.guideHome);
     expect(redirect(AppRoutes.guideHome, guide, noCity), isNull);
+    expect(redirect(AppRoutes.guideDepartureOf('d1'), guide, noCity), isNull);
+    expect(redirect(AppRoutes.guideScanOf('d1'), guide, withCity), isNull);
+    expect(redirect('/guidex', guide, withCity), AppRoutes.guideHome);
   });
 
   test('müşteri rehber ekranına giremez', () {
     expect(redirect(AppRoutes.guideHome, customer, withCity), AppRoutes.tours);
+    expect(redirect(AppRoutes.guideScanOf('d1'), customer, withCity), AppRoutes.tours);
   });
 }

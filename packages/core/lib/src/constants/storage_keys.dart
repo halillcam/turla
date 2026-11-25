@@ -11,6 +11,12 @@ abstract final class StorageKeys {
 
   /// Kullanıcı bazında bilet önbelleği: `<önek><kullanıcı_id>`.
   static const String ticketsByUserPrefix = 'turla.tickets.user.';
+
+  /// Rehberin kalkış listesi: `<önek><kullanıcı_id>`.
+  static const String guideDeparturesPrefix = 'turla.guide.departures.';
+
+  /// Rehberin katılımcı listesi: `<önek><kullanıcı_id>.<kalkış_id>`.
+  static const String guideParticipantsPrefix = 'turla.guide.participants.';
 }
 
 /// Yerel önbellek sürümleri.
@@ -26,4 +32,7 @@ abstract final class CacheVersions {
 
   /// Bilet önbelleğinin biçimi değişirse artırılır.
   static const int tickets = 1;
+
+  /// Rehber kalkış/katılımcı önbelleğinin biçimi değişirse artırılır.
+  static const int guide = 1;
 }

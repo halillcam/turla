@@ -54,6 +54,19 @@ class AccountRepositoryImpl implements AccountRepository {
   });
 
   @override
+  Future<String> resetPassword(String profileId) => guardPanel(() async {
+    final response = await _client.functions.invoke(
+      _createAccountFunction,
+      body: {'action': 'reset_password', 'user_id': profileId},
+    );
+    final data = response.data;
+    if (data is! Map || data['password'] is! String) {
+      throw const PanelFailure(PanelFailureReason.unknown);
+    }
+    return data['password'] as String;
+  });
+
+  @override
   Future<void> setActive(String profileId, {required bool isActive}) => guardPanel(() async {
     await _client.rpc<dynamic>(
       'set_profile_active',

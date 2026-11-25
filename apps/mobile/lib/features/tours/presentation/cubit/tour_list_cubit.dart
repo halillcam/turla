@@ -24,6 +24,9 @@ class TourListCubit extends Cubit<TourListState> {
 
   void search(String query) => emit(state.copyWith(query: query));
 
+  /// Listeyi tek bir bölgeyle sınırlar. Turlar yine aynı önbellekten gelir; yeni istek atılmaz.
+  void showOnlyRegion(TourRegion region) => emit(state.copyWith(region: region));
+
   Future<void> _fetch(int cityId, {required bool forceRefresh}) async {
     final isSameCity = state.cityId == cityId && state.tours.isNotEmpty;
     emit(

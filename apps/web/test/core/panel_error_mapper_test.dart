@@ -52,6 +52,14 @@ void main() {
         PanelErrorMapper.fromFunction(400, {'code': 'weak_password'}),
         PanelFailureReason.weakPassword,
       );
+      expect(
+        PanelErrorMapper.fromFunction(400, {'code': 'not_resettable'}),
+        PanelFailureReason.notResettable,
+      );
+      expect(
+        PanelErrorMapper.fromFunction(404, {'code': 'account_not_found'}),
+        PanelFailureReason.notFound,
+      );
     });
 
     test('kod yoksa duruma göre', () {

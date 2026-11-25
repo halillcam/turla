@@ -29,4 +29,7 @@ abstract final class AppColors {
   // Katılımcı durumu (rehber ekranı: geldi / gelmedi)
   static const Color arrived = success;
   static const Color notArrived = error;
+
+  // Kamera üstünde "kontrol ediliyor" örtüsü.
+  static const Color scrim = Color(0x8A000000);
 }

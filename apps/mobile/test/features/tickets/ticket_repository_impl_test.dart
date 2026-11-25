@@ -18,6 +18,7 @@ class _FakeRemote implements TicketRemoteDataSource {
   Object? error;
   int fetchCalls = 0;
   String? bookedName;
+  String? bookedPhone;
 
   void _throwIfNeeded() {
     if (error != null) throw error!;
@@ -34,9 +35,14 @@ class _FakeRemote implements TicketRemoteDataSource {
   Future<Ticket> fetchTicket(String ticketId) async => booked;
 
   @override
-  Future<String> bookTicket({required String departureId, required String passengerName}) async {
+  Future<String> bookTicket({
+    required String departureId,
+    required String passengerName,
+    required String passengerPhone,
+  }) async {
     _throwIfNeeded();
     bookedName = passengerName;
+    bookedPhone = passengerPhone;
     return booked.id;
   }
 
@@ -97,10 +103,15 @@ void main() {
   test('bilet alınca yeni bilet listenin başına eklenir', () async {
     local.store['user-1'] = [ticketWith(id: 'old')];
 
-    final ticket = await repository.bookTicket(departureId: 'dep', passengerName: '  Ali Veli ');
+    final ticket = await repository.bookTicket(
+      departureId: 'dep',
+      passengerName: '  Ali Veli ',
+      passengerPhone: ' 0532 111 22 33 ',
+    );
 
     expect(ticket.id, 'new');
     expect(remote.bookedName, 'Ali Veli');
+    expect(remote.bookedPhone, '0532 111 22 33');
     expect(local.store['user-1']!.map((ticket) => ticket.id), ['new', 'old']);
   });
 
@@ -120,7 +131,11 @@ void main() {
   test('sunucu hata kodu TicketFailure olarak döner', () async {
     remote.error = const PostgrestException(message: 'no_seats_left', code: 'P0001');
     await expectLater(
-      repository.bookTicket(departureId: 'dep', passengerName: 'Ali'),
+      repository.bookTicket(
+        departureId: 'dep',
+        passengerName: 'Ali',
+        passengerPhone: '05321112233',
+      ),
       throwsA(
         isA<TicketFailure>().having((f) => f.reason, 'reason', TicketFailureReason.noSeatsLeft),
       ),
@@ -152,7 +167,11 @@ void main() {
   test('giriş yapılmadan bilet alınamaz', () async {
     remote.currentUserId = null;
     await expectLater(
-      repository.bookTicket(departureId: 'dep', passengerName: 'Ali'),
+      repository.bookTicket(
+        departureId: 'dep',
+        passengerName: 'Ali',
+        passengerPhone: '05321112233',
+      ),
       throwsA(
         isA<TicketFailure>().having((f) => f.reason, 'reason', TicketFailureReason.notSignedIn),
       ),

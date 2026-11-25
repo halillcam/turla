@@ -14,6 +14,7 @@ extension TicketFailureMessage on TicketFailureReason {
     TicketFailureReason.departureNotBookable => AppStrings.errorDepartureNotBookable,
     TicketFailureReason.alreadyHasTicket => AppStrings.errorAlreadyHasTicket,
     TicketFailureReason.noSeatsLeft => AppStrings.errorNoSeatsLeft,
+    TicketFailureReason.invalidPhone => AppStrings.errorInvalidPhone,
     TicketFailureReason.ticketNotFound => AppStrings.errorTicketNotFound,
     TicketFailureReason.notAllowed => AppStrings.errorNotAllowed,
     TicketFailureReason.ticketNotCancellable => AppStrings.errorTicketNotCancellable,

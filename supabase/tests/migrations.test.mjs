@@ -469,5 +469,135 @@ await expectError('kontenjan dolunca panelden de bilet kesilmez', 'no_seats_left
 await expectError('kalkmış tarihe panelden bilet kesilmez', 'departure_not_bookable', () => asUser(admin,
   `select public.admin_issue_ticket($1, $2)`, [startedDep, panelCustomer]));
 
+// ─── Faz 4: rehber akışı (migration 13) ──────────────────────────────────
+const f4Guide = await mkUser('guide', company, 'Rehber Deniz');
+const f4Tour = (await scalar(`insert into public.tours (company_id, title, price, city_id, region)
+  values ($1, 'Rehber Testi', 500, 46, 'gunubirlik') returning id`, [company])).id;
+const f4Dep = (await scalar(`insert into public.tour_departures (tour_id, departure_at, capacity, guide_id, bus_plate)
+  values ($1, now() + interval '2 hours', 6, $2, '46 F 4') returning id`, [f4Tour, f4Guide])).id;
+await db.query(`insert into public.tour_departures (tour_id, departure_at, capacity, guide_id)
+  values ($1, now() + interval '5 days', 5, $2)`, [f4Tour, guide2]);
+const phoneBuyer = await mkUser(null, null, 'Telefonlu Müşteri');
+const phoneBuyer2 = await mkUser(null, null, 'İkinci Müşteri');
+const noShowBuyer = await mkUser(null, null, 'Gelmeyen Müşteri');
+
+await expectError('geçersiz telefonla bilet alınmaz', 'invalid_phone', () => asUser(phoneBuyer,
+  `select public.book_ticket($1, 'Telefonlu', null, 'abc')`, [f4Dep]));
+const f4Ticket = await expectOk('telefonla bilet alınır, telefon bilete ve boş profile yazılır', async () => {
+  const t = (await asUser(phoneBuyer,
+    `select * from public.book_ticket(p_departure_id => $1, p_passenger_name => 'Telefonlu', p_passenger_phone => ' 0532 111 22 33 ')`,
+    [f4Dep])).rows[0];
+  const p = await scalar(`select phone from public.profiles where id = $1`, [phoneBuyer]);
+  if (t.passenger_phone !== '0532 111 22 33' || p.phone !== '0532 111 22 33') throw new Error(JSON.stringify([t.passenger_phone, p.phone]));
+  return t;
+});
+await expectOk('profilde telefon varsa satın alma onu değiştirmez', async () => {
+  await db.query(`update public.profiles set phone = '0344 000 00 01' where id = $1`, [phoneBuyer2]);
+  const t = (await asUser(phoneBuyer2, `select * from public.book_ticket($1, 'İkinci', null, '0555 999 88 77')`, [f4Dep])).rows[0];
+  const p = await scalar(`select phone from public.profiles where id = $1`, [phoneBuyer2]);
+  if (t.passenger_phone !== '0555 999 88 77' || p.phone !== '0344 000 00 01') throw new Error(JSON.stringify([t.passenger_phone, p.phone]));
+});
+const noShowTicket = (await asUser(noShowBuyer, `select * from public.book_ticket($1, 'Gelmeyen')`, [f4Dep])).rows[0];
+await expectOk('telefonsuz eski çağrı hâlâ çalışır, telefon boş kalır', async () => {
+  if (noShowTicket.passenger_phone !== null) throw new Error(noShowTicket.passenger_phone);
+});
+await expectOk('panelden kesilen bilete müşterinin profil telefonu kopyalanır', async () => {
+  const c = await mkUser('customer', company, 'Panel Telefonlu');
+  await db.query(`update public.profiles set phone = '0533 444 55 66' where id = $1`, [c]);
+  const t = (await asUser(admin, `select * from public.admin_issue_ticket($1, $2)`, [f4Dep, c])).rows[0];
+  if (t.passenger_phone !== '0533 444 55 66') throw new Error(t.passenger_phone);
+});
+await expectOk('profildeki bozuk telefon panel biletini engellemez', async () => {
+  const c = await mkUser('customer', company, 'Bozuk Telefonlu');
+  await db.query(`update public.profiles set phone = 'yok' where id = $1`, [c]);
+  const t = (await asUser(admin, `select * from public.admin_issue_ticket($1, $2)`, [f4Dep, c])).rows[0];
+  if (t.passenger_phone !== null) throw new Error(t.passenger_phone);
+});
+
+await expectOk('guide_departures: rehber sadece kendi tarihlerini, sayılarla görür', async () => {
+  const r = (await asUser(f4Guide, `select * from public.guide_departures()`)).rows;
+  if (r.length !== 1 || r[0].id !== f4Dep || r[0].tour_title !== 'Rehber Testi'
+      || r[0].ticket_count !== 5 || r[0].checked_in_count !== 0 || r[0].last_request_status !== null) {
+    throw new Error(JSON.stringify(r));
+  }
+});
+await expectOk('guide_departures: müşteri ve admin için boş döner', async () => {
+  const a = (await asUser(phoneBuyer, `select count(*)::int n from public.guide_departures()`)).rows[0].n;
+  const b = (await asUser(admin, `select count(*)::int n from public.guide_departures()`)).rows[0].n;
+  if (a !== 0 || b !== 0) throw new Error(a + '/' + b);
+});
+await expectError('misafir guide_departures çağıramaz', 'permission denied', () => asUser(null,
+  `select * from public.guide_departures()`));
+
+await expectOk('rehber katılımcıların telefonunu okur', async () => {
+  const r = await asUser(f4Guide, `select count(passenger_phone)::int n from public.tickets where departure_id = $1`, [f4Dep]);
+  if (r.rows[0].n !== 3) throw new Error('görülen ' + r.rows[0].n);
+});
+await expectOk('QR ile okutulan bilet yöntem qr olarak kaydedilir', async () => {
+  const r = (await asUser(f4Guide, `select public.scan_ticket($1, $2) r`, [f4Dep, f4Ticket.qr_token])).rows[0].r;
+  const m = await scalar(`select check_in_method from public.tickets where id = $1`, [f4Ticket.id]);
+  if (!r.ok || !r.scanned_at || m.check_in_method !== 'qr') throw new Error(JSON.stringify([r, m]));
+});
+const manualTicket = (await scalar(`select id from public.tickets where departure_id = $1 and user_id = $2`, [f4Dep, phoneBuyer2])).id;
+await expectError('başka tarihin rehberi elle işaretleyemez', 'not_allowed', () => asUser(guide2,
+  `select public.check_in_manually($1)`, [manualTicket]));
+await expectError('müşteri elle işaretleyemez', 'not_allowed', () => asUser(phoneBuyer2,
+  `select public.check_in_manually($1)`, [manualTicket]));
+await expectOk('rehber elle Geldi işaretler (yöntem manual)', async () => {
+  const r = (await asUser(f4Guide, `select public.check_in_manually($1) r`, [manualTicket])).rows[0].r;
+  const m = await scalar(`select status, check_in_method, scanned_by from public.tickets where id = $1`, [manualTicket]);
+  if (!r.ok || r.passenger_name !== 'İkinci' || m.status !== 'checked_in' || m.check_in_method !== 'manual' || m.scanned_by !== f4Guide) {
+    throw new Error(JSON.stringify([r, m]));
+  }
+});
+await expectOk('aynı bilet ikinci kez elle işaretlenince already_used döner', async () => {
+  const r = (await asUser(f4Guide, `select public.check_in_manually($1) r`, [manualTicket])).rows[0].r;
+  if (r.ok || r.code !== 'already_used' || !r.scanned_at) throw new Error(JSON.stringify(r));
+});
+await expectOk('iptal edilmiş bilet elle işaretlenemez (cancelled)', async () => {
+  const c = await mkUser(null, null, 'İptalci');
+  const t = (await asUser(c, `select * from public.book_ticket($1, 'İptalci')`, [f4Dep])).rows[0];
+  await asUser(c, `select public.cancel_ticket($1)`, [t.id]);
+  const r = (await asUser(f4Guide, `select public.check_in_manually($1) r`, [t.id])).rows[0].r;
+  if (r.ok || r.code !== 'cancelled') throw new Error(JSON.stringify(r));
+});
+await expectError('olmayan bilet elle işaretlenemez', 'ticket_not_found', () => asUser(f4Guide,
+  `select public.check_in_manually(gen_random_uuid())`));
+await expectOk('guide_departures sayıları okutmalardan sonra güncel (iptal sayılmaz)', async () => {
+  const r = (await asUser(f4Guide, `select ticket_count, checked_in_count from public.guide_departures()`)).rows[0];
+  if (r.ticket_count !== 5 || r.checked_in_count !== 2) throw new Error(JSON.stringify(r));
+});
+await expectError('kalkış saati gelmeden turu bitir talebi açılmaz', 'departure_not_started', () => asUser(f4Guide,
+  `select public.request_departure_completion($1)`, [f4Dep]));
+await expectOk('bitirme talebi reddedilirse rehber listesinde rejected görünür', async () => {
+  await db.query(`update public.tour_departures set departure_at = now() - interval '1 hour' where id = $1`, [f4Dep]);
+  const req = (await asUser(f4Guide, `select id from public.request_departure_completion($1)`, [f4Dep])).rows[0].id;
+  const pending = (await asUser(f4Guide, `select status, last_request_status from public.guide_departures()`)).rows[0];
+  if (pending.status !== 'finish_requested' || pending.last_request_status !== 'pending') throw new Error(JSON.stringify(pending));
+  await asUser(admin, `select public.review_departure_completion($1, false)`, [req]);
+  const r = (await asUser(f4Guide, `select status, last_request_status from public.guide_departures()`)).rows[0];
+  if (r.status !== 'scheduled' || r.last_request_status !== 'rejected') throw new Error(JSON.stringify(r));
+});
+await expectError('bitirme talebi beklerken elle işaretlenemez', 'departure_not_active', async () => {
+  await asUser(f4Guide, `select public.request_departure_completion($1)`, [f4Dep]);
+  await asUser(f4Guide, `select public.check_in_manually($1)`, [noShowTicket.id]);
+});
+await expectOk('onaylanınca okutulanlar completed, gelmeyen no_show olur', async () => {
+  const req = (await scalar(`select id from public.completion_requests where departure_id = $1 and status = 'pending'`, [f4Dep])).id;
+  await asUser(admin, `select public.review_departure_completion($1, true)`, [req]);
+  const a = await scalar(`select status from public.tickets where id = $1`, [f4Ticket.id]);
+  const b = await scalar(`select status from public.tickets where id = $1`, [noShowTicket.id]);
+  const g = (await asUser(f4Guide, `select status, checked_in_count from public.guide_departures()`)).rows[0];
+  if (a.status !== 'completed' || b.status !== 'no_show' || g.status !== 'completed' || g.checked_in_count !== 2) {
+    throw new Error(JSON.stringify([a, b, g]));
+  }
+});
+await expectOk('pasif rehber guide_departures ile bir şey göremez', async () => {
+  await db.query(`update public.profiles set is_active = false where id = $1`, [f4Guide]);
+  const r = (await asUser(f4Guide, `select count(*)::int n from public.guide_departures()`)).rows[0].n;
+  await db.query(`update public.profiles set is_active = true where id = $1`, [f4Guide]);
+  if (r !== 0) throw new Error(String(r));
+});
+
 console.log(failures === 0 ? '\nTÜM TESTLER GEÇTİ' : `\n${failures} TEST BAŞARISIZ`);
 process.exit(failures === 0 ? 0 : 1);

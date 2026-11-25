@@ -104,11 +104,19 @@ void main() {
       'başarılı satın alma bileti döndürür',
       build: () {
         when(
-          () => repository.bookTicket(departureId: 'dep', passengerName: 'Ali Veli'),
+          () => repository.bookTicket(
+            departureId: 'dep',
+            passengerName: 'Ali Veli',
+            passengerPhone: '05321112233',
+          ),
         ).thenAnswer((_) async => ticket);
         return CheckoutCubit(repository);
       },
-      act: (cubit) => cubit.purchase(departureId: 'dep', passengerName: 'Ali Veli'),
+      act: (cubit) => cubit.purchase(
+        departureId: 'dep',
+        passengerName: 'Ali Veli',
+        passengerPhone: '05321112233',
+      ),
       expect: () => [
         const CheckoutState(status: CheckoutStatus.submitting),
         CheckoutState(status: CheckoutStatus.success, ticket: ticket),
@@ -122,11 +130,16 @@ void main() {
           () => repository.bookTicket(
             departureId: any(named: 'departureId'),
             passengerName: any(named: 'passengerName'),
+            passengerPhone: any(named: 'passengerPhone'),
           ),
         ).thenThrow(const TicketFailure(TicketFailureReason.noSeatsLeft));
         return CheckoutCubit(repository);
       },
-      act: (cubit) => cubit.purchase(departureId: 'dep', passengerName: 'Ali Veli'),
+      act: (cubit) => cubit.purchase(
+        departureId: 'dep',
+        passengerName: 'Ali Veli',
+        passengerPhone: '05321112233',
+      ),
       expect: () => [
         const CheckoutState(status: CheckoutStatus.submitting),
         const CheckoutState(

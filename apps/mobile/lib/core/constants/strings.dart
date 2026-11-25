@@ -43,6 +43,7 @@ abstract final class AppStrings {
   static const String passwordTooShort = 'Şifre en az 8 karakter olmalı.';
   static const String passwordsDoNotMatch = 'Şifreler aynı değil.';
   static const String fullNameTooShort = 'Ad soyad en az 3 karakter olmalı.';
+  static const String invalidPhone = 'Geçerli bir telefon numarası gir (ör. 0532 123 45 67).';
 
   // Giriş hataları
   static const String errorInvalidCredentials = 'E-posta/kimlik veya şifre hatalı.';
@@ -76,6 +77,8 @@ abstract final class AppStrings {
   static const String departureCountSuffix = 'tarih';
   static const String soldOut = 'Dolu';
   static const String seatsLeftSuffix = 'koltuk kaldı';
+  static const String seeAll = 'Tümünü gör';
+  static const String noToursInRegion = 'Bu bölgede tur bulunmuyor.';
 
   // Tur detayı
   static const String tourDetailLoadError = 'Tur bilgileri yüklenemedi.';
@@ -99,6 +102,8 @@ abstract final class AppStrings {
   static const String tripSummary = 'Tur bilgisi';
   static const String passengerSection = 'Yolcu bilgisi';
   static const String passengerHint = 'Bilet bu hesaba ve bu isme kesilir.';
+  static const String phoneLabel = 'Telefon';
+  static const String phoneHint = 'Tur günü tur sorumlusu gerekirse bu numaradan arar.';
   static const String paymentSection = 'Ödeme';
   static const String demoPaymentTitle = 'Demo ödeme';
   static const String demoPaymentNote =
@@ -130,6 +135,8 @@ abstract final class AppStrings {
   static const String ticketDetailTitle = 'Bilet';
   static const String ticketNotFound = 'Bilet bu cihazda bulunamadı. Turlarım ekranını yenile.';
   static const String showQrToGuide = 'Tur günü bu kodu tur sorumlusuna okut.';
+  static const String qrScannedTitle = 'QR kodun okutuldu';
+  static const String qrScannedMessage = 'Tura katılımın kaydedildi. İyi yolculuklar!';
   static const String passenger = 'Yolcu';
   static const String departureDate = 'Kalkış';
   static const String vehicle = 'Araç';
@@ -166,6 +173,7 @@ abstract final class AppStrings {
   static const String errorNotAllowed = 'Bu işlem için yetkin yok.';
   static const String errorTicketNotCancellable =
       'Bu bilet iptal edilemez (kullanıldı, tur tamamlandı veya zaten iptal edildi).';
+  static const String errorInvalidPhone = 'Telefon numarası geçersiz.';
   static const String errorCancellationWindowClosed =
       'Kalkışa 1 saatten az kaldı; bilet artık iptal edilemez.';
 
@@ -179,9 +187,98 @@ abstract final class AppStrings {
   static const String account = 'Hesap';
   static const String signOut = 'Çıkış yap';
 
-  // Rehber
+  // Rehber: ana ekran
   static const String guideHomeTitle = 'Tur sorumlusu';
   static const String guideWelcomePrefix = 'Hoş geldin,';
-  static const String guideComingSoon =
-      'Katılımcı listesi, QR okutma ve duyurular bir sonraki sürümde bu ekrana gelecek.';
+  static const String guideToday = 'Bugün';
+  static const String guideUpcoming = 'Yaklaşan';
+  static const String guideCompleted = 'Tamamlanan';
+  static const String guideNoDepartures =
+      'Sana atanmış bir tur tarihi yok. Firman seni bir tarihe atadığında burada görünür.';
+  static const String guideDeparturesLoadError =
+      'Turların yüklenemedi. İnternet bağlantını kontrol et.';
+  static const String showingCachedDepartures =
+      'İnternet bağlantısı yok. Son kaydedilen bilgiler gösteriliyor.';
+  static const String arrivedCountLabel = 'Geldi';
+  static const String notArrivedCountLabel = 'Gelmedi';
+  static const String totalCountLabel = 'Toplam';
+  static const String awaitingApprovalBanner =
+      'Turu bitirme talebin gönderildi. Firma onayı bekleniyor.';
+  static const String completionRejectedBanner =
+      'Firma turu bitirme talebini reddetti; tur yeniden açık. Gerekirse firmayla görüş.';
+  static const String departureCompletedBanner = 'Bu tur tamamlandı.';
+
+  // Rehber: katılımcılar
+  static const String participantsTitle = 'Katılımcılar';
+  static const String participantSearchHint = 'Yolcu ara';
+  static const String filterAll = 'Tümü';
+  static const String filterArrived = 'Geldi';
+  static const String filterNotArrived = 'Gelmedi';
+  static const String noParticipants = 'Bu tarih için satılmış bilet yok.';
+  static const String noParticipantsMatch = 'Aramana uygun yolcu yok.';
+  static const String participantsLoadError =
+      'Katılımcılar yüklenemedi. İnternet bağlantını kontrol et.';
+  static const String showingCachedParticipants =
+      'İnternet bağlantısı yok. Son kaydedilen liste gösteriliyor; okutma için internet gerekir.';
+  static const String departureNotFound = 'Bu tur tarihi bulunamadı veya artık sana atanmış değil.';
+  static const String arrivedAtPrefix = 'Geldi';
+  static const String manualSuffix = 'elle';
+  static const String notArrived = 'Gelmedi';
+  static const String callPassenger = 'Yolcuyu ara';
+  static const String callDriver = 'Şoförü ara';
+  static const String scanQr = 'QR okut';
+  static const String manualCheckInTitle = 'Geldi olarak işaretlensin mi?';
+  static const String manualCheckInMessage =
+      'Yolcunun QR kodu okutulamıyorsa (telefonu kapalı, kırık) elle işaretleyebilirsin. '
+      'Kayıtta "elle" olarak görünür.';
+  static const String manualCheckInConfirm = 'Geldi';
+  static const String manualCheckInDone = 'Geldi olarak işaretlendi:';
+  static const String dialogDismiss = 'Vazgeç';
+
+  // Rehber: turu bitir
+  static const String finishTour = 'Turu bitir';
+  static const String finishTourTitle = 'Tur bitirilsin mi?';
+  static const String finishTourMessage =
+      'Firma onaylayınca bu tarih kapanır: gelenlerin bileti "Tamamlandı", gelmeyenlerin '
+      '"Gelmedi" olur. Onaya kadar okutma yapılamaz.';
+  static const String finishTourConfirm = 'Bitir';
+  static const String finishTourSent = 'Bitirme talebin firmaya gönderildi.';
+
+  // Rehber: QR okutma
+  static const String scanTitle = 'QR okut';
+  static const String scanHint = 'Yolcunun bilet QR kodunu çerçeveye getir.';
+  static const String enterCodeManually = 'Kodu elle gir';
+  static const String enterCodeTitle = 'Bilet kodu';
+  static const String enterCodeHint = 'Biletteki kod';
+  static const String enterCodeSubmit = 'Kontrol et';
+  static const String nextPassenger = 'Sıradaki yolcu';
+  static const String backToList = 'Listeye dön';
+  static const String checking = 'Kontrol ediliyor...';
+  static const String cameraPermissionDenied =
+      'Kamera izni verilmedi. QR okutmak için telefon ayarlarından Turla uygulamasına kamera '
+      'izni ver. Bu sırada kodu elle girebilir veya listeden yolcuyu elle işaretleyebilirsin.';
+  static const String cameraUnavailable =
+      'Kamera açılamadı. Kodu elle girebilir veya listeden yolcuyu elle işaretleyebilirsin.';
+
+  // Rehber: okutma sonuçları (scan_ticket / check_in_manually kodları)
+  static const String scanOkTitle = 'Hoş geldin!';
+  static const String scanOkMessage = 'Yolcu tura katıldı olarak işaretlendi.';
+  static const String scanAlreadyUsedTitle = 'Daha önce okutuldu';
+  static const String scanAlreadyUsedMessage = 'Bu bilet bu tur için zaten okutulmuş.';
+  static const String scanWrongDepartureTitle = 'Başka bir tarihin bileti';
+  static const String scanWrongDepartureMessage =
+      'Bu bilet başka bir tur veya tarih için alınmış. Yolcunun biletini kontrol et.';
+  static const String scanNotFoundTitle = 'Bilet bulunamadı';
+  static const String scanNotFoundMessage = 'Bu kodla bir bilet yok. Kodu kontrol et.';
+  static const String scanCancelledTitle = 'İptal edilmiş bilet';
+  static const String scanCancelledMessage = 'Bu bilet iptal edilmiş; yolcu bu tura kayıtlı değil.';
+  static const String scanNotPaidTitle = 'Ödenmemiş bilet';
+  static const String scanNotPaidMessage = 'Bu biletin ödemesi tamamlanmamış. Firmayla görüş.';
+  static const String scanFailureTitle = 'Okutulamadı';
+
+  // Rehber hataları (sunucu kodları)
+  static const String errorGuideNotAllowed = 'Bu tur tarihine atanmış değilsin.';
+  static const String errorDepartureNotActive =
+      'Bu tarih kapalı (bitirme talebi gönderildi veya tur tamamlandı); okutma yapılamaz.';
+  static const String errorDepartureNotStarted = 'Kalkış saati gelmeden tur bitirilemez.';
 }

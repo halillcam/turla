@@ -25,6 +25,7 @@ extension PanelFailureMessage on PanelFailureReason {
     PanelFailureReason.noSeatsLeft => AppStrings.errorNoSeatsLeft,
     PanelFailureReason.departureNotBookable => AppStrings.errorDepartureNotBookable,
     PanelFailureReason.ticketNotCancellable => AppStrings.errorTicketNotCancellable,
+    PanelFailureReason.notResettable => AppStrings.errorNotResettable,
     PanelFailureReason.unknown => CoreStrings.unexpectedError,
   };
 }

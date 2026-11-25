@@ -9,6 +9,7 @@ enum TicketFailureReason {
   departureNotBookable,
   alreadyHasTicket,
   noSeatsLeft,
+  invalidPhone,
   ticketNotFound,
   notAllowed,
   ticketNotCancellable,

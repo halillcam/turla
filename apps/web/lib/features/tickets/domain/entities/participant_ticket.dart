@@ -13,6 +13,9 @@ class ParticipantTicket extends Equatable {
     required this.pricePaid,
     required this.createdAt,
     this.cancelledAt,
+    this.passengerPhone,
+    this.checkedInAt,
+    this.isManualCheckIn = false,
   });
 
   final String id;
@@ -26,6 +29,13 @@ class ParticipantTicket extends Equatable {
   final double pricePaid;
   final DateTime createdAt;
   final DateTime? cancelledAt;
+  final String? passengerPhone;
+
+  /// Tur sorumlusunun QR okuttuğu / elle işaretlediği an.
+  final DateTime? checkedInAt;
+
+  /// Rehber QR yerine listeden elle "Geldi" dedi.
+  final bool isManualCheckIn;
 
   /// Koltuk tutan bilet (iptal edilenler koltuğu geri bırakır).
   bool get holdsSeat => status != TicketStatus.cancelled;
@@ -44,5 +54,8 @@ class ParticipantTicket extends Equatable {
     pricePaid,
     createdAt,
     cancelledAt,
+    passengerPhone,
+    checkedInAt,
+    isManualCheckIn,
   ];
 }

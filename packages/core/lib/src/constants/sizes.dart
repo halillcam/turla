@@ -12,10 +12,17 @@ abstract final class AppSizes {
 
   // Görsel
   static const double tourCardImageHeight = 160;
+  // Bölge satırındaki yatay kayan tur kartı (sonraki kart sağdan görünsün diye ekrandan dar).
+  static const double tourCarouselCardWidth = 280;
   static const double tourDetailImageHeight = 240;
   static const double avatarSm = 32;
   static const double avatarMd = 48;
   static const double qrCode = 220;
+  // Okutma sonucu ekranındaki büyük durum ikonu.
+  static const double statusIconLarge = 96;
+  // QR okutma çerçevesi.
+  static const double scanWindow = 240;
+  static const double scanWindowBorder = 3;
 
   // Kenarlık
   static const double borderWidth = 1;

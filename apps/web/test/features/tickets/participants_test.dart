@@ -15,6 +15,7 @@ import 'package:turla_web/features/tickets/data/models/participant_ticket_model.
 import 'package:turla_web/features/tickets/domain/entities/participant_ticket.dart';
 import 'package:turla_web/features/tickets/domain/repositories/ticket_admin_repository.dart';
 import 'package:turla_web/features/tickets/presentation/cubit/participants_cubit.dart';
+import 'package:turla_web/features/tickets/presentation/utils/participant_display.dart';
 import 'package:turla_web/features/tickets/presentation/widgets/participants_dialog.dart';
 import 'package:turla_web/features/tours/domain/entities/departure.dart';
 
@@ -148,6 +149,29 @@ void main() {
     expect(ticket.pricePaid, 750.5);
     expect(ticket.isCancellable, isTrue);
     expect(ParticipantTicketModel.fromRow({...row, 'source': 'app'}).isFromPanel, isFalse);
+    expect(ticket.phoneLabel, AppStrings.empty);
+    expect(ticket.statusLabel, TicketStatus.paid.label);
+  });
+
+  test('yolcu telefonu ve rehberin elle işaretlemesi tabloda görünür', () {
+    final ticket = ParticipantTicketModel.fromRow({
+      'id': 't1',
+      'departure_id': 'd1',
+      'user_id': 'u1',
+      'passenger_name': 'Ali',
+      'status': 'checked_in',
+      'source': 'app',
+      'price_paid': 750,
+      'created_at': '2026-11-20T10:00:00Z',
+      'cancelled_at': null,
+      'passenger_phone': '0532 111 22 33',
+      'scanned_at': '2026-11-26T05:10:00Z',
+      'check_in_method': 'manual',
+    });
+    expect(ticket.phoneLabel, '0532 111 22 33');
+    expect(ticket.isManualCheckIn, isTrue);
+    expect(ticket.checkedInAt, DateTime.utc(2026, 11, 26, 5, 10));
+    expect(ticket.statusLabel, '${TicketStatus.checkedIn.label} ${AppStrings.manualCheckInSuffix}');
   });
 
   test('bilet hata kodları eşlenir ve her birinin mesajı var', () {

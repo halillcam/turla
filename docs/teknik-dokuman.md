@@ -6,7 +6,7 @@
 |---|---|
 | **Ürün** | Turla: butik tur firmaları için tur satışı ve tur günü takibi |
 | **Parçalar** | Mobil uygulama (Android/iOS), web yönetim paneli, Supabase sunucusu |
-| **Durum** | MVP aşamasında. Faz 0–3 bitti, sırada Faz 4 (tur sorumlusu ekranları) var |
+| **Durum** | MVP aşamasında. Faz 0–4 bitti, sırada Faz 5 (tur sohbeti, duyurular, bildirimler) var |
 | **Dil** | Uygulamanın tamamı Türkçe |
 | **Son güncelleme** | Kasım 2026 |
 
@@ -79,12 +79,15 @@ Proje Supabase'in **ücretsiz planında** çalışıyor. Ücretsiz planda verita
 | Bir şehrin tur listesi | Telefonda, 20 dakika | 20 dakikada en fazla bir kez, ya da kullanıcı aşağı çekip yenilerse |
 | Tur görselleri | Telefonun disk önbelleğinde | Her görsel bir kez; en fazla 100 görsel, 7 gün sonra silinir |
 | Kullanıcının biletleri | Telefonda, kalıcı | Turlarım açılınca ve aşağı çekince |
+| Bir bölgenin tüm turları ("Tümünü gör") | Aynı tur listesi önbelleği | Ek istek yok |
+| Tur sorumlusunun tarihleri | Telefonda, son çekilen hali | Ana ekran açılınca ve aşağı çekince (tek istek) |
+| Bir tarihin katılımcıları | Telefonda, son çekilen hali | Tarih ekranı açılınca ve aşağı çekince |
 | Tur detayındaki boş koltuk | Tutulmaz | Her açılışta (güncel olması şart) |
 
 ### 2.2 Uygulanan kurallar
 
 - **Arama telefonda yapılıyor.** Tur ya da şehir ararken her harfte sunucuya istek gitmez; zaten indirilmiş liste telefonda süzülür.
-- **İşlemden sonra liste tekrar indirilmiyor.** Bilet iptal edilince bilet telefonda güncellenir. Panelde hesap açınca ya da bir kaydı düzenleyince liste baştan çekilmez, sadece değişen satır güncellenir.
+- **İşlemden sonra liste tekrar indirilmiyor.** Bilet iptal edilince bilet telefonda güncellenir. QR okutulunca ya da yolcu elle işaretlenince katılımcı listesi ve sayılar telefonda güncellenir. Panelde hesap açınca ya da bir kaydı düzenleyince liste baştan çekilmez, sadece değişen satır güncellenir.
 - **İnternet yoksa uygulama çalışmaya devam ediyor.** Son kaydedilen tur listesi bir uyarıyla gösterilir. Bilet ve QR kod internetsiz açılır; tur günü otobüste internet olmasa da yolcu QR'ını gösterebilir.
 - **Görseller küçültülerek yükleniyor.** Panelden yüklenen tur görselinin en uzun kenarı 1280 piksele indirilir ve sıkıştırılır. Bu hem dosya alanını hem de veri çıkışını korur.
 - **Panelde sekmeler canlı tutuluyor.** Tur düzenleyicide sekme değiştirince veri tekrar indirilmez.
@@ -150,9 +153,9 @@ Kullanıcının rolü hesap açılırken sunucuda belirlenir; kullanıcı kendi 
 3. Müşteri bir tura girer; program, kalkış tarihleri ve boş koltuklar görünür.
 4. Bir tarih seçer. Dolu tarihler seçilemez.
 5. Giriş yapmamışsa giriş ekranı açılır; giriş yapınca aynı tura geri döner.
-6. Ödeme ekranında özet ve "Demo: gerçek tahsilat yapılmaz" notu görünür.
+6. Ödeme ekranında özet ve "Demo: gerçek tahsilat yapılmaz" notu görünür. Müşteri adını ve **telefonunu** yazar (profilde telefon varsa dolu gelir). Telefon bilete kopyalanır; tur günü tur sorumlusu gerekirse yolcuyu arar.
 7. "Ödemeyi onayla"ya basınca sunucudaki `book_ticket` fonksiyonu çalışır.
-8. Sunucu tek seferde şunları yapar: koltuğu bir azaltır, bileti ve QR kodu oluşturur, demo ödeme kaydını yazar.
+8. Sunucu tek seferde şunları yapar: koltuğu bir azaltır, bileti ve QR kodu oluşturur, demo ödeme kaydını yazar. Profilde telefon yoksa yazılan telefonu oraya da kaydeder.
 9. Başarı ekranında QR gösterilir. Bilet **Turlarım** sekmesine eklenir ve telefonda saklanır.
 
 Kurallar: Müşteri her seferinde sadece kendine bir bilet alır. Aynı tarihe ikinci bilet alamaz.
@@ -170,24 +173,30 @@ Kurallar: Müşteri her seferinde sadece kendine bir bilet alır. Aynı tarihe i
 
 Firma yöneticisi panelden iptal ederse 1 saat kuralı uygulanmaz.
 
-### 5.3 Tur günü QR okutma *(sunucu tarafı hazır, mobil ekranları Faz 4'te)*
+### 5.3 Tur günü QR okutma
 
-1. Tur sorumlusu atandığı tarihi açar ve yolcunun QR kodunu okutur.
-2. Sunucudaki `scan_ticket` fonksiyonu:
+1. Tur sorumlusu giriş kimliğiyle (`REH-xxxx`) girer. Ana ekranda kendisine atanmış tarihler görünür: önce **bugünküler**, sonra yaklaşanlar, sonra son günlerde tamamlananlar. Her kartta geldi / gelmedi / toplam sayıları vardır.
+2. Bir tarihe girince katılımcı listesi açılır: yeşil "Geldi · 08:12", kırmızı "Gelmedi". Liste Tümü / Geldi / Gelmedi diye süzülür ve isimle aranır (arama telefonda yapılır, sunucuya istek atılmaz).
+3. "QR okut" ile kamera açılır, yolcunun bilet QR kodu okutulur. Sunucudaki `scan_ticket` fonksiyonu:
    - okutan kişinin o tarihin sorumlusu (ya da firma yöneticisi) olduğunu kontrol eder,
    - biletin bu tarihe ait, ödenmiş ve daha önce okutulmamış olduğuna bakar,
-   - bileti "tura katıldı" yapar ve saatini yazar.
-3. Ekranda yolcunun adı ya da hata nedeni görünür.
+   - bileti "tura katıldı" yapar, saatini ve "QR ile" bilgisini yazar.
+4. Sonuç ekranında yolcunun adı ya da sorun görünür: daha önce okutuldu, başka bir tarihin bileti, bilet bulunamadı, iptal edilmiş, ödenmemiş. "Sıradaki yolcu" ile kameraya dönülür.
+5. Kamera aynı kodu saniyede birkaç kez yakalar; aynı kod 3 saniye içinde tekrar gelirse ve sonuç ekrandayken yeni kod gelirse yok sayılır.
+6. Kamera izni verilmezse ya da kamera bozuksa açıklama çıkar; **"Kodu elle gir"** ile biletteki kod yazılabilir.
+7. Yolcunun telefonu kapalı ya da kırıksa tur sorumlusu listede isme dokunur ve onaylayarak **elle "Geldi"** işaretler (`check_in_manually`). Kayıtta "elle" olarak görünür.
+8. Telefonu olan yolcu listeden aranabilir; şoför de tarih ekranından aranabilir.
+9. Müşterinin biletinde QR yerine **"QR kodun okutuldu · saat"** görünür, durum "Tura katıldı" olur (Turlarım açılınca ya da aşağı çekince güncellenir).
 
-Bir QR kod sadece bir kez kullanılabilir.
+Bir QR kod sadece bir kez kullanılabilir. **Okutma internet ister:** bağlantı yoksa "İnternet bağlantısı yok" uyarısı çıkar; liste son kaydedilen haliyle görünmeye devam eder.
 
 ### 5.4 Turu bitirme
 
-1. Tur sorumlusu kalkış saati geçtikten sonra "Turu bitir" der.
-2. O tarih "bitiş onayı bekliyor" durumuna geçer.
+1. Tur sorumlusu kalkış saati geçtikten sonra tarih ekranında "Turu bitir" der ve onaylar (`request_departure_completion`). Düğme kalkış saatinden önce görünmez; sunucu da reddeder.
+2. O tarih "bitiş onayı bekliyor" durumuna geçer. Tur sorumlusunun ekranında "Firma onayı bekleniyor" bandı çıkar; bu sırada okutma ve elle işaretleme kapanır.
 3. Firma yöneticisi panelden talebi onaylar ya da reddeder:
    - **Onaylarsa** sadece o tarih kapanır. QR'ı okutulanlar "tamamlandı", okutulmayanlar "gelmedi" olarak işaretlenir.
-   - **Reddederse** tarih tekrar aktif olur.
+   - **Reddederse** tarih tekrar aktif olur; tur sorumlusunun ekranında "Firma talebi reddetti" bandı görünür.
 4. Aynı turun diğer tarihleri bundan etkilenmez.
 
 ### 5.5 Panelden firma ve hesap açma
@@ -195,12 +204,13 @@ Bir QR kod sadece bir kez kullanılabilir.
 - Sistem yöneticisi firma oluşturur ve firmaya bir yönetici hesabı açar (e-posta ve geçici şifre ile).
 - Firma yöneticisi tur sorumlusu (`REH-xxxx`) ve dışarıdan müşteri (`MUS-xxxx`) hesapları açar.
 - Geçici şifreyi yönetici hesap sahibine kendisi iletir. Şifre panelde bir daha gösterilmez.
+- Tur sorumlusu ya da `MUS-` müşterisi şifresini unutursa yönetici "Personel ve müşteriler" sayfasında **"Şifre sıfırla"** der. Sunucu 10 karakterlik yeni bir geçici şifre üretir (karışan 0/O, 1/l/I harfleri yok) ve panel bunu bir kez gösterir; eski şifre hemen geçersiz olur.
 
 ### 5.6 Telefonla ya da ofisten satılan bilet
 
 1. Firma yöneticisi müşteri için bir `MUS-xxxx` hesabı açar.
 2. İlgili tarihin katılımcılar penceresinde "Bilet kes" ile müşteriyi seçer.
-3. Sunucudaki `admin_issue_ticket` fonksiyonu bileti "panelden kesildi, ödeme elden alındı" olarak kaydeder.
+3. Sunucudaki `admin_issue_ticket` fonksiyonu bileti "panelden kesildi, ödeme elden alındı" olarak kaydeder. Müşterinin profilindeki telefon bilete kopyalanır.
 4. Müşteri giriş kimliğiyle mobil uygulamaya girip biletini ve QR kodunu görür.
 
 ---
@@ -318,7 +328,7 @@ Testlerde gerçek sunucu yerine sahte veri kaynakları verilir. Böylece "intern
 ### 8.6 Sayfa yönlendirme
 
 - Hangi sayfanın açılabileceğine tek bir fonksiyon karar verir ve bu fonksiyonun ayrıca testi vardır.
-- Mobilde: oturum ve şehir yüklenene kadar açılış ekranı görünür; tur sorumlusu sadece kendi ekranını görür; giriş yapmış kullanıcı giriş ekranına dönmez; şehir seçilmemişse önce şehir seçimi açılır.
+- Mobilde: oturum ve şehir yüklenene kadar açılış ekranı görünür; tur sorumlusu sadece kendi ekranlarını (`/guide` ile başlayanlar) görür, müşteri bu ekranlara giremez; giriş yapmış kullanıcı giriş ekranına dönmez; şehir seçilmemişse önce şehir seçimi açılır.
 - Başka bir sayfanın üstüne açılan ekranlar (örneğin giriş) işi bitince kendini kapatır.
 - Web panelinde sayfa yenilenince kullanıcı aynı sayfada kalır.
 
@@ -332,10 +342,10 @@ Testlerde gerçek sunucu yerine sahte veri kaynakları verilir. Böylece "intern
 |---|---|
 | `auth` | Giriş (e-posta veya giriş kimliği), kayıt, oturum ve rol kontrolü |
 | `city_choice` | Şehir seçimi ve seçilen şehrin saklanması |
-| `tours` | Bölgelere göre tur listesi, arama, tur detayı, tarih seçimi |
-| `tickets` | Satın alma, Turlarım, bilet detayı ve iptal |
+| `tours` | Bölgelere göre tur listesi (her bölge yan yana kayar, "Tümünü gör"), arama, tur detayı, tarih seçimi |
+| `tickets` | Satın alma (ad + telefon), Turlarım, bilet detayı, iptal, "QR kodun okutuldu" |
 | `profile` | Misafir ve giriş yapmış kullanıcı profili, şehir değiştirme, çıkış |
-| `guide` | Tur sorumlusu ekranı *(Faz 4'te doldurulacak)* |
+| `guide` | Tur sorumlusu: atanmış tarihler, katılımcılar, QR okutma, elle "Geldi", turu bitir |
 
 ### 9.2 Ekranlar
 
@@ -345,12 +355,15 @@ Testlerde gerçek sunucu yerine sahte veri kaynakları verilir. Böylece "intern
 | `/city` | Şehir seçimi | İlk açılışta zorunlu |
 | `/login`, `/register` | Giriş, kayıt | İş bitince kendini kapatır |
 | `/tours` | Tur listesi | Alt menü: Turlar |
+| `/tours/region/:region` | Bir bölgenin tüm turları | "Tümünü gör"; turlar aynı önbellekten gelir |
 | `/tours/:tourId` | Tur detayı | Tarih seçimi burada |
 | `/checkout` | Demo ödeme | Alt menüsüz, tam ekran |
 | `/my-tickets` | Turlarım | Alt menü: Turlarım (giriş gerekli) |
 | `/my-tickets/:ticketId` | Bilet detayı ve QR | İnternetsiz açılır |
 | `/profile` | Profil | Alt menü: Profil |
-| `/guide` | Tur sorumlusu ana ekranı | Alt menü yok |
+| `/guide` | Tur sorumlusu ana ekranı | Bugün / yaklaşan / tamamlanan tarihler |
+| `/guide/departures/:departureId` | Katılımcılar | Geldi/gelmedi, süzgeç, arama, elle "Geldi", "QR okut", "Turu bitir" |
+| `/guide/departures/:departureId/scan` | QR okutma | Kamera, sonuç ekranı, "Kodu elle gir" |
 
 ### 9.3 Giriş kimliği nasıl çalışıyor?
 
@@ -360,7 +373,15 @@ Panelden açılan hesaplar e-posta yerine bir kimlikle girer. Supabase'in giriş
 REH-4821  →  reh-4821@staff.turla.app
 ```
 
-Bu adreslere hiçbir zaman e-posta gönderilmez. Giriş ekranında tek bir alan vardır ("E-posta veya giriş kimliği"). Yazılan değerde `@` yoksa kimlik olarak kabul edilir. Büyük-küçük harf ve boşluk farkı önemsizdir.
+Bu adreslere hiçbir zaman e-posta gönderilmez. Şifre unutulursa firma yöneticisi panelden sıfırlar. Giriş ekranında tek bir alan vardır ("E-posta veya giriş kimliği"). Yazılan değerde `@` yoksa kimlik olarak kabul edilir. Büyük-küçük harf ve boşluk farkı önemsizdir.
+
+### 9.4 Tur sorumlusu ekranları ve veriler
+
+- **Ana ekran tek istekle gelir:** `guide_departures` fonksiyonu tarihleri, tur adını, araç ve şoförü, bilet ve gelen sayılarını ve son bitirme talebinin durumunu birlikte döndürür.
+- **Telefonda saklanan:** tarih listesi ve her tarihin katılımcı listesi son çekilen haliyle saklanır. İnternet yokken liste görünür, üstte uyarı çıkar.
+- **Okutma sonrası yeniden istek yok:** okutulan ya da elle işaretlenen yolcu telefondaki listede yeşile döner, sayılar güncellenir; liste sunucudan tekrar çekilmez.
+- **Sunucuya gidilen anlar:** ekran açılınca, aşağı çekince, okutma, elle işaretleme ve turu bitir.
+- **Kamera:** `mobile_scanner` paketi, sadece QR biçimi. Android'de kamera izni istenir; kamerası olmayan cihaza da kurulabilir.
 
 ---
 
@@ -373,8 +394,8 @@ Bu adreslere hiçbir zaman e-posta gönderilmez. Giriş ekranında tek bir alan 
 | `auth` | Panel girişi; rol ve pasif firma kontrolü |
 | `companies` | Firma listesi, ekleme/düzenleme, aktif/pasif, firma yöneticisi hesabı (sistem yöneticisi) |
 | `tours` | Tur listesi ve düzenleyici: Bilgiler, Program, Tarihler sekmeleri ve kapak görseli |
-| `staff` | Tur sorumlusu ve dışarıdan müşteri hesapları, aktif/pasif |
-| `tickets` | Bir tarihin katılımcıları, yönetici iptali, "Bilet kes" |
+| `staff` | Tur sorumlusu ve dışarıdan müşteri hesapları, aktif/pasif, şifre sıfırlama |
+| `tickets` | Bir tarihin katılımcıları (telefon, "tura katıldı (elle)"), yönetici iptali, "Bilet kes" |
 | `completions` | Turu bitirme talepleri: onay ve ret |
 
 ### 10.2 Sayfalar
@@ -427,6 +448,7 @@ Firma yöneticisi sadece kendi firmasının sayfalarına girebilir. Sistem yöne
 | Tarih durumu (`departure_status`) | `scheduled` (planlandı), `finish_requested` (bitiş onayı bekliyor), `completed` (tamamlandı), `cancelled` (iptal) |
 | Bilet durumu (`ticket_status`) | `reserved`, `paid` (ödendi), `checked_in` (tura katıldı), `cancelled` (iptal), `completed` (tamamlandı), `no_show` (gelmedi) |
 | Bilet kaynağı (`ticket_source`) | `app` (uygulamadan), `panel` (panelden) |
+| Katılım yöntemi (`check_in_method`) | `qr` (QR okutuldu), `manual` (tur sorumlusu elle işaretledi) |
 | Ödeme türü (`payment_type`) | `payment` (ödeme), `refund` (iade) |
 | Ödeme yöntemi (`payment_method`) | `demo`, `manual` (elden/havale) |
 | Bitirme talebi (`completion_status`) | `pending`, `approved`, `rejected` |
@@ -454,7 +476,7 @@ Firma yöneticisi sadece kendi firmasının sayfalarına girebilir. Sistem yöne
 
 | Tablo | Ne tutuyor | Önemli alanlar |
 |---|---|---|
-| `tickets` | Biletler | `departure_id`, `user_id`, `passenger_name`, `price_paid`, `status`, `source`, `qr_token`, `scanned_at`, `cancelled_at` |
+| `tickets` | Biletler | `departure_id`, `user_id`, `passenger_name`, `passenger_phone`, `price_paid`, `status`, `source`, `qr_token`, `scanned_at`, `check_in_method`, `cancelled_at` |
 | `payments` | Ödeme ve iade kayıtları | `ticket_id`, `type`, `method`, `amount` |
 
 **İletişim ve işleyiş**
@@ -493,6 +515,7 @@ Bir tur (örneğin "Kapadokya Turu") birçok tarihte yapılır. Koltuk sayısı,
 | `departures_before_write` | Yeni tarihte boş koltuğu kontenjana eşitler; kontenjan değişince boş koltuğu da aynı farkla değiştirir; atanan tur sorumlusunun aynı firmada aktif olduğunu kontrol eder |
 | `messages_before_insert` | Mesajı gönderenin adını profilden yazar; kimse başkası adına mesaj atamaz |
 | `announcements_fanout` | Duyuruyu sadece QR'ı okutulmuş yolcuların bildirim kutusuna dağıtır |
+| `tickets_copy_customer_phone` | Bilete telefon yazılmadıysa (panelden kesilen bilet) müşterinin profil telefonunu kopyalar; profildeki telefon bozuksa bilet yine kesilir |
 | `set_updated_at` | Kaydın güncellenme zamanını yazar |
 
 ---
@@ -503,9 +526,11 @@ Bu fonksiyonlar uygulamadan çağrılır ve veritabanında **tek seferde** çal�
 
 | Fonksiyon | Kim çağırır | Ne yapar | Döndürebileceği hatalar |
 |---|---|---|---|
-| `book_ticket` | Müşteri | Koltuğu azaltır, bileti ve QR kodu oluşturur, demo ödemeyi yazar | `only_customers_can_book`, `departure_not_found`, `tour_not_available`, `departure_not_bookable`, `no_seats_left`, `already_has_ticket` |
+| `book_ticket` | Müşteri | Koltuğu azaltır, bileti ve QR kodu oluşturur, demo ödemeyi yazar, telefonu bilete (profil boşsa profile de) yazar | `only_customers_can_book`, `invalid_phone`, `departure_not_found`, `tour_not_available`, `departure_not_bookable`, `no_seats_left`, `already_has_ticket` |
 | `cancel_ticket` | Bilet sahibi, firma yöneticisi | Bileti iptal eder, koltuğu geri ekler, tam iade yazar | `ticket_not_found`, `not_allowed`, `ticket_not_cancellable`, `cancellation_window_closed` |
-| `scan_ticket` | O tarihin tur sorumlusu, firma yöneticisi | Bileti "tura katıldı" yapar ve sonucu döner | `not_allowed`, `departure_not_active`; sonuç: `ok`, `not_found`, `wrong_departure`, `already_used`, `cancelled`, `not_paid` |
+| `scan_ticket` | O tarihin tur sorumlusu, firma yöneticisi | Bileti "tura katıldı" yapar (yöntem: QR), yolcu adı ve saatle sonucu döner | `departure_not_found`, `not_allowed`, `departure_not_active`; sonuç: `ok`, `not_found`, `wrong_departure`, `already_used`, `cancelled`, `not_paid` |
+| `check_in_manually` | O tarihin tur sorumlusu, firma yöneticisi | Yolcuyu elle "tura katıldı" yapar (yöntem: elle); sonucu `scan_ticket` ile aynı biçimde döner | `ticket_not_found`, `not_allowed`, `departure_not_active`; sonuç: `ok`, `already_used`, `cancelled`, `not_paid` |
+| `guide_departures` | Tur sorumlusu | Atandığı açık tarihleri ve son 2 günde tamamlananları sayılarla döndürür (başkası için boş liste) | — |
 | `request_departure_completion` | Tur sorumlusu | Tarihi "bitiş onayı bekliyor" yapar, talep açar | `not_allowed`, `departure_not_active`, `departure_not_started` |
 | `review_departure_completion` | Firma yöneticisi | Onay: tarihi kapatır, biletleri "tamamlandı"/"gelmedi" yapar. Ret: tarihi tekrar açar | `request_not_found`, `not_allowed`, `request_already_reviewed` |
 | `admin_issue_ticket` | Firma yöneticisi | Panelden açılmış müşteriye bilet keser, ödemeyi "elden" yazar | `not_allowed`, `departure_not_found`, `tour_not_available`, `departure_not_bookable`, `invalid_customer`, `no_seats_left`, `already_has_ticket` |
@@ -530,7 +555,7 @@ Veritabanında her tablo için "bu satırı kim görebilir, kim değiştirebilir
 | `companies` | Aktif firmaları herkes; ayrıca kendi firması ve biletinin firması | Sistem yöneticisi |
 | `tours`, `tour_program_days`, `tour_departures` | Aktif firmanın satıştaki turlarını herkes; firma kendi turlarını; bilet sahibi biletinin turunu; tur sorumlusu atandığı tarihi | Firma yöneticisi (sadece kendi firması) |
 | `profiles` | Kendisi; firma yöneticisi kendi firmasındaki hesapları; sistem yöneticisi herkesi | Kişi sadece adını, telefonunu ve seçili şehrini değiştirebilir; rolünü ve firmasını değiştiremez |
-| `tickets` | Bilet sahibi, firma yöneticisi, o tarihin tur sorumlusu | **Uygulama doğrudan yazamaz**, sadece fonksiyonlar yazar |
+| `tickets` | Bilet sahibi, firma yöneticisi, o tarihin tur sorumlusu (yolcu adı ve telefonu dahil) | **Uygulama doğrudan yazamaz**, sadece fonksiyonlar yazar |
 | `payments` | Firma yöneticisi, biletin sahibi | **Uygulama doğrudan yazamaz** |
 | `messages` | QR'ı okutulmuş yolcu, tur sorumlusu, firma yöneticisi | Aynı kişiler, sadece aktif tarihte |
 | `announcements` | Aynı kişiler | Tur sorumlusu, firma yöneticisi |
@@ -588,8 +613,14 @@ Web panelinden firma yöneticisi, tur sorumlusu ve dışarıdan müşteri hesab�
 - Yönetici hesabı e-postayla açılır. Tur sorumlusu ve müşteri için kimlik üretilir: `REH-` ya da `MUS-` ve 4 rakam. Aynı kimlik varsa yenisi denenir.
 - Hesaplar onaylanmış olarak açılır, e-posta gönderilmez.
 
+**Şifre sıfırlama** (`{ action: 'reset_password', user_id }`):
+
+- Sadece giriş kimlikli hesaplar (`REH-`, `MUS-`) sıfırlanır. E-postayla kayıt olan uygulama müşterisi ve firma yöneticisi bu yoldan sıfırlanamaz (`not_resettable`).
+- Firma yöneticisi sadece kendi firmasının hesaplarını, sistem yöneticisi her firmanınkini sıfırlar. Pasif firmanın yöneticisi sıfırlayamaz.
+- Yeni şifre sunucuda güvenli rastgele sayıyla üretilir ve yanıtta bir kez döner.
+
 **Başarılı olursa:** Kullanıcı kimliği, giriş e-postası ve giriş kimliği döner.
-**Hata olursa:** `not_allowed`, `invalid_role`, `company_required`, `invalid_full_name`, `weak_password`, `invalid_phone`, `invalid_email` gibi bir kod döner.
+**Hata olursa:** `not_allowed`, `invalid_role`, `company_required`, `invalid_full_name`, `weak_password`, `invalid_phone`, `invalid_email`, `not_resettable`, `account_not_found` gibi bir kod döner.
 
 Bu kurallar ayrı bir dosyada (`rules.ts`) tutulur ve ayrıca test edilir.
 
@@ -618,9 +649,15 @@ Bu kurallar ayrı bir dosyada (`rules.ts`) tutulur ve ayrıca test edilir.
 | `cannot_change_self` | Yönetici kendi hesabını pasife almak istedi | Kendi hesabınızın durumunu değiştiremezsiniz |
 | `profile_not_found` | Hesap yok | Kayıt bulunamadı |
 | `invalid_program` | Program bilgisi hatalı | Girilen bilgiler geçersiz |
-| `already_used` *(QR)* | Bilet daha önce okutuldu | Bu bilet daha önce okutuldu |
-| `wrong_departure` *(QR)* | Bilet başka bir tarihe ait | Bu bilet başka bir tarihe ait |
-| `not_paid` *(QR)* | Bilet ödenmemiş | Bilet ödenmemiş |
+| `invalid_phone` | Telefon biçimi hatalı | Telefon numarası geçersiz |
+| `not_resettable` | Şifresi panelden sıfırlanamayan hesap | Bu hesabın şifresi panelden sıfırlanamaz |
+| `account_not_found` | Şifresi sıfırlanacak hesap yok | Kayıt bulunamadı |
+| `ok` *(QR)* | Okutma başarılı | Hoş geldin! + yolcunun adı |
+| `already_used` *(QR)* | Bilet daha önce okutuldu | Daha önce okutuldu (ilk okutma saati) |
+| `wrong_departure` *(QR)* | Bilet başka bir tarihe ait | Başka bir tarihin bileti |
+| `not_found` *(QR)* | Bu kodla bilet yok | Bilet bulunamadı |
+| `cancelled` *(QR)* | Bilet iptal edilmiş | İptal edilmiş bilet |
+| `not_paid` *(QR)* | Bilet ödenmemiş | Ödenmemiş bilet |
 
 ---
 
@@ -629,10 +666,10 @@ Bu kurallar ayrı bir dosyada (`rules.ts`) tutulur ve ayrıca test edilir.
 | Bölüm | Neyi test ediyor | Test sayısı |
 |---|---|---|
 | Ortak paket | İl listesinin saklanması, giriş kimliği | 13 |
-| Mobil uygulama | Yönlendirme kuralları, oturum, giriş, şehir seçimi, tur listesi ve önbelleği, biletler, satın alma, iptal, ekran akışları | 67 |
-| Web paneli | Panel girişi, sayfa yenileme, firmalar, turlar, personel, biletler, hata mesajları | 61 |
-| Veritabanı | Tablolar, yetki kuralları, bilet alma, kontenjan, iptal süresi, iade, QR, turu bitirme, dosya yetkileri | 102 |
-| Hesap açma fonksiyonu | `rules.ts` içindeki kurallar | ayrı test dosyası |
+| Mobil uygulama | Yönlendirme kuralları, oturum, giriş, şehir seçimi, tur listesi (yatay bölge satırı, bölge ekranı) ve önbelleği, biletler, satın alma (telefon), iptal, tur sorumlusu (tarihler, katılımcılar, QR okutma, elle Geldi, turu bitir), ekran akışları | 102 |
+| Web paneli | Panel girişi, sayfa yenileme, firmalar, turlar, personel ve şifre sıfırlama, biletler (telefon, elle işareti), hata mesajları | 64 |
+| Veritabanı | Tablolar, yetki kuralları, bilet alma, telefon, kontenjan, iptal süresi, iade, QR, elle Geldi, tur sorumlusunun tarih listesi, turu bitirme, dosya yetkileri | 106 |
+| Hesap açma fonksiyonu | `rules.ts` içindeki kurallar (hesap açma ve şifre sıfırlama) | 29 |
 
 **Veritabanı testleri nasıl çalışıyor?** Testler gerçek Supabase'e bağlanmaz. Bilgisayarda küçük bir PostgreSQL (PGlite) açılır, Supabase'in giriş ve depolama kısımları taklit edilir, bütün veritabanı dosyaları sırayla kurulur ve senaryolar farklı kullanıcılar olarak denenir. Yeni Supabase projelerinin "erişim varsayılan kapalı" davranışı da taklit edildiği için unutulan bir yetki testte yakalanır.
 
@@ -658,6 +695,7 @@ Veritabanındaki her değişiklik sıralı bir SQL dosyası olarak saklanır. Ç
 | 10 | `sync_app_metadata` | Rol bilgisinin profile eşitlenmesi |
 | 11 | `black_sea_split` | Karadeniz'in Batı ve Doğu olarak ikiye ayrılması |
 | 12 | `tickets` | Bilet sahibinin okuma yetkisi, tek bilet kuralı, panelden bilet kesme |
+| 13 | `guide` | Yolcu telefonu, katılım yöntemi (QR / elle), elle "Geldi", tur sorumlusunun tarih listesi |
 
 ---
 
@@ -674,6 +712,10 @@ Veritabanındaki her değişiklik sıralı bir SQL dosyası olarak saklanır. Ç
 | Turu bitirme | Sadece o tarih kapanır | Aynı turun diğer tarihlerinin satışı sürmeli |
 | Tur sorumlusu | Firmanın kalıcı çalışanı, tarihlere atanır | Her tur için ayrı hesap açmaya gerek kalmıyor |
 | Bölgeler | Karadeniz → Batı Karadeniz ve Doğu Karadeniz | Firmaların tur kategorileri daha doğru ayrılıyor |
+| İnternetsiz okutma | Yok; okutma internet ister | Çevrimdışı kuyruk çakışma kuralı ve çok iş gerektirir; MVP'de bağlantı yoksa uyarı çıkar |
+| Elle "Geldi" | Var, onay penceresiyle; kayıtta "elle" yazar | Telefonu kapalı/kırık yolcu tura alınabilsin |
+| Yolcu telefonu | Satın alırken istenir, bilete kopyalanır | Tur günü tur sorumlusu yolcuya ulaşabilsin |
+| Şifre sıfırlama | Panelden yönetici yapar, yeni geçici şifre bir kez gösterilir | Giriş kimlikli hesapların e-postası yok |
 | Koltuk seçimi | Sonraki sürüm | Veritabanı yapısı buna hazır |
 | Web paneli | Flutter Web | Mobille aynı dil ve ortak kod |
 
@@ -689,14 +731,15 @@ Veritabanındaki her değişiklik sıralı bir SQL dosyası olarak saklanır. Ç
 | 1 | Mobil: giriş/kayıt, roller, şehir seçimi, tur listesi ve detayı | Bitti |
 | 2 | Web paneli: firmalar, turlar, tarihler, program, görsel, hesap açma, turu bitirme onayı | Bitti |
 | 3 | Bilet satın alma, Turlarım, iptal ve iade, panelde katılımcılar ve "Bilet kes" | Bitti |
-| 4 | Tur sorumlusu ekranları: atanmış tarihler, katılımcılar, QR okutma, turu bitirme | Sırada |
-| 5 | Tur sohbeti, duyurular, bildirimler | Planlandı |
+| 4 | Tur sorumlusu ekranları: atanmış tarihler, katılımcılar, QR okutma, elle "Geldi", turu bitirme; yolcu telefonu; panelde şifre sıfırlama; yan yana kayan tur listesi | Bitti |
+| 5 | Tur sohbeti, duyurular, bildirimler | Sırada |
 | 6 | Ekran tasarımı ve demo hazırlığı | Planlandı |
 
 ### 21.2 Bilinen eksikler
 
-- Tur listesinde aynı bölgedeki turlar şu an alt alta diziliyor; yan yana kayan liste ve "Tümünü gör" ekranı yapılacak.
-- Şifre sıfırlama ve tur sorumlusunun şifresini yenileme yok.
+- Uygulamadan kayıt olan müşteri şifresini unutursa e-postayla sıfırlama yok (e-posta bağlantısı ayarı sonra yapılacak).
+- QR okutma internet ister; internetsiz okutma kuyruğu yok.
 - Panelde bir tarihi "iptal edildi" yapma yok.
-- Uygulamadan kayıt olan müşterinin telefon numarası alınmıyor; katılımcı listesinde telefon gösterilemiyor.
+- Satın alırken yazılan telefon profile kaydedilir ama uygulamadaki oturum bilgisi bir sonraki girişe kadar eski kalır; ikinci satın almada telefon yeniden yazılabilir.
+- Müşteri biletinin "Tura katıldı" olması canlı değil; Turlarım açılınca ya da aşağı çekince görünür (canlı dinleme Faz 5).
 - E-posta onay bağlantısı tıklanınca uygulamaya geri dönmüyor (bu ayar daha sonra yapılacak).

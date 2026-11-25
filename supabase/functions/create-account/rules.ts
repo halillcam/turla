@@ -129,3 +129,50 @@ export function generateLoginId(prefix: string, random: () => number = Math.rand
 export function loginIdToEmail(loginId: string): string {
   return `${loginId.trim().toLowerCase()}@${LOGIN_ID_EMAIL_DOMAIN}`;
 }
+
+// ─── Şifre sıfırlama (Faz 4) ────────────────────────────────────────────────
+
+/** Şifresi sıfırlanacak hesap (profiles tablosundan). */
+export interface ResetTarget {
+  id: string;
+  role: Role;
+  companyId: string | null;
+  loginId: string | null;
+}
+
+export interface ResetPlan {
+  ok: true;
+  userId: string;
+  loginId: string;
+}
+
+/**
+ * Kim kimin şifresini sıfırlayabilir?
+ * - Sadece giriş kimliğiyle giren panel hesapları (REH-, MUS-). E-postayla kayıt olan
+ *   uygulama müşterisi ve firma admini kapsam dışı (onların şifresi kendilerinde).
+ * - super_admin: her firmanın bu hesapları; admin: sadece kendi firmasınınkiler.
+ * - Kendi şifresini bu yoldan sıfırlayamaz (zaten giriş kimliği hesabı değil).
+ */
+export function planPasswordReset(caller: Caller, target: ResetTarget | null): ResetPlan | PlanError {
+  if (!caller.isActive) return fail(403, 'not_allowed');
+  if (caller.role !== 'super_admin' && caller.role !== 'admin') return fail(403, 'not_allowed');
+  if (!target) return fail(404, 'account_not_found');
+  if ((target.role !== 'guide' && target.role !== 'customer') || !target.loginId || !target.companyId) {
+    return fail(400, 'not_resettable');
+  }
+  if (caller.role === 'admin' && caller.companyId !== target.companyId) return fail(403, 'not_allowed');
+  return { ok: true, userId: target.id, loginId: target.loginId };
+}
+
+/** Karışması kolay harfler (0/O, 1/l/I) çıkarılmış alfabe; rehbere sesli okunabilir. */
+const PASSWORD_ALPHABET = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789';
+export const GENERATED_PASSWORD_LENGTH = 10;
+
+/** Geçici şifre. `randomInt(n)` 0..n-1 arası güvenli rastgele sayı döndürmeli. */
+export function generatePassword(randomInt: (max: number) => number): string {
+  let password = '';
+  for (let i = 0; i < GENERATED_PASSWORD_LENGTH; i++) {
+    password += PASSWORD_ALPHABET[randomInt(PASSWORD_ALPHABET.length)];
+  }
+  return password;
+}

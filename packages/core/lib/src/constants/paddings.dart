@@ -47,4 +47,5 @@ abstract final class AppPaddings {
 abstract final class AppMargins {
   static const EdgeInsets cardList = EdgeInsets.only(bottom: AppSpacing.md);
   static const EdgeInsets section = EdgeInsets.only(bottom: AppSpacing.xl);
+  static const EdgeInsets none = EdgeInsets.zero;
 }

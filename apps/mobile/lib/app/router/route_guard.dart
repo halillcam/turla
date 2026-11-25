@@ -19,9 +19,9 @@ abstract final class RouteGuard {
     if (!isReady) return location == AppRoutes.splash ? null : AppRoutes.splash;
 
     if (session.isGuide) {
-      return location == AppRoutes.guideHome ? null : AppRoutes.guideHome;
+      return AppRoutes.isGuideRoute(location) ? null : AppRoutes.guideHome;
     }
-    if (location == AppRoutes.guideHome) return AppRoutes.tours;
+    if (AppRoutes.isGuideRoute(location)) return AppRoutes.tours;
 
     final isAuthRoute = AppRoutes.authRoutes.contains(location);
     if (session.isSignedIn && isAuthRoute) return AppRoutes.tours;

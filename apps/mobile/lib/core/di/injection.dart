@@ -9,6 +9,13 @@ import '../../features/city_choice/data/repositories/selected_city_repository_im
 import '../../features/city_choice/domain/repositories/selected_city_repository.dart';
 import '../../features/city_choice/presentation/cubit/city_choice_cubit.dart';
 import '../../features/city_choice/presentation/cubit/selected_city_cubit.dart';
+import '../../features/guide/data/datasources/guide_local_data_source.dart';
+import '../../features/guide/data/datasources/guide_remote_data_source.dart';
+import '../../features/guide/data/repositories/guide_repository_impl.dart';
+import '../../features/guide/domain/repositories/guide_repository.dart';
+import '../../features/guide/presentation/cubit/departure_cubit.dart';
+import '../../features/guide/presentation/cubit/guide_home_cubit.dart';
+import '../../features/guide/presentation/cubit/scan_cubit.dart';
 import '../../features/tickets/data/datasources/ticket_local_data_source.dart';
 import '../../features/tickets/data/datasources/ticket_remote_data_source.dart';
 import '../../features/tickets/data/repositories/ticket_repository_impl.dart';
@@ -62,6 +69,13 @@ void configureDependencies() {
         localDataSource: TicketLocalDataSourceImpl(),
       ),
     )
+    // Rehber: okutma internet ister; listeler son haliyle cihazda tutulur.
+    ..registerLazySingleton<GuideRepository>(
+      () => GuideRepositoryImpl(
+        remoteDataSource: GuideRemoteDataSourceImpl(getIt()),
+        localDataSource: GuideLocalDataSourceImpl(),
+      ),
+    )
     // Uygulama genelinde yaşayan Bloc'lar
     ..registerLazySingleton<SessionBloc>(() => SessionBloc(getIt()))
     ..registerLazySingleton<SelectedCityCubit>(
@@ -75,5 +89,8 @@ void configureDependencies() {
     ..registerFactory<TourDetailCubit>(() => TourDetailCubit(getIt()))
     ..registerFactory<CheckoutCubit>(() => CheckoutCubit(getIt()))
     ..registerFactory<MyTicketsCubit>(() => MyTicketsCubit(getIt()))
-    ..registerFactory<TicketDetailCubit>(() => TicketDetailCubit(getIt()));
+    ..registerFactory<TicketDetailCubit>(() => TicketDetailCubit(getIt()))
+    ..registerFactory<GuideHomeCubit>(() => GuideHomeCubit(getIt()))
+    ..registerFactory<DepartureCubit>(() => DepartureCubit(getIt()))
+    ..registerFactory<ScanCubit>(() => ScanCubit(getIt()));
 }

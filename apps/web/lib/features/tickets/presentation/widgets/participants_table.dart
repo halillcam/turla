@@ -27,6 +27,7 @@ class ParticipantsTable extends StatelessWidget {
         child: DataTable(
           columns: const [
             DataColumn(label: Text(AppStrings.passengerColumn)),
+            DataColumn(label: Text(AppStrings.phoneColumn)),
             DataColumn(label: Text(AppStrings.statusColumn)),
             DataColumn(label: Text(AppStrings.ticketSourceColumn)),
             DataColumn(label: Text(AppStrings.pricePaidColumn)),
@@ -38,7 +39,8 @@ class ParticipantsTable extends StatelessWidget {
               DataRow(
                 cells: [
                   DataCell(Text(ticket.passengerName)),
-                  DataCell(Text(ticket.status.label)),
+                  DataCell(SelectableText(ticket.phoneLabel)),
+                  DataCell(Text(ticket.statusLabel)),
                   DataCell(Text(ticket.sourceLabel)),
                   DataCell(Text(ticket.priceLabel)),
                   DataCell(Text(ticket.purchasedAtLabel)),

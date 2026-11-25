@@ -109,18 +109,17 @@ class _TourListView extends StatelessWidget {
     }
 
     return [
-      SliverPadding(
-        padding: AppPaddings.horizontalLg,
-        sliver: SliverList.list(
-          children: [
-            if (state.isStale) const StaleDataBanner(),
-            for (final section in sections)
-              RegionSectionView(
-                section: section,
-                onTourTap: (tour) => context.push(AppRoutes.tourDetailOf(tour.id)),
-              ),
-          ],
-        ),
+      SliverList.list(
+        children: [
+          if (state.isStale)
+            const Padding(padding: AppPaddings.horizontalLg, child: StaleDataBanner()),
+          for (final section in sections)
+            RegionSectionView(
+              section: section,
+              onTourTap: (tour) => context.push(AppRoutes.tourDetailOf(tour.id)),
+              onSeeAll: () => context.push(AppRoutes.regionToursOf(section.region)),
+            ),
+        ],
       ),
     ];
   }

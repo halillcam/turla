@@ -6,6 +6,7 @@ import '../../../../core/constants/strings.dart';
 import '../../../../core/utils/failure_messages.dart';
 import '../../../../core/utils/validators.dart';
 import '../../domain/entities/new_account.dart';
+import '../../domain/entities/staff_member.dart';
 
 /// Hesap açma formunun değerleri.
 class AccountFormValues {
@@ -162,6 +163,37 @@ Future<void> showCreatedAccountDialog(BuildContext context, CreatedAccount accou
                 SelectableText('${AppStrings.accountCreatedEmail}: ${account.email}'),
               const SizedBox(height: AppSpacing.md),
               const Text(AppStrings.accountCreatedHint),
+            ],
+          ),
+        ),
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text(AppStrings.close),
+          ),
+        ],
+      ),
+    );
+
+/// Şifre sıfırlandı: giriş kimliği ve yeni geçici şifre (bir kez gösterilir).
+Future<void> showPasswordResetDialog(BuildContext context, StaffMember member, String password) =>
+    showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text(AppStrings.passwordResetTitle),
+        content: SizedBox(
+          width: AppSizes.dialogWidth,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SelectableText(
+                '${AppStrings.accountCreatedLoginId}: ${member.loginId ?? AppStrings.empty}',
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              SelectableText('${AppStrings.newPasswordLabel}: $password'),
+              const SizedBox(height: AppSpacing.md),
+              const Text(AppStrings.passwordResetHint),
             ],
           ),
         ),

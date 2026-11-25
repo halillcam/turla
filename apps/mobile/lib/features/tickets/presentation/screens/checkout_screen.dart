@@ -52,6 +52,7 @@ class CheckoutScreen extends StatelessWidget {
       );
     }
     final fullName = context.select((SessionBloc bloc) => bloc.state.profile?.fullName ?? '');
+    final phone = context.select((SessionBloc bloc) => bloc.state.profile?.phone ?? '');
 
     return BlocProvider(
       create: (_) => getIt<CheckoutCubit>(),
@@ -76,11 +77,13 @@ class CheckoutScreen extends StatelessWidget {
             body: CheckoutForm(
               args: args,
               initialPassengerName: fullName,
+              initialPhone: phone,
               isSubmitting: state.status == CheckoutStatus.submitting,
               failure: state.failure,
-              onSubmit: (passengerName) => context.read<CheckoutCubit>().purchase(
+              onSubmit: (passengerName, passengerPhone) => context.read<CheckoutCubit>().purchase(
                 departureId: args.departureId,
                 passengerName: passengerName,
+                passengerPhone: passengerPhone,
               ),
             ),
           );

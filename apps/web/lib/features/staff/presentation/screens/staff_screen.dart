@@ -53,6 +53,23 @@ class _StaffView extends StatelessWidget {
     if (!result.isSuccess && context.mounted) showMessage(context, result.failure!.message);
   }
 
+  Future<void> _resetPassword(BuildContext context, StaffCubit cubit, StaffMember member) async {
+    final confirmed = await showConfirmDialog(
+      context,
+      title: AppStrings.resetPasswordTitle,
+      message: '${member.fullName} (${member.loginId})\n\n${AppStrings.resetPasswordMessage}',
+      confirmLabel: AppStrings.resetPasswordConfirm,
+    );
+    if (!confirmed || !context.mounted) return;
+    final result = await cubit.resetPassword(member);
+    if (!context.mounted) return;
+    if (result.isSuccess) {
+      await showPasswordResetDialog(context, member, result.value!);
+    } else {
+      showMessage(context, result.failure!.message);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = context.watch<StaffCubit>().state;
@@ -96,12 +113,14 @@ class _StaffView extends StatelessWidget {
                       emptyMessage: AppStrings.guidesEmpty,
                       enabled: !state.isBusy,
                       onToggleActive: (m) => _toggle(context, cubit, m),
+                      onResetPassword: (m) => _resetPassword(context, cubit, m),
                     ),
                     MemberTable(
                       members: state.customers,
                       emptyMessage: AppStrings.customersEmpty,
                       enabled: !state.isBusy,
                       onToggleActive: (m) => _toggle(context, cubit, m),
+                      onResetPassword: (m) => _resetPassword(context, cubit, m),
                     ),
                   ],
                 ),

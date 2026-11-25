@@ -74,6 +74,8 @@ abstract final class AppStrings {
   static const String errorNoSeatsLeft = 'Bu tarihte boş koltuk kalmadı.';
   static const String errorDepartureNotBookable =
       'Bu tarihe bilet kesilemez (kalkış saati geçti veya tarih kapandı).';
+  static const String errorNotResettable =
+      'Bu hesabın şifresi panelden sıfırlanamaz (sadece REH-/MUS- giriş kimlikli hesaplar).';
   static const String errorTicketNotCancellable =
       'Bu bilet iptal edilemez (kullanıldı, tur tamamlandı veya zaten iptal edildi).';
 
@@ -123,6 +125,16 @@ abstract final class AppStrings {
   static const String statusColumn = 'Durum';
   static const String nameColumn = 'Ad soyad';
   static const String phoneColumn = 'Telefon';
+  static const String resetPassword = 'Şifre sıfırla';
+  static const String resetPasswordTitle = 'Şifre sıfırlansın mı?';
+  static const String resetPasswordMessage =
+      'Hesaba yeni bir geçici şifre verilir; eski şifre hemen geçersiz olur. '
+      'Yeni şifreyi hesap sahibine siz iletirsiniz.';
+  static const String resetPasswordConfirm = 'Sıfırla';
+  static const String passwordResetTitle = 'Yeni geçici şifre';
+  static const String passwordResetHint =
+      'Bu şifreyi hesap sahibine iletin. Pencere kapanınca tekrar gösterilmez.';
+  static const String newPasswordLabel = 'Yeni şifre';
 
   // Turlar
   static const String toursTitle = 'Turlar';
@@ -185,6 +197,7 @@ abstract final class AppStrings {
   static const String purchasedAtColumn = 'Alış';
   static const String ticketSourceApp = 'Uygulama';
   static const String ticketSourcePanel = 'Panel';
+  static const String manualCheckInSuffix = '(elle)';
   static const String issueTicket = 'Bilet kes';
   static const String issueTicketTitle = 'Müşteriye bilet kes';
   static const String issueTicketHint =

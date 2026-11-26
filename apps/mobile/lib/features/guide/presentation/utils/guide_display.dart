@@ -23,6 +23,9 @@ extension GuideDepartureDisplay on GuideDeparture {
 
   bool get hasDriverPhone => driverPhone?.trim().isNotEmpty ?? false;
 
+  /// Sohbet ve duyurular tur açıkken görünür; tur bitince sohbet gizlenir.
+  bool get showsLiveTools => isActive || isAwaitingApproval;
+
   /// Durum bandı metni; bant gerekmiyorsa null.
   String? get statusBanner {
     if (isAwaitingApproval) return AppStrings.awaitingApprovalBanner;

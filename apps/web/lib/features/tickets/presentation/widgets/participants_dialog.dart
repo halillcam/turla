@@ -9,6 +9,7 @@ import '../../../../core/utils/failure_messages.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/widgets/dialogs.dart';
 import '../../../../core/widgets/status_view.dart';
+import '../../../chat/presentation/widgets/departure_chat_dialog.dart';
 import '../../../tours/domain/entities/departure.dart';
 import '../../domain/entities/participant_ticket.dart';
 import '../cubit/participants_cubit.dart';
@@ -91,6 +92,12 @@ class _ParticipantsDialog extends StatelessWidget {
                       '${AppStrings.soldSeatsLabel}: ${state.soldSeats} / ${departure.capacity}',
                     ),
                   ),
+                  OutlinedButton.icon(
+                    onPressed: () => showDepartureChatDialog(context, departure: departure),
+                    icon: const Icon(Icons.forum_outlined),
+                    label: const Text(AppStrings.chatButton),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
                   Tooltip(
                     message: departure.status == DepartureStatus.scheduled
                         ? AppStrings.issueTicketHint

@@ -56,7 +56,16 @@ class CheckoutScreen extends StatelessWidget {
 
     return BlocProvider(
       create: (_) => getIt<CheckoutCubit>(),
-      child: BlocBuilder<CheckoutCubit, CheckoutState>(
+      child: BlocConsumer<CheckoutCubit, CheckoutState>(
+        // Profilde telefon yoksa sunucu satın almada yazdı: profil yenilenir ki sonraki
+        // satın almada telefon dolu gelsin.
+        listenWhen: (previous, current) =>
+            previous.status != current.status && current.status == CheckoutStatus.success,
+        listener: (context, _) {
+          if (phone.trim().isEmpty) {
+            context.read<SessionBloc>().add(const SessionRefreshRequested());
+          }
+        },
         builder: (context, state) {
           final ticket = state.ticket;
           if (state.status == CheckoutStatus.success && ticket != null) {

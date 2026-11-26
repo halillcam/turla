@@ -21,6 +21,7 @@ enum PanelFailureReason {
   departureNotBookable,
   ticketNotCancellable,
   notResettable,
+  rateLimited,
   unknown,
 }
 

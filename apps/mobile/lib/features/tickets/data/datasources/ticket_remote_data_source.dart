@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:turla_core/turla_core.dart';
 
 import '../../domain/entities/ticket.dart';
@@ -22,7 +24,13 @@ abstract interface class TicketRemoteDataSource {
 
   /// `cancel_ticket` çağırır, iptal zamanını döndürür.
   Future<DateTime> cancelTicket(String ticketId);
+
+  /// Realtime: biletin satırı değişince (durum, okutma zamanı). Dinleme bitince kanal kapanır.
+  Stream<TicketLiveChange> watchTicket(String ticketId);
 }
+
+/// Bilet satırındaki canlı değişiklik.
+typedef TicketLiveChange = ({TicketStatus status, DateTime? scannedAt, DateTime? cancelledAt});
 
 class TicketRemoteDataSourceImpl implements TicketRemoteDataSource {
   const TicketRemoteDataSourceImpl(this._client);
@@ -74,5 +82,47 @@ class TicketRemoteDataSourceImpl implements TicketRemoteDataSource {
       params: {'p_ticket_id': ticketId},
     );
     return DateTime.parse(row['cancelled_at'] as String);
+  }
+
+  @override
+  Stream<TicketLiveChange> watchTicket(String ticketId) {
+    RealtimeChannel? channel;
+    late final StreamController<TicketLiveChange> controller;
+    controller = StreamController<TicketLiveChange>(
+      onListen: () {
+        channel = _client
+            .channel('ticket:$ticketId')
+            .onPostgresChanges(
+              event: PostgresChangeEvent.update,
+              schema: 'public',
+              table: _table,
+              filter: PostgresChangeFilter(
+                type: PostgresChangeFilterType.eq,
+                column: 'id',
+                value: ticketId,
+              ),
+              callback: (payload) {
+                if (!controller.isClosed) controller.add(_liveChange(payload.newRecord));
+              },
+            )
+            .subscribe();
+      },
+      onCancel: () async {
+        final open = channel;
+        channel = null;
+        if (open != null) await _client.removeChannel(open);
+      },
+    );
+    return controller.stream;
+  }
+
+  static TicketLiveChange _liveChange(Map<String, dynamic> row) {
+    final scannedAt = row['scanned_at'] as String?;
+    final cancelledAt = row['cancelled_at'] as String?;
+    return (
+      status: TicketStatus.fromValue(row['status'] as String),
+      scannedAt: scannedAt == null ? null : DateTime.parse(scannedAt),
+      cancelledAt: cancelledAt == null ? null : DateTime.parse(cancelledAt),
+    );
   }
 }

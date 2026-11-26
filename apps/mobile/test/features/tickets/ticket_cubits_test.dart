@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:turla_core/turla_core.dart';
 import 'package:turla_mobile/features/tickets/domain/entities/ticket.dart';
 import 'package:turla_mobile/features/tickets/domain/entities/ticket_failure.dart';
 import 'package:turla_mobile/features/tickets/domain/repositories/ticket_repository.dart';
@@ -32,6 +33,7 @@ void main() {
     repository = _MockTicketRepository();
     changes = StreamController.broadcast();
     when(() => repository.changes).thenAnswer((_) => changes.stream);
+    when(() => repository.watchTicket(any())).thenAnswer((_) => const Stream.empty());
   });
 
   tearDown(() => changes.close());
@@ -179,6 +181,38 @@ void main() {
       },
       act: (cubit) => cubit.load('a'),
       expect: () => [TicketDetailState(status: TicketDetailStatus.ready, ticket: ticket)],
+    );
+
+    blocTest<TicketDetailCubit, TicketDetailState>(
+      'detay açıkken QR okutulursa "Tura katıldı" canlı gelir, iptal düğmesi kalkar',
+      build: () {
+        final scanned = ticket.withLiveChange(
+          status: TicketStatus.checkedIn,
+          scannedAt: departure.subtract(const Duration(minutes: 10)),
+        );
+        when(() => repository.getCachedTickets()).thenAnswer((_) async => [ticket]);
+        when(() => repository.watchTicket(ticket)).thenAnswer((_) => Stream.value(scanned));
+        return TicketDetailCubit(repository, clock: early);
+      },
+      act: (cubit) => cubit.load('a'),
+      expect: () => [
+        TicketDetailState(status: TicketDetailStatus.ready, ticket: ticket, canCancel: true),
+        isA<TicketDetailState>()
+            .having((s) => s.ticket?.status, 'status', TicketStatus.checkedIn)
+            .having((s) => s.canCancel, 'canCancel', false),
+      ],
+    );
+
+    blocTest<TicketDetailCubit, TicketDetailState>(
+      'geçmiş bilette canlı dinleme açılmaz',
+      build: () {
+        when(() => repository.getCachedTickets()).thenAnswer(
+          (_) async => [ticketWith(id: 'old', status: TicketStatus.completed)],
+        );
+        return TicketDetailCubit(repository, clock: early);
+      },
+      act: (cubit) => cubit.load('old'),
+      verify: (_) => verifyNever(() => repository.watchTicket(any())),
     );
 
     blocTest<TicketDetailCubit, TicketDetailState>(

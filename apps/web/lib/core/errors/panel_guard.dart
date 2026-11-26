@@ -93,5 +93,7 @@ abstract final class PanelErrorMapper {
     'ticket_not_cancellable': PanelFailureReason.ticketNotCancellable,
     'not_resettable': PanelFailureReason.notResettable,
     'account_not_found': PanelFailureReason.notFound,
+    // Sohbet / duyuru (Faz 5)
+    'rate_limited': PanelFailureReason.rateLimited,
   };
 }

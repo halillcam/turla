@@ -19,4 +19,7 @@ abstract final class AppDurations {
   static const Duration cancellationCutoff = Duration(hours: 1);
   // QR okutma: aynı kod bu süre içinde tekrar okunursa yok sayılır (kamera saniyede birkaç kez yakalar).
   static const Duration scanRepeatGuard = Duration(seconds: 3);
+
+  // Sunucu isteği bu sürede yanıt vermezse "bağlantı yok" sayılır (sonsuz yükleme olmasın).
+  static const Duration requestTimeout = Duration(seconds: 20);
 }

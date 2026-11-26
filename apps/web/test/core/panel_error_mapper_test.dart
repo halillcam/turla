@@ -22,6 +22,10 @@ void main() {
         PanelErrorMapper.fromPostgrest('P0001', 'cannot_change_self'),
         PanelFailureReason.cannotChangeSelf,
       );
+      expect(
+        PanelErrorMapper.fromPostgrest('P0001', 'rate_limited'),
+        PanelFailureReason.rateLimited,
+      );
     });
 
     test('Postgres kodları', () {

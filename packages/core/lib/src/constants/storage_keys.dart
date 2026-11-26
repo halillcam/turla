@@ -17,6 +17,17 @@ abstract final class StorageKeys {
 
   /// Rehberin katılımcı listesi: `<önek><kullanıcı_id>.<kalkış_id>`.
   static const String guideParticipantsPrefix = 'turla.guide.participants.';
+
+  /// Kullanıcı bazında bildirim kutusu: `<önek><kullanıcı_id>`.
+  static const String notificationsByUserPrefix = 'turla.notifications.user.';
+
+  /// Çıkışta silinen kullanıcıya özel önbellekler (paylaşılan telefon için).
+  static const List<String> userScopedPrefixes = [
+    ticketsByUserPrefix,
+    guideDeparturesPrefix,
+    guideParticipantsPrefix,
+    notificationsByUserPrefix,
+  ];
 }
 
 /// Yerel önbellek sürümleri.
@@ -35,4 +46,7 @@ abstract final class CacheVersions {
 
   /// Rehber kalkış/katılımcı önbelleğinin biçimi değişirse artırılır.
   static const int guide = 1;
+
+  /// Bildirim kutusu önbelleğinin biçimi değişirse artırılır.
+  static const int notifications = 1;
 }

@@ -1,6 +1,15 @@
 import 'package:get_it/get_it.dart';
 import 'package:turla_core/turla_core.dart';
 
+import '../../features/announcements/data/repositories/company_announcement_repository_impl.dart';
+import '../../features/announcements/domain/repositories/company_announcement_repository.dart';
+import '../../features/announcements/presentation/cubit/company_announcements_cubit.dart';
+import '../../features/chat/data/repositories/panel_chat_repository_impl.dart';
+import '../../features/chat/domain/repositories/panel_chat_repository.dart';
+import '../../features/chat/presentation/cubit/panel_chat_cubit.dart';
+import '../../features/feedback/data/repositories/feedback_repository_impl.dart';
+import '../../features/feedback/domain/repositories/feedback_repository.dart';
+import '../../features/feedback/presentation/cubit/feedback_cubit.dart';
 import '../../features/auth/data/panel_auth_repository_impl.dart';
 import '../../features/auth/domain/panel_auth_repository.dart';
 import '../../features/auth/presentation/bloc/session_bloc.dart';
@@ -52,6 +61,11 @@ void configureDependencies() {
     ..registerLazySingleton<TourAdminRepository>(() => TourAdminRepositoryImpl(getIt()))
     ..registerLazySingleton<CompletionRepository>(() => CompletionRepositoryImpl(getIt()))
     ..registerLazySingleton<TicketAdminRepository>(() => TicketAdminRepositoryImpl(getIt()))
+    ..registerLazySingleton<PanelChatRepository>(() => PanelChatRepositoryImpl(getIt()))
+    ..registerLazySingleton<CompanyAnnouncementRepository>(
+      () => CompanyAnnouncementRepositoryImpl(getIt()),
+    )
+    ..registerLazySingleton<FeedbackRepository>(() => FeedbackRepositoryImpl(getIt()))
     ..registerLazySingleton<PanelAuthRepository>(
       () => PanelAuthRepositoryImpl(
         authRepository: getIt(),
@@ -110,5 +124,19 @@ void configureDependencies() {
     )
     ..registerFactoryParam<CompletionsCubit, String, void>(
       (companyId, _) => CompletionsCubit(companyId: companyId, repository: getIt()),
+    )
+    ..registerFactoryParam<PanelChatCubit, String, bool>(
+      (departureId, canWrite) =>
+          PanelChatCubit(departureId: departureId, canWrite: canWrite, repository: getIt()),
+    )
+    ..registerFactoryParam<CompanyAnnouncementsCubit, String?, void>(
+      (companyId, _) => CompanyAnnouncementsCubit(
+        companyId: companyId,
+        repository: getIt(),
+        companyRepository: getIt(),
+      ),
+    )
+    ..registerFactoryParam<FeedbackCubit, String?, void>(
+      (companyId, _) => FeedbackCubit(companyId: companyId, repository: getIt()),
     );
 }

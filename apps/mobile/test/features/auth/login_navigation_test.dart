@@ -8,6 +8,7 @@ import 'package:turla_mobile/core/constants/strings.dart';
 import 'package:turla_mobile/core/di/injection.dart';
 import 'package:turla_mobile/features/auth/presentation/cubit/login_cubit.dart';
 import 'package:turla_mobile/features/auth/presentation/screens/login_screen.dart';
+import 'package:turla_mobile/features/auth/presentation/utils/auth_navigation.dart';
 
 import '../../helpers/fixtures.dart';
 
@@ -23,7 +24,7 @@ GoRouter _router() => GoRouter(
       path: '/',
       builder: (context, _) => Scaffold(
         body: TextButton(
-          onPressed: () => context.push(AppRoutes.login),
+          onPressed: () => AuthNavigation.openLogin(context),
           child: const Text(_previousPageText),
         ),
       ),
@@ -98,5 +99,28 @@ void main() {
 
     expect(find.byType(LoginScreen), findsOneWidget);
     expect(find.text(AppStrings.errorInvalidCredentials), findsOneWidget);
+  });
+
+  testWidgets('giriş düğmesine iki kez basılınca tek giriş ekranı açılır; giriş sonrası önceki sayfa görünür', (
+    tester,
+  ) async {
+    when(
+      () => auth.signInWithEmail(
+        email: any(named: 'email'),
+        password: any(named: 'password'),
+      ),
+    ).thenAnswer((_) async => profileWith(UserRole.customer));
+    await tester.pumpWidget(MaterialApp.router(routerConfig: _router()));
+    await tester.tap(find.text(_previousPageText));
+    await tester.tap(find.text(_previousPageText), warnIfMissed: false);
+    await tester.pumpAndSettle();
+    expect(find.byType(LoginScreen, skipOffstage: false), findsOneWidget);
+
+    await tester.enterText(find.byType(TextFormField).at(0), 'ali@example.com');
+    await tester.enterText(find.byType(TextFormField).at(1), 'test-sifre');
+    await tester.tap(find.widgetWithText(ElevatedButton, AppStrings.loginButton));
+    await tester.pumpAndSettle();
+    expect(find.byType(LoginScreen, skipOffstage: false), findsNothing);
+    expect(find.text(_previousPageText), findsOneWidget);
   });
 }

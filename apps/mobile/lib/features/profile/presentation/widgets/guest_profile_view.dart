@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:turla_core/turla_core.dart';
 
+import '../../../auth/presentation/utils/auth_navigation.dart';
 import '../../../../app/router/app_routes.dart';
 import '../../../../core/constants/strings.dart';
 
@@ -29,7 +30,7 @@ class GuestProfileView extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.xl),
         ElevatedButton(
-          onPressed: () => context.push(AppRoutes.login),
+          onPressed: () => AuthNavigation.openLogin(context),
           child: const Text(AppStrings.loginButton),
         ),
         const SizedBox(height: AppSpacing.sm),

@@ -40,6 +40,22 @@ class PanelSidebar extends StatelessWidget {
               target: AppRoutes.companies,
               selected: location.startsWith(AppRoutes.companies),
             ),
+          if (showCompanies && id == null) ...[
+            _item(
+              context,
+              icon: Icons.campaign_outlined,
+              label: AppStrings.navAnnouncements,
+              target: AppRoutes.announcements,
+              selected: location.startsWith(AppRoutes.announcements),
+            ),
+            _item(
+              context,
+              icon: Icons.feedback_outlined,
+              label: AppStrings.navFeedback,
+              target: AppRoutes.feedback,
+              selected: location.startsWith(AppRoutes.feedback),
+            ),
+          ],
           if (id != null) ...[
             _item(
               context,
@@ -61,6 +77,20 @@ class PanelSidebar extends StatelessWidget {
               label: AppStrings.navCompletions,
               target: AppRoutes.completions(id),
               selected: location.startsWith(AppRoutes.completions(id)),
+            ),
+            _item(
+              context,
+              icon: Icons.campaign_outlined,
+              label: AppStrings.navAnnouncements,
+              target: AppRoutes.companyAnnouncements(id),
+              selected: location.startsWith(AppRoutes.companyAnnouncements(id)),
+            ),
+            _item(
+              context,
+              icon: Icons.feedback_outlined,
+              label: AppStrings.navFeedback,
+              target: AppRoutes.companyFeedback(id),
+              selected: location.startsWith(AppRoutes.companyFeedback(id)),
             ),
           ],
         ],

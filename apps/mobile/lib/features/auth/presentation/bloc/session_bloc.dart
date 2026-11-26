@@ -4,6 +4,8 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:turla_core/turla_core.dart';
 
+import '../../../../core/session/session_cleanup.dart';
+
 part 'session_event.dart';
 part 'session_state.dart';
 
@@ -12,13 +14,18 @@ part 'session_state.dart';
 /// Mobil uygulamaya sadece müşteri ve tur sorumlusu girebilir; admin veya
 /// super admin hesabıyla açılan oturum kapatılır.
 class SessionBloc extends Bloc<SessionEvent, SessionState> {
-  SessionBloc(this._authRepository) : super(const SessionState.unknown()) {
+  SessionBloc(this._authRepository, {List<SessionCleanup> cleanups = const []})
+    : _cleanupSteps = cleanups,
+      super(const SessionState.unknown()) {
     on<SessionStarted>(_onStarted);
     on<SessionRefreshRequested>(_onRefreshRequested);
     on<SessionSignOutRequested>(_onSignOutRequested);
   }
 
   final AuthRepository _authRepository;
+
+  /// Çıkışta push token'ını ayırır ve kullanıcıya özel önbellekleri siler.
+  final List<SessionCleanup> _cleanupSteps;
   StreamSubscription<void>? _authSubscription;
 
   Future<void> _onStarted(SessionStarted event, Emitter<SessionState> emit) async {
@@ -36,10 +43,21 @@ class SessionBloc extends Bloc<SessionEvent, SessionState> {
     SessionSignOutRequested event,
     Emitter<SessionState> emit,
   ) async {
+    final userId = state.profile?.id;
+    if (userId != null) {
+      for (final cleanup in _cleanupSteps) {
+        await _safely(() => cleanup.beforeSignOut(userId));
+      }
+    }
     try {
       await _authRepository.signOut();
     } on AuthFailure {
       // Ağ yoksa bile yerel oturum kapanır; misafir olarak devam edilir.
+    }
+    if (userId != null) {
+      for (final cleanup in _cleanupSteps) {
+        await _safely(() => cleanup.afterSignOut(userId));
+      }
     }
     emit(const SessionState.guest());
   }
@@ -59,6 +77,15 @@ class SessionBloc extends Bloc<SessionEvent, SessionState> {
       emit(SessionState.signedIn(profile));
     } on AuthFailure catch (failure) {
       emit(SessionState.guest(notice: failure.reason));
+    }
+  }
+
+  /// Temizlik hatası çıkışı engellemez.
+  static Future<void> _safely(Future<void> Function() action) async {
+    try {
+      await action();
+    } on Object {
+      // Yok sayılır.
     }
   }
 

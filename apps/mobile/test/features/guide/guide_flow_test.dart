@@ -187,6 +187,7 @@ void main() {
             canCancel: false,
             isCancelling: false,
             onCancel: () {},
+            onOpenActiveTour: () {},
           ),
         ),
       ),

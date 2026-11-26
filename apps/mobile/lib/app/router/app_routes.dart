@@ -17,6 +17,8 @@ abstract final class AppRoutes {
   static const String profile = '/profile';
   static const String guideHome = '/guide';
   static const String guideDepartureParam = 'departureId';
+  static const String liveDepartureParam = 'departureId';
+  static const String notifications = '/notifications';
 
   static String tourDetailOf(String tourId) => '$tours/$tourId';
 
@@ -27,6 +29,19 @@ abstract final class AppRoutes {
   static String guideDepartureOf(String departureId) => '$guideHome/departures/$departureId';
 
   static String guideScanOf(String departureId) => '${guideDepartureOf(departureId)}/scan';
+
+  static String guideChatOf(String departureId) => '${guideDepartureOf(departureId)}/chat';
+
+  static String guideAnnouncementsOf(String departureId) =>
+      '${guideDepartureOf(departureId)}/announcements';
+
+  /// Müşterinin aktif tur ekranı (Turlarım sekmesinde).
+  static String customerActiveTourOf(String departureId) => '$myTickets/live/$departureId';
+
+  static String customerChatOf(String departureId) => '${customerActiveTourOf(departureId)}/chat';
+
+  static String customerAnnouncementsOf(String departureId) =>
+      '${customerActiveTourOf(departureId)}/announcements';
 
   /// Tur sorumlusunun ekranları bu önekle başlar.
   static bool isGuideRoute(String location) =>

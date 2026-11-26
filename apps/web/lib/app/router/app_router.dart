@@ -3,11 +3,13 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/constants/strings.dart';
 import '../../core/widgets/status_view.dart';
+import '../../features/announcements/presentation/screens/company_announcements_screen.dart';
 import '../../features/auth/presentation/bloc/session_bloc.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/companies/presentation/screens/companies_screen.dart';
 import '../../features/companies/presentation/screens/company_detail_screen.dart';
 import '../../features/completions/presentation/screens/completions_screen.dart';
+import '../../features/feedback/presentation/screens/feedback_screen.dart';
 import '../../features/staff/presentation/screens/staff_screen.dart';
 import '../../features/tours/presentation/screens/tour_editor_screen.dart';
 import '../../features/tours/presentation/screens/tours_screen.dart';
@@ -39,6 +41,11 @@ class AppRouter {
           routes: [
             GoRoute(path: AppRoutes.companies, builder: (_, _) => const CompaniesScreen()),
             GoRoute(
+              path: AppRoutes.announcements,
+              builder: (_, _) => const CompanyAnnouncementsScreen(),
+            ),
+            GoRoute(path: AppRoutes.feedback, builder: (_, _) => const FeedbackScreen()),
+            GoRoute(
               path: AppRoutes.companyDetailPattern,
               builder: (_, state) => CompanyDetailScreen(companyId: _companyId(state)),
             ),
@@ -66,6 +73,18 @@ class AppRouter {
             GoRoute(
               path: AppRoutes.completionsPattern,
               builder: (_, state) => CompletionsScreen(companyId: _companyId(state)),
+            ),
+            GoRoute(
+              path: AppRoutes.companyAnnouncementsPattern,
+              builder: (_, state) => CompanyAnnouncementsScreen(companyId: _companyId(state)),
+            ),
+            GoRoute(
+              path: AppRoutes.companyFeedbackPattern,
+              // Geri bildirimi firma admini gönderir; super admin firma alanında sadece okur.
+              builder: (_, state) => FeedbackScreen(
+                companyId: _companyId(state),
+                canSend: !(sessionBloc.state.session?.isSuperAdmin ?? true),
+              ),
             ),
           ],
         ),

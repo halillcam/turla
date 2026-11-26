@@ -4,7 +4,7 @@
   "type": "module",
   "description": "Turla migration ve iş kuralı testleri (PGlite üzerinde, Supabase gerekmez).",
   "scripts": {
-    "test": "node migrations.test.mjs && node create_account_rules.test.mjs"
+    "test": "node migrations.test.mjs && node create_account_rules.test.mjs && node send_push_rules.test.mjs"
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.3.16"

@@ -2,7 +2,15 @@
 library;
 
 export 'package:supabase_flutter/supabase_flutter.dart'
-    show AuthException, AuthRetryableFetchException, PostgrestException, SupabaseClient;
+    show
+        AuthException,
+        AuthRetryableFetchException,
+        PostgresChangeEvent,
+        PostgresChangeFilter,
+        PostgresChangeFilterType,
+        PostgrestException,
+        RealtimeChannel,
+        SupabaseClient;
 
 export 'src/bloc/turla_bloc_observer.dart';
 export 'src/config/env.dart';

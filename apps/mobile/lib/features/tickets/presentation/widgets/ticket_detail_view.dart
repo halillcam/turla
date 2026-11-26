@@ -6,7 +6,7 @@ import '../../../../core/utils/formatters.dart';
 import '../../../../core/widgets/info_banner.dart';
 import '../../domain/entities/ticket.dart';
 import '../utils/ticket_display.dart';
-import 'info_row.dart';
+import '../../../../core/widgets/info_row.dart';
 import 'ticket_qr_card.dart';
 import 'ticket_status_chip.dart';
 
@@ -17,6 +17,7 @@ class TicketDetailView extends StatelessWidget {
     required this.canCancel,
     required this.isCancelling,
     required this.onCancel,
+    required this.onOpenActiveTour,
     super.key,
   });
 
@@ -24,6 +25,9 @@ class TicketDetailView extends StatelessWidget {
   final bool canCancel;
   final bool isCancelling;
   final VoidCallback onCancel;
+
+  /// Geçerli bilette aktif tur ekranını açar (tur sorumlusu, sohbet, duyurular).
+  final VoidCallback onOpenActiveTour;
 
   @override
   Widget build(BuildContext context) {
@@ -44,6 +48,14 @@ class TicketDetailView extends StatelessWidget {
         const SizedBox(height: AppSpacing.lg),
         if (ticket.showsQr) ...[
           TicketQrCard(qrToken: ticket.qrToken),
+          const SizedBox(height: AppSpacing.lg),
+        ],
+        if (ticket.isActive) ...[
+          ElevatedButton.icon(
+            onPressed: onOpenActiveTour,
+            icon: const Icon(Icons.tour_outlined),
+            label: const Text(AppStrings.activeTourButton),
+          ),
           const SizedBox(height: AppSpacing.lg),
         ],
         if (ticket.showsScannedNotice)

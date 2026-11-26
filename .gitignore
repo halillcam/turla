@@ -21,3 +21,6 @@ coverage/
 supabase/.branches/
 supabase/.temp/
 node_modules/
+
+# Firebase istemci yapılandırması (kullanıcı indirir, repoya girmez)
+**/google-services.json

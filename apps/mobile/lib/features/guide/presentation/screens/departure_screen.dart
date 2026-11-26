@@ -10,6 +10,8 @@ import '../../../../core/utils/phone_launcher.dart';
 import '../../../../core/widgets/confirm_dialog.dart';
 import '../../../../core/widgets/stale_data_banner.dart';
 import '../../../../core/widgets/status_view.dart';
+import '../../../live_tour/presentation/screens/announcements_screen.dart';
+import '../../../live_tour/presentation/screens/chat_screen.dart';
 import '../../domain/entities/participant.dart';
 import '../cubit/departure_cubit.dart';
 import '../utils/guide_display.dart';
@@ -97,7 +99,32 @@ class _DepartureView extends StatelessWidget {
       builder: (context, state) {
         final departure = state.departure;
         return Scaffold(
-          appBar: AppBar(title: Text(departure?.tourTitle ?? AppStrings.participantsTitle)),
+          appBar: AppBar(
+            title: Text(departure?.tourTitle ?? AppStrings.participantsTitle),
+            actions: [
+              if (departure != null && departure.showsLiveTools) ...[
+                IconButton(
+                  tooltip: AppStrings.tourChat,
+                  icon: const Icon(Icons.forum_outlined),
+                  onPressed: () => context.push(
+                    AppRoutes.guideChatOf(departure.id),
+                    extra: ChatScreenArgs(canWrite: departure.isActive),
+                  ),
+                ),
+                IconButton(
+                  tooltip: AppStrings.announcementsTitle,
+                  icon: const Icon(Icons.campaign_outlined),
+                  onPressed: () => context.push(
+                    AppRoutes.guideAnnouncementsOf(departure.id),
+                    extra: AnnouncementsScreenArgs(
+                      canSend: departure.isActive,
+                      recipientCount: state.arrivedCount,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
           body: SafeArea(child: _body(context, state)),
           bottomNavigationBar: departure == null ? null : _actions(context, state),
         );

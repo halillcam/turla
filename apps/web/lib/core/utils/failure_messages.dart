@@ -26,6 +26,7 @@ extension PanelFailureMessage on PanelFailureReason {
     PanelFailureReason.departureNotBookable => AppStrings.errorDepartureNotBookable,
     PanelFailureReason.ticketNotCancellable => AppStrings.errorTicketNotCancellable,
     PanelFailureReason.notResettable => AppStrings.errorNotResettable,
+    PanelFailureReason.rateLimited => AppStrings.errorChatRateLimited,
     PanelFailureReason.unknown => CoreStrings.unexpectedError,
   };
 }

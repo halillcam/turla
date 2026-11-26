@@ -75,7 +75,16 @@ class Ticket extends Equatable {
     refundAmount: pricePaid > 0 ? pricePaid : null,
   );
 
-  Ticket _copyWith({TicketStatus? status, DateTime? cancelledAt, double? refundAmount}) => Ticket(
+  /// Sunucudan canlı gelen durum değişikliği (ör. tur sorumlusu QR'ı okuttu).
+  Ticket withLiveChange({required TicketStatus status, DateTime? scannedAt, DateTime? cancelledAt}) =>
+      _copyWith(status: status, scannedAt: scannedAt, cancelledAt: cancelledAt);
+
+  Ticket _copyWith({
+    TicketStatus? status,
+    DateTime? cancelledAt,
+    DateTime? scannedAt,
+    double? refundAmount,
+  }) => Ticket(
     id: id,
     qrToken: qrToken,
     status: status ?? this.status,
@@ -84,7 +93,7 @@ class Ticket extends Equatable {
     pricePaid: pricePaid,
     createdAt: createdAt,
     cancelledAt: cancelledAt ?? this.cancelledAt,
-    scannedAt: scannedAt,
+    scannedAt: scannedAt ?? this.scannedAt,
     departureId: departureId,
     departureAt: departureAt,
     departureStatus: departureStatus,

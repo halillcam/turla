@@ -6,6 +6,7 @@ import 'package:turla_core/turla_core.dart';
 import '../../../../app/router/app_routes.dart';
 import '../../../../core/constants/strings.dart';
 import '../../../../core/di/injection.dart';
+import '../../../notifications/presentation/widgets/notification_bell.dart';
 import '../../../../core/widgets/status_view.dart';
 import '../../../city_choice/presentation/cubit/selected_city_cubit.dart';
 import '../cubit/tour_list_cubit.dart';
@@ -49,7 +50,10 @@ class _TourListView extends StatelessWidget {
     );
 
     return Scaffold(
-      appBar: AppBar(title: const Text(CoreStrings.appName)),
+      appBar: AppBar(
+        title: const Text(CoreStrings.appName),
+        actions: const [NotificationBell()],
+      ),
       body: SafeArea(
         child: BlocBuilder<TourListCubit, TourListState>(
           builder: (context, state) {

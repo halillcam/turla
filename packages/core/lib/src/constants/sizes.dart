@@ -24,6 +24,11 @@ abstract final class AppSizes {
   static const double scanWindow = 240;
   static const double scanWindowBorder = 3;
 
+  // Sohbet balonu en fazla bu genişlikte (uzun mesaj satıra kırılır).
+  static const double chatBubbleMaxWidth = 300;
+  // Okunmamış bildirim rozeti.
+  static const double badgeSize = 18;
+
   // Kenarlık
   static const double borderWidth = 1;
 

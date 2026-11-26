@@ -4,6 +4,8 @@
     <!-- Tur sorumlusu yolcu biletinin QR kodunu okutur. Kamerası olmayan cihazda da kurulabilsin. -->
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <!-- Android 13+: tur duyurusu push bildirimi için izin istenir. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <application
         android:label="Turla"
         android:name="${applicationName}"

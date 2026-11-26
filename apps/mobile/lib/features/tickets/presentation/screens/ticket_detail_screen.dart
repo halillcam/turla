@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../../app/router/app_routes.dart';
 import '../../../../core/constants/strings.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/widgets/status_view.dart';
@@ -54,6 +56,8 @@ class TicketDetailScreen extends StatelessWidget {
               canCancel: state.canCancel,
               isCancelling: state.cancelStatus == CancelStatus.inProgress,
               onCancel: () => _onCancel(context),
+              onOpenActiveTour: () =>
+                  context.push(AppRoutes.customerActiveTourOf(state.ticket!.departureId)),
             ),
           },
         ),

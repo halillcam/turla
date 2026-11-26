@@ -9,6 +9,10 @@ import '../../features/city_choice/presentation/screens/city_choice_screen.dart'
 import '../../features/guide/presentation/screens/departure_screen.dart';
 import '../../features/guide/presentation/screens/guide_home_screen.dart';
 import '../../features/guide/presentation/screens/scan_screen.dart';
+import '../../features/live_tour/presentation/screens/active_tour_screen.dart';
+import '../../features/live_tour/presentation/screens/announcements_screen.dart';
+import '../../features/live_tour/presentation/screens/chat_screen.dart';
+import '../../features/notifications/presentation/screens/notifications_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../../features/tickets/presentation/screens/checkout_screen.dart';
 import '../../features/tickets/presentation/screens/my_tickets_screen.dart';
@@ -54,10 +58,25 @@ class AppRouter {
                   builder: (_, state) =>
                       ScanScreen(departureId: state.pathParameters[AppRoutes.guideDepartureParam]!),
                 ),
+                GoRoute(
+                  path: 'chat',
+                  builder: (_, state) => ChatScreen(
+                    departureId: state.pathParameters[AppRoutes.guideDepartureParam]!,
+                    args: state.extra as ChatScreenArgs?,
+                  ),
+                ),
+                GoRoute(
+                  path: 'announcements',
+                  builder: (_, state) => AnnouncementsScreen(
+                    departureId: state.pathParameters[AppRoutes.guideDepartureParam]!,
+                    args: state.extra as AnnouncementsScreenArgs?,
+                  ),
+                ),
               ],
             ),
           ],
         ),
+        GoRoute(path: AppRoutes.notifications, builder: (_, _) => const NotificationsScreen()),
         // Satın alma alt menüsüz, tam ekran açılır.
         GoRoute(
           path: AppRoutes.checkout,
@@ -95,6 +114,29 @@ class AppRouter {
                   path: AppRoutes.myTickets,
                   builder: (_, _) => const MyTicketsScreen(),
                   routes: [
+                    // Bilet kimliği yolundan önce gelmeli; yoksa "live" bir bilet kimliği sanılır.
+                    GoRoute(
+                      path: 'live/:${AppRoutes.liveDepartureParam}',
+                      builder: (_, state) => ActiveTourScreen(
+                        departureId: state.pathParameters[AppRoutes.liveDepartureParam]!,
+                      ),
+                      routes: [
+                        GoRoute(
+                          path: 'chat',
+                          builder: (_, state) => ChatScreen(
+                            departureId: state.pathParameters[AppRoutes.liveDepartureParam]!,
+                            args: state.extra as ChatScreenArgs?,
+                          ),
+                        ),
+                        GoRoute(
+                          path: 'announcements',
+                          builder: (_, state) => AnnouncementsScreen(
+                            departureId: state.pathParameters[AppRoutes.liveDepartureParam]!,
+                            args: state.extra as AnnouncementsScreenArgs?,
+                          ),
+                        ),
+                      ],
+                    ),
                     GoRoute(
                       path: ':${AppRoutes.ticketDetailParam}',
                       builder: (_, state) => TicketDetailScreen(

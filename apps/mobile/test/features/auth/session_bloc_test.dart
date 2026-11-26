@@ -4,6 +4,7 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:turla_core/turla_core.dart';
+import 'package:turla_mobile/core/session/session_cleanup.dart';
 import 'package:turla_mobile/features/auth/presentation/bloc/session_bloc.dart';
 
 import '../../helpers/fixtures.dart';
@@ -82,4 +83,46 @@ void main() {
     act: (bloc) => bloc.add(const SessionSignOutRequested()),
     expect: () => [const SessionState.guest()],
   );
+
+  test('çıkışta temizlik sırası: önce push token (oturum açıkken), sonra önbellek', () async {
+    final calls = <String>[];
+    when(() => auth.signOut()).thenAnswer((_) async => calls.add('signOut'));
+    final bloc = SessionBloc(auth, cleanups: [_RecordingCleanup('push', calls)]);
+    bloc.emit(SessionState.signedIn(profileWith(UserRole.customer)));
+    bloc.add(const SessionSignOutRequested());
+    await bloc.stream.firstWhere((state) => state.status == SessionStatus.guest);
+    final userId = profileWith(UserRole.customer).id;
+    expect(calls, ['push.before:$userId', 'signOut', 'push.after:$userId']);
+    await bloc.close();
+  });
+
+  test('temizlik hatası çıkışı engellemez', () async {
+    final bloc = SessionBloc(auth, cleanups: [_FailingCleanup()]);
+    bloc.emit(SessionState.signedIn(profileWith(UserRole.customer)));
+    bloc.add(const SessionSignOutRequested());
+    await bloc.stream.firstWhere((state) => state.status == SessionStatus.guest);
+    verify(() => auth.signOut()).called(1);
+    await bloc.close();
+  });
+}
+
+class _RecordingCleanup implements SessionCleanup {
+  _RecordingCleanup(this.name, this.calls);
+
+  final String name;
+  final List<String> calls;
+
+  @override
+  Future<void> beforeSignOut(String userId) async => calls.add('$name.before:$userId');
+
+  @override
+  Future<void> afterSignOut(String userId) async => calls.add('$name.after:$userId');
+}
+
+class _FailingCleanup implements SessionCleanup {
+  @override
+  Future<void> beforeSignOut(String userId) => Future.error(StateError('ağ yok'));
+
+  @override
+  Future<void> afterSignOut(String userId) => Future.error(StateError('disk'));
 }

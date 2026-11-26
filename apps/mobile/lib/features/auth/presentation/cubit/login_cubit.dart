@@ -20,6 +20,8 @@ class LoginCubit extends Cubit<LoginState> {
           ? await _authRepository.signInWithLoginId(loginId: identity, password: password)
           : await _authRepository.signInWithEmail(email: identity, password: password);
 
+      // Giriş sırasında ekran kapandıysa (ör. kullanıcı geri bastı) durum yayınlanmaz.
+      if (isClosed) return;
       if (!profile.role.canUseMobileApp) {
         await _authRepository.signOut();
         emit(const LoginState(failure: AuthFailureReason.roleNotAllowed));
@@ -27,6 +29,7 @@ class LoginCubit extends Cubit<LoginState> {
       }
       emit(LoginState(signedInRole: profile.role));
     } on AuthFailure catch (failure) {
+      if (isClosed) return;
       emit(LoginState(failure: failure.reason));
     }
   }

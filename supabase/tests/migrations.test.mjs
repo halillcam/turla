@@ -42,6 +42,13 @@ await db.exec(`
   -- tablolarda anon/authenticated'a sadece TRUNCATE/REFERENCES/TRIGGER verilir,
   -- SELECT/INSERT/UPDATE/DELETE verilmez. Fonksiyonlar PUBLIC'e açıktır.
   alter default privileges in schema public grant truncate, references, trigger on tables to anon, authenticated;
+  -- Realtime yayını ve pg_net taklidi (çağrılar tabloya yazılır).
+  create publication supabase_realtime;
+  create schema net;
+  create table net.calls (url text, body jsonb, at timestamptz default now());
+  create function net.http_post(url text, body jsonb default '{}'::jsonb, params jsonb default '{}'::jsonb,
+    headers jsonb default '{}'::jsonb, timeout_milliseconds int default 5000) returns bigint
+    language sql as $$ insert into net.calls (url, body) values (url, body) returning 1::bigint $$;
 `);
 
 for (const file of readdirSync(migDir).filter((f) => f.endsWith('.sql')).sort()) {
@@ -598,6 +605,199 @@ await expectOk('pasif rehber guide_departures ile bir şey göremez', async () =
   await db.query(`update public.profiles set is_active = true where id = $1`, [f4Guide]);
   if (r !== 0) throw new Error(String(r));
 });
+
+// ─── Faz 5: sohbet, duyurular, bildirimler, push (migration 14) ─────────
+const f5Guide = await mkUser('guide', company, 'Rehber Selin');
+const f5Tour = (await scalar(`insert into public.tours (company_id, title, price, city_id, region)
+  values ($1, 'Sohbet Turu', 400, 46, 'gunubirlik') returning id`, [company])).id;
+await db.query(`insert into public.tour_program_days (tour_id, day_no, title, activities)
+  values ($1, 1, 'Göksun', '{Kahvaltı,Yürüyüş}')`, [f5Tour]);
+await db.query(`update public.profiles set phone = '0532 000 11 22' where id = $1`, [f5Guide]);
+const f5Dep = (await scalar(`insert into public.tour_departures (tour_id, departure_at, capacity, guide_id, bus_plate)
+  values ($1, now() + interval '2 hours', 10, $2, '46 S 5') returning id`, [f5Tour, f5Guide])).id;
+const chatIn = await mkUser(null, null, 'Gelen Yolcu');
+const chatPaid = await mkUser(null, null, 'Bekleyen Yolcu');
+const chatIn2 = await mkUser(null, null, 'Diğer Gelen');
+const inTicket = (await asUser(chatIn, `select * from public.book_ticket($1, 'Gelen Yolcu')`, [f5Dep])).rows[0];
+await asUser(chatPaid, `select * from public.book_ticket($1, 'Bekleyen Yolcu')`, [f5Dep]);
+const in2Ticket = (await asUser(chatIn2, `select * from public.book_ticket($1, 'Diğer Gelen')`, [f5Dep])).rows[0];
+await asUser(f5Guide, `select public.scan_ticket($1, $2)`, [f5Dep, inTicket.qr_token]);
+await asUser(f5Guide, `select public.check_in_manually($1)`, [in2Ticket.id]);
+
+await expectOk('Realtime yayınında sadece messages ve tickets var', async () => {
+  const r = await scalar(`select string_agg(tablename, ',' order by tablename) t from pg_publication_tables where pubname = 'supabase_realtime'`);
+  if (r.t !== 'messages,tickets') throw new Error(r.t);
+});
+
+const msg1 = await expectOk('okutulmuş yolcu mesaj yazar; ad ve rol profilden (taklit edilemez)', async () => {
+  const m = (await asUser(chatIn, `insert into public.messages (departure_id, sender_id, sender_name, sender_role, body)
+    values ($1, $2, 'Sahte Ad', 'super_admin', 'Merhaba') returning *`, [f5Dep, f5Guide])).rows[0];
+  if (m.sender_id !== chatIn || m.sender_name !== 'Gelen Yolcu' || m.sender_role !== 'customer') throw new Error(JSON.stringify(m));
+  return m;
+});
+await expectOk('rehber mesajı Tur sorumlusu rolüyle kaydedilir', async () => {
+  const m = (await asUser(f5Guide, `insert into public.messages (departure_id, body) values ($1, 'Hoş geldiniz') returning sender_role`, [f5Dep])).rows[0];
+  if (m.sender_role !== 'guide') throw new Error(m.sender_role);
+});
+await expectOk('firma admini panelden yazar (rol admin)', async () => {
+  const m = (await asUser(admin, `insert into public.messages (departure_id, body) values ($1, 'Firma burada') returning sender_role`, [f5Dep])).rows[0];
+  if (m.sender_role !== 'admin') throw new Error(m.sender_role);
+});
+await expectError('QR okutulmamış yolcu yazamaz', 'row-level security', () => asUser(chatPaid,
+  `insert into public.messages (departure_id, body) values ($1, 'Ben de')`, [f5Dep]));
+await expectError('başka firmanın admini yazamaz', 'row-level security', () => asUser(otherAdmin,
+  `insert into public.messages (departure_id, body) values ($1, 'Selam')`, [f5Dep]));
+await expectOk('okutulmamış yolcu ve başka admin sohbeti göremez; üyeler görür', async () => {
+  const q = `select count(*)::int n from public.messages where departure_id = $1`;
+  const a = (await asUser(chatPaid, q, [f5Dep])).rows[0].n;
+  const b = (await asUser(otherAdmin, q, [f5Dep])).rows[0].n;
+  const c = (await asUser(chatIn2, q, [f5Dep])).rows[0].n;
+  const d = (await asUser(f5Guide, q, [f5Dep])).rows[0].n;
+  if (a !== 0 || b !== 0 || c !== 3 || d !== 3) throw new Error([a, b, c, d].join('/'));
+});
+await expectOk('yolcu başkasının mesajını silemez, kendininkini siler', async () => {
+  const other = (await asUser(chatIn2, `delete from public.messages where id = $1 returning id`, [msg1.id])).rows.length;
+  const own = (await asUser(chatIn, `delete from public.messages where id = $1 returning id`, [msg1.id])).rows.length;
+  if (other !== 0 || own !== 1) throw new Error(other + '/' + own);
+});
+await expectOk('rehber yolcunun mesajını silebilir', async () => {
+  const m = (await asUser(chatIn2, `insert into public.messages (departure_id, body) values ($1, 'Silinecek') returning id`, [f5Dep])).rows[0];
+  const n = (await asUser(f5Guide, `delete from public.messages where id = $1 returning id`, [m.id])).rows.length;
+  if (n !== 1) throw new Error(String(n));
+});
+await expectError('dakikada 20 mesajdan fazlası rate_limited', 'rate_limited', async () => {
+  for (let i = 0; i < 21; i++) {
+    await asUser(chatIn2, `insert into public.messages (departure_id, body) values ($1, $2)`, [f5Dep, 'm' + i]);
+  }
+});
+await expectError('2000 karakterden uzun mesaj yazılmaz', 'check constraint', () => asUser(chatIn,
+  `insert into public.messages (departure_id, body) values ($1, repeat('a', 2001))`, [f5Dep]));
+
+await expectOk('participant_departure_info: okutulmuş yolcu rehber telefonu, program ve açık sohbet görür', async () => {
+  const r = (await asUser(chatIn, `select public.participant_departure_info($1) r`, [f5Dep])).rows[0].r;
+  if (r.tour_title !== 'Sohbet Turu' || r.guide_name !== 'Rehber Selin' || r.guide_phone !== '0532 000 11 22'
+      || r.chat_open !== true || r.ticket_status !== 'checked_in' || r.program.length !== 1
+      || r.program[0].activities[1] !== 'Yürüyüş' || r.bus_plate !== '46 S 5') throw new Error(JSON.stringify(r));
+});
+await expectOk('participant_departure_info: okutulmamış yolcuda sohbet kapalı, duyuru yok', async () => {
+  const r = (await asUser(chatPaid, `select public.participant_departure_info($1) r`, [f5Dep])).rows[0].r;
+  if (r.chat_open !== false || r.last_announcement !== null) throw new Error(JSON.stringify(r));
+});
+await expectError('participant_departure_info: bileti olmayan çağıramaz', 'not_allowed', () => asUser(customer2,
+  `select public.participant_departure_info($1)`, [f5Dep]));
+await expectError('participant_departure_info: misafir çağıramaz', 'permission denied', () => asUser(null,
+  `select public.participant_departure_info($1)`, [f5Dep]));
+
+// Duyuru + bildirim + push
+await expectOk('push adresi yokken duyuru bildirime düşer ama HTTP çağrısı yapılmaz', async () => {
+  await asUser(f5Guide, `insert into public.announcements (departure_id, body) values ($1, 'Mola 10 dk')`, [f5Dep]);
+  const n = await scalar(`select count(*)::int n from net.calls`);
+  if (n.n !== 0) throw new Error(String(n.n));
+});
+await db.query(`insert into private.settings (key, value) values ('push_function_url', 'https://ornek.test/functions/v1/send-push')`);
+await expectOk('duyuru sadece okutulmuş yolculara gider ve tek HTTP çağrısıyla push tetiklenir', async () => {
+  await asUser(f5Guide, `insert into public.announcements (departure_id, body) values ($1, 'Otobüse dönüyoruz')`, [f5Dep]);
+  const calls = (await db.query(`select url, body from net.calls`)).rows;
+  const users = (await db.query(`select string_agg(user_id::text, ',' order by user_id) u from public.notifications where body = 'Otobüse dönüyoruz'`)).rows[0].u;
+  const expected = [chatIn, chatIn2].sort().join(',');
+  if (calls.length !== 1 || calls[0].body.notification_ids.length !== 2 || users !== expected) throw new Error(JSON.stringify({ calls, users }));
+});
+await expectOk('participant_departure_info son duyuruyu verir', async () => {
+  const r = (await asUser(chatIn, `select public.participant_departure_info($1) r`, [f5Dep])).rows[0].r;
+  if (r.last_announcement?.body !== 'Otobüse dönüyoruz') throw new Error(JSON.stringify(r.last_announcement));
+});
+await expectError('yolcu duyuru gönderemez', 'row-level security', () => asUser(chatIn,
+  `insert into public.announcements (departure_id, body) values ($1, 'Ben duyururum')`, [f5Dep]));
+await expectError('dakikada 5 duyurudan fazlası rate_limited', 'rate_limited', async () => {
+  for (let i = 0; i < 4; i++) {
+    await asUser(f5Guide, `insert into public.announcements (departure_id, body) values ($1, $2)`, [f5Dep, 'd' + i]);
+  }
+});
+await expectOk('yolcu bildirimini okundu yapar ama içeriğini değiştiremez', async () => {
+  const r = (await asUser(chatIn, `update public.notifications set is_read = true where user_id = $1 returning id`, [chatIn])).rows.length;
+  if (r < 2) throw new Error(String(r));
+  try { await asUser(chatIn, `update public.notifications set body = 'x'`); throw new Error('body değişti'); }
+  catch (e) { if (!e.message.includes('permission denied')) throw e; }
+});
+await expectOk('service_role push_sent_at yazar, token okur; bildirim içeriğine yazamaz', async () => {
+  await db.exec('set role service_role;');
+  try {
+    await db.query(`update public.notifications set push_sent_at = now() where user_id = $1`, [chatIn]);
+    await db.query(`select token from public.device_tokens`);
+    try { await db.query(`update public.notifications set body = 'x'`); throw new Error('body değişti'); }
+    catch (e) { if (!e.message.includes('permission denied')) throw e; }
+  } finally { await db.exec('reset role;'); }
+});
+
+// Cihaz token'ı
+const fakeToken = 'fcm-token-' + 'x'.repeat(30);
+await expectOk('register_device_token: aynı token başka hesapla girişte yeni hesaba geçer', async () => {
+  await asUser(chatIn, `select public.register_device_token($1, 'android')`, [fakeToken]);
+  await asUser(chatIn2, `select public.register_device_token($1, 'android')`, [fakeToken]);
+  const r = await scalar(`select user_id from public.device_tokens where token = $1`, [fakeToken]);
+  if (r.user_id !== chatIn2) throw new Error(r.user_id);
+  const seen = (await asUser(chatIn, `select count(*)::int n from public.device_tokens`)).rows[0].n;
+  if (seen !== 0) throw new Error('eski hesap token görüyor');
+});
+await expectOk('çıkışta kullanıcı kendi tokenını siler', async () => {
+  const n = (await asUser(chatIn2, `delete from public.device_tokens where token = $1 returning token`, [fakeToken])).rows.length;
+  if (n !== 1) throw new Error(String(n));
+});
+await expectError('çok kısa token reddedilir', 'invalid_token', () => asUser(chatIn,
+  `select public.register_device_token('abc', 'android')`));
+await expectError('misafir token kaydedemez', 'permission denied', () => asUser(null,
+  `select public.register_device_token($1, 'android')`, [fakeToken]));
+
+// Tur bitince sohbet gizlenir
+await expectOk('tur bitince sohbet yolcu ve rehberden gizlenir, admin görür, mesajlar DB de kalır', async () => {
+  await db.query(`update public.tour_departures set departure_at = now() - interval '1 hour' where id = $1`, [f5Dep]);
+  const req = (await asUser(f5Guide, `select id from public.request_departure_completion($1)`, [f5Dep])).rows[0].id;
+  const q = `select count(*)::int n from public.messages where departure_id = $1`;
+  const pendingSeen = (await asUser(chatIn2, q, [f5Dep])).rows[0].n;
+  await asUser(admin, `select public.review_departure_completion($1, true)`, [req]);
+  const a = (await asUser(chatIn2, q, [f5Dep])).rows[0].n;
+  const g = (await asUser(f5Guide, q, [f5Dep])).rows[0].n;
+  const ad = (await asUser(admin, q, [f5Dep])).rows[0].n;
+  const all = (await scalar(q, [f5Dep])).n;
+  if (pendingSeen === 0 || a !== 0 || g !== 0 || ad !== all || all === 0) throw new Error([pendingSeen, a, g, ad, all].join('/'));
+});
+await expectError('bitmiş tura mesaj yazılamaz (admin de)', 'row-level security', () => asUser(admin,
+  `insert into public.messages (departure_id, body) values ($1, 'Geç kaldım')`, [f5Dep]));
+await expectError('bitmiş tura duyuru gönderilemez', 'row-level security', () => asUser(admin,
+  `insert into public.announcements (departure_id, body) values ($1, 'Geç')`, [f5Dep]));
+await expectError('bitmiş turda participant_departure_info kapalı', 'not_allowed', () => asUser(chatIn,
+  `select public.participant_departure_info($1)`, [f5Dep]));
+
+// Super admin → firma duyuruları
+await expectOk('super admin tüm firmalara ve tek firmaya duyuru yayınlar', async () => {
+  await asUser(superAdmin, `insert into public.company_announcements (title, body) values ('Bakım', 'Pazar gece bakım var')`);
+  await asUser(superAdmin, `insert into public.company_announcements (company_id, title, body) values ($1, 'Size özel', 'Sözleşme yenileme')`, [company]);
+});
+await expectOk('firma admini genel + kendi duyurusunu görür, başka firma özeli görmez, müşteri hiçbirini', async () => {
+  const q = `select count(*)::int n from public.company_announcements`;
+  const a = (await asUser(admin, q)).rows[0].n;
+  const o = (await asUser(otherAdmin, q)).rows[0].n;
+  const c = (await asUser(customer, q)).rows[0].n;
+  const g = (await asUser(f5Guide, q)).rows[0].n;
+  if (a !== 2 || o !== 1 || c !== 0 || g !== 0) throw new Error([a, o, c, g].join('/'));
+});
+await expectError('firma admini firma duyurusu yazamaz', 'row-level security', () => asUser(admin,
+  `insert into public.company_announcements (title, body) values ('Benden', 'Herkese')`));
+await expectOk('duyuruyu yazan super admin olarak kaydedilir', async () => {
+  const r = await scalar(`select count(*)::int n from public.company_announcements where created_by = $1`, [superAdmin]);
+  if (r.n !== 2) throw new Error(String(r.n));
+});
+
+// Firma → super admin geri bildirim
+await expectOk('firma admini geri bildirim yollar, super admin görür ve durumu değiştirir', async () => {
+  const f = (await asUser(admin, `insert into public.feedbacks (company_id, created_by, title, body)
+    values ($1, $2, 'Öneri', 'Rapor ekranı olsun') returning id`, [company, admin])).rows[0].id;
+  const o = (await asUser(otherAdmin, `select count(*)::int n from public.feedbacks`)).rows[0].n;
+  const s = (await asUser(superAdmin, `update public.feedbacks set status = 'resolved' where id = $1 returning status`, [f])).rows[0];
+  if (o !== 0 || s.status !== 'resolved') throw new Error(JSON.stringify([o, s]));
+});
+await expectError('firma admini başka firma adına geri bildirim yazamaz', 'row-level security', () => asUser(admin,
+  `insert into public.feedbacks (company_id, created_by, title, body) values ($1, $2, 'Sahte', 'x')`, [otherCompany, admin]));
 
 console.log(failures === 0 ? '\nTÜM TESTLER GEÇTİ' : `\n${failures} TEST BAŞARISIZ`);
 process.exit(failures === 0 ? 0 : 1);

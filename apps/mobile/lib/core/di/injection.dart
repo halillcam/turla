@@ -16,6 +16,23 @@ import '../../features/guide/domain/repositories/guide_repository.dart';
 import '../../features/guide/presentation/cubit/departure_cubit.dart';
 import '../../features/guide/presentation/cubit/guide_home_cubit.dart';
 import '../../features/guide/presentation/cubit/scan_cubit.dart';
+import '../../features/live_tour/data/datasources/live_tour_remote_data_source.dart';
+import '../../features/live_tour/data/repositories/live_tour_repository_impl.dart';
+import '../../features/live_tour/domain/repositories/active_tour_repository.dart';
+import '../../features/live_tour/domain/repositories/announcement_repository.dart';
+import '../../features/live_tour/domain/repositories/chat_repository.dart';
+import '../../features/live_tour/presentation/cubit/active_tour_cubit.dart';
+import '../../features/live_tour/presentation/cubit/announcements_cubit.dart';
+import '../../features/live_tour/presentation/cubit/chat_cubit.dart';
+import '../../features/notifications/data/datasources/device_token_remote_data_source.dart';
+import '../../features/notifications/data/datasources/notification_data_sources.dart';
+import '../../features/notifications/data/datasources/push_messaging_data_source.dart';
+import '../../features/notifications/data/repositories/notification_repository_impl.dart';
+import '../../features/notifications/data/repositories/push_repository_impl.dart';
+import '../../features/notifications/domain/repositories/notification_repository.dart';
+import '../../features/notifications/domain/repositories/push_repository.dart';
+import '../../features/notifications/presentation/cubit/notification_center_cubit.dart';
+import '../../features/notifications/presentation/cubit/notifications_cubit.dart';
 import '../../features/tickets/data/datasources/ticket_local_data_source.dart';
 import '../../features/tickets/data/datasources/ticket_remote_data_source.dart';
 import '../../features/tickets/data/repositories/ticket_repository_impl.dart';
@@ -29,15 +46,17 @@ import '../../features/tours/data/repositories/tour_repository_impl.dart';
 import '../../features/tours/domain/repositories/tour_repository.dart';
 import '../../features/tours/presentation/cubit/tour_detail_cubit.dart';
 import '../../features/tours/presentation/cubit/tour_list_cubit.dart';
+import '../cache/user_cache_cleaner.dart';
 
 /// Uygulama genelindeki bağımlılık kabı.
 final GetIt getIt = GetIt.instance;
 
-/// Bağımlılıkları kaydeder. Supabase başlatıldıktan sonra çağrılmalıdır.
+/// Bağımlılıkları kaydeder. Supabase ve Firebase başlatıldıktan sonra çağrılmalıdır.
+/// [pushMessaging] Firebase yapılandırılmamışsa devre dışı bir örnektir.
 ///
 /// Repository'ler tek örnek (singleton) olarak, ekranlara ait Cubit'ler her
 /// ekran açılışında yeni örnek (factory) olarak oluşturulur.
-void configureDependencies() {
+void configureDependencies({required PushMessagingDataSource pushMessaging}) {
   getIt
     // Altyapı
     ..registerLazySingleton<SupabaseClient>(() => TurlaSupabase.client)
@@ -76,8 +95,38 @@ void configureDependencies() {
         localDataSource: GuideLocalDataSourceImpl(),
       ),
     )
+    // Aktif tur, sohbet ve duyurular: canlı veri, cihazda saklanmaz.
+    ..registerLazySingleton<LiveTourRepositoryImpl>(
+      () => LiveTourRepositoryImpl(LiveTourRemoteDataSourceImpl(getIt())),
+    )
+    ..registerLazySingleton<ActiveTourRepository>(() => getIt<LiveTourRepositoryImpl>())
+    ..registerLazySingleton<ChatRepository>(() => getIt<LiveTourRepositoryImpl>())
+    ..registerLazySingleton<AnnouncementRepository>(() => getIt<LiveTourRepositoryImpl>())
+    // Bildirim kutusu cihazda kullanıcı bazında; push sadece Android (FCM).
+    ..registerLazySingleton<NotificationRepository>(
+      () => NotificationRepositoryImpl(
+        remoteDataSource: NotificationRemoteDataSourceImpl(getIt()),
+        localDataSource: NotificationLocalDataSourceImpl(),
+      ),
+    )
+    ..registerLazySingleton<PushRepositoryImpl>(
+      () => PushRepositoryImpl(
+        messagingDataSource: pushMessaging,
+        tokenDataSource: DeviceTokenRemoteDataSourceImpl(getIt()),
+      ),
+    )
+    ..registerLazySingleton<PushRepository>(() => getIt<PushRepositoryImpl>())
     // Uygulama genelinde yaşayan Bloc'lar
-    ..registerLazySingleton<SessionBloc>(() => SessionBloc(getIt()))
+    ..registerLazySingleton<SessionBloc>(
+      () => SessionBloc(
+        getIt(),
+        // Çıkışta: önce push token'ı hesaptan ayrılır, sonra cihazdaki kişisel önbellek silinir.
+        cleanups: [getIt<PushRepositoryImpl>(), UserCacheCleaner()],
+      ),
+    )
+    ..registerLazySingleton<NotificationCenterCubit>(
+      () => NotificationCenterCubit(notificationRepository: getIt(), pushRepository: getIt()),
+    )
     ..registerLazySingleton<SelectedCityCubit>(
       () => SelectedCityCubit(selectedCityRepository: getIt(), cityRepository: getIt()),
     )
@@ -92,5 +141,9 @@ void configureDependencies() {
     ..registerFactory<TicketDetailCubit>(() => TicketDetailCubit(getIt()))
     ..registerFactory<GuideHomeCubit>(() => GuideHomeCubit(getIt()))
     ..registerFactory<DepartureCubit>(() => DepartureCubit(getIt()))
-    ..registerFactory<ScanCubit>(() => ScanCubit(getIt()));
+    ..registerFactory<ScanCubit>(() => ScanCubit(getIt()))
+    ..registerFactory<ActiveTourCubit>(() => ActiveTourCubit(getIt()))
+    ..registerFactory<ChatCubit>(() => ChatCubit(getIt()))
+    ..registerFactory<AnnouncementsCubit>(() => AnnouncementsCubit(getIt()))
+    ..registerFactory<NotificationsCubit>(() => NotificationsCubit(getIt()));
 }

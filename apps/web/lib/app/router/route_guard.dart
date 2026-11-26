@@ -47,7 +47,7 @@ abstract final class RouteGuard {
   /// Oturumdaki kullanıcı bu yolu açabilir mi?
   static bool canOpen(String path, PanelSession session) {
     if (session.isSuperAdmin) return true;
-    if (path.startsWith(AppRoutes.companies)) return false;
+    if (AppRoutes.isSuperAdminOnly(path)) return false;
     final companyId = AppRoutes.companyIdOf(path);
     return companyId == null || companyId == session.ownCompanyId;
   }

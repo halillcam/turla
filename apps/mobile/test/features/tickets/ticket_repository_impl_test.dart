@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' show ClientException;
 import 'package:turla_core/turla_core.dart';
@@ -51,6 +53,12 @@ class _FakeRemote implements TicketRemoteDataSource {
     _throwIfNeeded();
     return cancelledAt;
   }
+
+  /// Sahte Realtime kanalı: testte satır değişikliği elle yayınlanır.
+  final StreamController<TicketLiveChange> live = StreamController.broadcast();
+
+  @override
+  Stream<TicketLiveChange> watchTicket(String ticketId) => live.stream;
 }
 
 class _FakeLocal implements TicketLocalDataSource {
@@ -176,5 +184,26 @@ void main() {
         isA<TicketFailure>().having((f) => f.reason, 'reason', TicketFailureReason.notSignedIn),
       ),
     );
+  });
+
+  test('canlı değişiklik (Realtime) bileti günceller ve cihaza yazar', () async {
+    final ticket = ticketWith(id: 'live');
+    local.store['user-1'] = [ticket, ticketWith(id: 'other')];
+    final updates = <Ticket>[];
+    final subscription = repository.watchTicket(ticket).listen(updates.add);
+    await Future<void>.delayed(Duration.zero);
+
+    final scannedAt = DateTime.utc(2026, 12, 1, 8, 12);
+    remote.live.add((status: TicketStatus.checkedIn, scannedAt: scannedAt, cancelledAt: null));
+    await Future<void>.delayed(Duration.zero);
+
+    expect(updates.single.status, TicketStatus.checkedIn);
+    expect(updates.single.scannedAt, scannedAt);
+    expect(updates.single.qrToken, ticket.qrToken);
+    expect(local.store['user-1']!.first.status, TicketStatus.checkedIn);
+    expect(local.store['user-1']![1].id, 'other');
+
+    await subscription.cancel();
+    expect(remote.live.hasListener, isFalse, reason: 'ekran kapanınca kanal kapanmalı');
   });
 }

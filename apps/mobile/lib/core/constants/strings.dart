@@ -6,6 +6,7 @@ abstract final class AppStrings {
   static const String loading = 'Yükleniyor...';
   static const String back = 'Geri';
   static const String change = 'Değiştir';
+  static const String show = 'Gör';
 
   // Alt menü
   static const String navTours = 'Turlar';
@@ -281,4 +282,60 @@ abstract final class AppStrings {
   static const String errorDepartureNotActive =
       'Bu tarih kapalı (bitirme talebi gönderildi veya tur tamamlandı); okutma yapılamaz.';
   static const String errorDepartureNotStarted = 'Kalkış saati gelmeden tur bitirilemez.';
+
+  // Aktif tur (müşteri)
+  static const String activeTourButton = 'Aktif tur';
+  static const String activeTourTitle = 'Aktif tur';
+  static const String activeTourLoadError = 'Tur bilgisi yüklenemedi.';
+  static const String activeTourClosed = 'Bu tur tamamlandı; aktif tur ekranı kapandı.';
+  static const String guideLabel = 'Tur sorumlusu';
+  static const String guideNotAssigned = 'Henüz atanmadı';
+  static const String callGuide = 'Tur sorumlusunu ara';
+  static const String lastAnnouncement = 'Son duyuru';
+  static const String programTitle = 'Program';
+  static const String tourChat = 'Tur sohbeti';
+  static const String announcementsTitle = 'Duyurular';
+  static const String unlocksAfterCheckIn =
+      'Tur sohbeti ve duyurular QR kodun okutulunca açılır.';
+
+  // Tur sohbeti
+  static const String chatEmpty = 'Henüz mesaj yok. İlk mesajı sen yaz.';
+  static const String chatLoadError = 'Mesajlar yüklenemedi.';
+  static const String chatInputHint = 'Mesaj yaz';
+  static const String chatSend = 'Gönder';
+  static const String chatReadOnly = 'Sohbet salt okunur: tur bitirme aşamasında yeni mesaj yazılamaz.';
+  static const String chatLoadOlder = 'Önceki mesajlar';
+  static const String chatDeleteTitle = 'Mesaj silinsin mi?';
+  static const String chatDeleteMessage = 'Mesaj sohbetten kaldırılır.';
+  static const String chatDeleteConfirm = 'Sil';
+  static const String senderGuideTag = 'Tur sorumlusu';
+  static const String senderCompanyTag = 'Firma';
+  static const String you = 'Sen';
+
+  // Duyurular
+  static const String announcementsEmpty = 'Bu tur için henüz duyuru yok.';
+  static const String announcementsLoadError = 'Duyurular yüklenemedi.';
+  static const String announcementHint = 'Duyuru metni';
+  static const String announcementSend = 'Duyuru gönder';
+  static const String announcementSent = 'Duyuru gönderildi.';
+  static const String announcementRecipientsPrefix = 'Sadece QR kodu okutulmuş';
+  static const String announcementRecipientsSuffix = 'yolcuya gider.';
+
+  // Bildirimler
+  static const String notificationsTitle = 'Bildirimler';
+  static const String notificationsEmpty = 'Henüz bildirimin yok.';
+  static const String notificationsLoadError = 'Bildirimler yüklenemedi.';
+  static const String markAllRead = 'Tümünü okundu yap';
+  static const String showingCachedNotifications =
+      'İnternet yok; son kaydedilen bildirimler gösteriliyor.';
+  static const String notificationPermissionDenied =
+      'Bildirim izni kapalı. Duyuruları kaçırmamak için telefon ayarlarından Turla bildirimlerini aç.';
+  static const String pushChannelName = 'Tur duyuruları';
+  static const String pushChannelDescription = 'Tur sorumlusunun duyuruları';
+
+  // Sohbet / duyuru hataları
+  static const String errorChatNotAllowed =
+      'Bu sohbete yazamazsın (tur bitti veya QR kodun henüz okutulmadı).';
+  static const String errorChatRateLimited = 'Çok hızlı gönderiyorsun; biraz bekleyip tekrar dene.';
+  static const String errorMessageTooLong = 'Metin çok uzun.';
 }

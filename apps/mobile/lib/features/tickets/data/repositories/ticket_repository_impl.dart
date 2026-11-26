@@ -72,6 +72,24 @@ class TicketRepositoryImpl implements TicketRepository {
     return updated;
   }
 
+  @override
+  Stream<Ticket> watchTicket(Ticket ticket) {
+    var current = ticket;
+    return _remote.watchTicket(ticket.id).asyncMap((change) async {
+      current = current.withLiveChange(
+        status: change.status,
+        scannedAt: change.scannedAt,
+        cancelledAt: change.cancelledAt,
+      );
+      final userId = _remote.currentUserId;
+      if (userId != null) {
+        final cached = await _readCacheSafely(userId) ?? const [];
+        await _save(userId, [for (final other in cached) other.id == current.id ? current : other]);
+      }
+      return current;
+    });
+  }
+
   String _requireUser() {
     final userId = _remote.currentUserId;
     if (userId == null) throw const TicketFailure(TicketFailureReason.notSignedIn);

@@ -43,3 +43,9 @@ kotlin {
 flutter {
     source = "../.."
 }
+
+// Firebase yapılandırması (google-services.json) kullanıcı tarafından indirilir ve repoya
+// girmez. Dosya yoksa eklenti uygulanmaz; uygulama push olmadan derlenir ve çalışır.
+if (file("google-services.json").exists()) {
+    apply(plugin = "com.google.gms.google-services")
+}

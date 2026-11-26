@@ -4,3 +4,7 @@ project_id = "turla"
 # Oturum token'ı fonksiyon içinde auth.getUser ile doğrulanır.
 [functions.create-account]
 verify_jwt = false
+
+# Tetikleyiciden (pg_net) çağrılır; gövdeye güvenilmez, içerik DB'den okunur.
+[functions.send-push]
+verify_jwt = false

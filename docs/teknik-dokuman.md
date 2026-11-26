@@ -6,7 +6,7 @@
 |---|---|
 | **Ürün** | Turla: butik tur firmaları için tur satışı ve tur günü takibi |
 | **Parçalar** | Mobil uygulama (Android/iOS), web yönetim paneli, Supabase sunucusu |
-| **Durum** | MVP aşamasında. Faz 0–4 bitti, sırada Faz 5 (tur sohbeti, duyurular, bildirimler) var |
+| **Durum** | MVP aşamasında. Faz 0–5 bitti, sırada Faz 6 (ekran tasarımı ve demo hazırlığı) var |
 | **Dil** | Uygulamanın tamamı Türkçe |
 | **Son güncelleme** | Kasım 2026 |
 
@@ -83,6 +83,9 @@ Proje Supabase'in **ücretsiz planında** çalışıyor. Ücretsiz planda verita
 | Tur sorumlusunun tarihleri | Telefonda, son çekilen hali | Ana ekran açılınca ve aşağı çekince (tek istek) |
 | Bir tarihin katılımcıları | Telefonda, son çekilen hali | Tarih ekranı açılınca ve aşağı çekince |
 | Tur detayındaki boş koltuk | Tutulmaz | Her açılışta (güncel olması şart) |
+| Bildirim kutusu (son 50) | Telefonda, kullanıcı bazında | Bildirimler açılınca, aşağı çekince, girişte ve uygulama açıkken push gelince |
+| Tur sohbeti | Tutulmaz | Sohbet açılınca son 50 mesaj; yukarı kaydırınca öncekiler; yeni mesajlar canlı (sadece ekran açıkken) |
+| Aktif tur bilgisi, duyurular | Tutulmaz | Ekran açılınca ve aşağı çekince |
 
 ### 2.2 Uygulanan kurallar
 
@@ -91,6 +94,10 @@ Proje Supabase'in **ücretsiz planında** çalışıyor. Ücretsiz planda verita
 - **İnternet yoksa uygulama çalışmaya devam ediyor.** Son kaydedilen tur listesi bir uyarıyla gösterilir. Bilet ve QR kod internetsiz açılır; tur günü otobüste internet olmasa da yolcu QR'ını gösterebilir.
 - **Görseller küçültülerek yükleniyor.** Panelden yüklenen tur görselinin en uzun kenarı 1280 piksele indirilir ve sıkıştırılır. Bu hem dosya alanını hem de veri çıkışını korur.
 - **Panelde sekmeler canlı tutuluyor.** Tur düzenleyicide sekme değiştirince veri tekrar indirilmez.
+- **Canlı bağlantı sadece gerektiği anda.** Supabase Realtime (ücretsiz planda aynı anda 200 bağlantı, ayda 2 milyon mesaj) sadece iki yerde ve sadece o ekran açıkken açılır: tur sohbeti (o tarihin yeni mesajları) ve bilet detayı (o biletin durumu; QR okutulunca "Tura katıldı" hemen görünür). Ekran kapanınca bağlantı kapanır. Turlarım listesine, bildirim kutusuna ve panele canlı bağlantı açılmaz; panelde sohbet "Yenile" ile çekilir. Yayına sadece `messages` ve `tickets` tabloları eklendi.
+- **Push tek istekle.** Bir duyuru 40 yolcuya gidiyorsa sunucudan push fonksiyonuna 40 değil **bir** istek gider (bildirimler toplu yazılır, tetikleyici bir kez çalışır). Uygulama içi bildirim kutusu ayrıca istek atmaz; push gelince bir kez yenilenir.
+- **Spam sınırı sunucuda.** Bir kişi dakikada en fazla 20 mesaj ve 5 duyuru gönderebilir (`rate_limited`).
+- **Çıkışta kişisel önbellek silinir.** Bilet, tur sorumlusu listeleri ve bildirimler çıkış yapınca telefondan silinir; push kaydı da hesaptan ayrılır (paylaşılan telefon için).
 - **Veri biçimi değişirse önbellek kendini yeniliyor.** Her önbelleğin bir sürüm numarası var. Örneğin Karadeniz bölgesi ikiye ayrılınca tur önbelleğinin sürümü artırıldı ve telefonlardaki eski listeler kendiliğinden atıldı.
 
 Örnek: 81 ilin tamamı sadece yaklaşık 2,4 KB tutuyor.
@@ -116,8 +123,12 @@ Proje Supabase'in **ücretsiz planında** çalışıyor. Ücretsiz planda verita
 │  Veritabanı (PostgreSQL) ── tablolar ve kurallar     │
 │  Fonksiyonlar ── bilet alma, iptal, QR okutma        │
 │  Storage ── tur görselleri                           │
-│  Edge Function ── hesap açma                         │
+│  Realtime ── sohbet ve bilet durumu (ekran açıkken)  │
+│  Edge Function ── hesap açma, push gönderme          │
 └──────────────────────────────────────────────────────┘
+                          │ push (sadece Android)
+                          ▼
+             Firebase Cloud Messaging (ücretsiz)
 ```
 
 **Temel fikir:** Uygulamalar sadece veriyi gösterir ve isteği gönderir. "Bu bilet satılabilir mi?", "Bu iptal kabul edilir mi?", "Bu kişi bu veriyi görebilir mi?" gibi kararları veritabanı verir. Böylece uygulamada bir hata olsa ya da biri isteği değiştirmeye çalışsa bile kurallar atlanamaz.
@@ -133,8 +144,8 @@ Kullanıcının rolü hesap açılırken sunucuda belirlenir; kullanıcı kendi 
 | Misafir | — (giriş yok) | Mobil | Şehir seçer, turları ve detaylarını görür. Bilet alamaz. |
 | Müşteri | `customer` | Mobil | Bilet alır, biletlerini ve QR kodunu görür, iptal eder. QR'ı okutulunca tur sohbetine katılır. |
 | Tur sorumlusu | `guide` | Mobil | Atandığı tarihin yolcularını görür, QR okutur, duyuru gönderir, turu bitirme talebi açar. |
-| Firma yöneticisi | `admin` | Web | Kendi firmasının turlarını, tarihlerini, çalışanlarını ve biletlerini yönetir; turu bitirme taleplerini onaylar. |
-| Sistem yöneticisi | `super_admin` | Web | Firma açar, kapatır ve her firmayı yönetebilir. |
+| Firma yöneticisi | `admin` | Web | Kendi firmasının turlarını, tarihlerini, çalışanlarını ve biletlerini yönetir; turu bitirme taleplerini onaylar; tur sohbetlerini denetler; sistem yöneticisine geri bildirim yollar. |
+| Sistem yöneticisi | `super_admin` | Web | Firma açar, kapatır ve her firmayı yönetebilir; firmalara duyuru yayınlar, geri bildirimleri sonuçlandırır. |
 
 **Ek kurallar:**
 
@@ -186,7 +197,7 @@ Firma yöneticisi panelden iptal ederse 1 saat kuralı uygulanmaz.
 6. Kamera izni verilmezse ya da kamera bozuksa açıklama çıkar; **"Kodu elle gir"** ile biletteki kod yazılabilir.
 7. Yolcunun telefonu kapalı ya da kırıksa tur sorumlusu listede isme dokunur ve onaylayarak **elle "Geldi"** işaretler (`check_in_manually`). Kayıtta "elle" olarak görünür.
 8. Telefonu olan yolcu listeden aranabilir; şoför de tarih ekranından aranabilir.
-9. Müşterinin biletinde QR yerine **"QR kodun okutuldu · saat"** görünür, durum "Tura katıldı" olur (Turlarım açılınca ya da aşağı çekince güncellenir).
+9. Müşterinin biletinde QR yerine **"QR kodun okutuldu · saat"** görünür, durum "Tura katıldı" olur. Müşteri o sırada bilet detayındaysa bu **hemen** görünür (canlı); değilse Turlarım açılınca ya da aşağı çekince gelir.
 
 Bir QR kod sadece bir kez kullanılabilir. **Okutma internet ister:** bağlantı yoksa "İnternet bağlantısı yok" uyarısı çıkar; liste son kaydedilen haliyle görünmeye devam eder.
 
@@ -213,6 +224,21 @@ Bir QR kod sadece bir kez kullanılabilir. **Okutma internet ister:** bağlantı
 3. Sunucudaki `admin_issue_ticket` fonksiyonu bileti "panelden kesildi, ödeme elden alındı" olarak kaydeder. Müşterinin profilindeki telefon bilete kopyalanır.
 4. Müşteri giriş kimliğiyle mobil uygulamaya girip biletini ve QR kodunu görür.
 
+### 5.7 Tur günü: aktif tur, sohbet ve duyurular
+
+1. Müşteri bilet detayında **"Aktif tur"** düğmesine basar (bilet geçerliyse ve tur bitmediyse görünür). Ekranda tarih, **tur sorumlusunun adı** ve **arama düğmesi** (basınca telefonun arama uygulaması açılır), araç ve şoför (aranabilir), firma, son duyuru ve tur programı vardır. Bu bilgiler `participant_departure_info` ile tek istekte gelir; tur sorumlusunun telefonu sadece o tarihte geçerli bileti olana ve tur bitene kadar döner.
+2. **Tur sohbeti ve duyurular QR okutulunca açılır.** Okutulmadan önce ekranda "QR kodun okutulunca açılır" yazar.
+3. **Tur sohbeti:** QR'ı okutulmuş yolcular, o tarihin tur sorumlusu ve firma yöneticisi (panelden) yazar. Sadece ad-soyad görünür; tur sorumlusunun mesajında "Tur sorumlusu", firmanınkinde "Firma" etiketi vardır. Son 50 mesaj gelir, yukarı kaydırınca öncekiler. Yeni mesajlar ekran açıkken canlı düşer. Yolcu kendi mesajını, tur sorumlusu ve firma her mesajı silebilir. Mesaj en fazla 2000 karakter; dakikada en fazla 20 mesaj.
+4. **Turu bitirme talebi açıldıysa** sohbet salt okunur olur. **Tur tamamlanınca sohbet yolculardan ve tur sorumlusundan tamamen gizlenir**; mesajlar silinmez, veritabanında kalır ve firma yöneticisi panelden okumaya devam eder.
+5. **Duyuru:** tur sorumlusu tarih ekranındaki duyuru düğmesinden en fazla 1000 karakterlik duyuru yazar; ekranda "Sadece QR kodu okutulmuş N yolcuya gider" bilgisi vardır. Duyuru sadece QR'ı okutulmuş yolcuların **bildirim kutusuna** düşer ve Android telefonlarına **push bildirimi** olarak gider.
+6. Müşteri üst çubuktaki zilde okunmamış sayısını görür. Bildirime dokununca o turun duyuruları açılır ve bildirim okundu olur; "Tümünü okundu yap" da vardır. Uygulama açıkken gelen bildirim ekranın altında kısa mesaj olarak görünür ("Gör" ile duyurular açılır).
+7. Android 13 ve sonrasında bildirim izni istenir. İzin verilmezse bildirim kutusunda "Bildirim izni kapalı" uyarısı çıkar; uygulama içi kutu yine çalışır.
+
+### 5.8 Firma ile sistem yöneticisi arasında iletişim
+
+- **Firmalara duyuru:** sistem yöneticisi panelde "Duyurular" sayfasından tüm firmalara ya da tek bir firmaya duyuru yayınlar (başlık + metin) ve silebilir. Firma yöneticisi kendi panelindeki "Duyurular" sayfasında genel ve kendisine özel duyuruları okur.
+- **Geri bildirim:** firma yöneticisi "Geri bildirim" sayfasından sistem yöneticisine öneri/sorun yollar. Sistem yöneticisi bütün firmaların geri bildirimlerini görür ve durumunu Açık / İnceleniyor / Çözüldü olarak değiştirir.
+
 ---
 
 ## 6. Kullanılan teknolojiler
@@ -230,7 +256,9 @@ Bir QR kod sadece bir kez kullanılabilir. **Okutma internet ister:** bağlantı
 | QR kod | qr_flutter | Biletin QR kodu telefonda çizilir |
 | Tarih ve para biçimi | intl (Türkçe) | "13 Aralık 2026", "₺1.850" gibi biçimler |
 | Test | flutter_test, bloc_test, mocktail, PGlite | Birim, ekran ve veritabanı testleri |
-| Bildirim | Firebase Cloud Messaging *(planlandı)* | Ücretsiz; Supabase'de hazır bildirim servisi yok |
+| Canlı veri | Supabase Realtime | Sohbet ve bilet durumu; sadece ekran açıkken |
+| Push bildirimi | Firebase Cloud Messaging (firebase_messaging), sadece Android | Ücretsiz; Supabase'de hazır bildirim servisi yok. iOS için ücretli Apple geliştirici hesabı gerekir |
+| Sunucudan HTTP isteği | pg_net | Bildirim yazılınca push fonksiyonunu veritabanından çağırmak için |
 
 ---
 
@@ -248,7 +276,8 @@ turla_app/
 ├── supabase/
 │   ├── migrations/      Veritabanı yapısı ve kuralları (sırayla çalışan SQL dosyaları)
 │   ├── functions/
-│   │   └── create-account/   Hesap açan sunucu fonksiyonu
+│   │   ├── create-account/   Hesap açan sunucu fonksiyonu
+│   │   └── send-push/        Push bildirimi gönderen sunucu fonksiyonu
 │   ├── seed/demo.sql    Demo firma ve turlar
 │   ├── tests/           Veritabanı ve sunucu fonksiyonu testleri
 │   └── config.toml      Sunucu fonksiyonu ayarı
@@ -346,6 +375,8 @@ Testlerde gerçek sunucu yerine sahte veri kaynakları verilir. Böylece "intern
 | `tickets` | Satın alma (ad + telefon), Turlarım, bilet detayı, iptal, "QR kodun okutuldu" |
 | `profile` | Misafir ve giriş yapmış kullanıcı profili, şehir değiştirme, çıkış |
 | `guide` | Tur sorumlusu: atanmış tarihler, katılımcılar, QR okutma, elle "Geldi", turu bitir |
+| `live_tour` | Aktif tur ekranı (tur sorumlusunu arama), tur sohbeti (canlı), duyurular (tur sorumlusu gönderir) |
+| `notifications` | Bildirim kutusu, okunmamış rozeti, push kaydı (FCM), bildirime dokununca ilgili turu açma |
 
 ### 9.2 Ekranlar
 
@@ -359,11 +390,17 @@ Testlerde gerçek sunucu yerine sahte veri kaynakları verilir. Böylece "intern
 | `/tours/:tourId` | Tur detayı | Tarih seçimi burada |
 | `/checkout` | Demo ödeme | Alt menüsüz, tam ekran |
 | `/my-tickets` | Turlarım | Alt menü: Turlarım (giriş gerekli) |
-| `/my-tickets/:ticketId` | Bilet detayı ve QR | İnternetsiz açılır |
+| `/my-tickets/:ticketId` | Bilet detayı ve QR | İnternetsiz açılır; açıkken bilet durumu canlı |
+| `/my-tickets/live/:departureId` | Aktif tur | Tur sorumlusu (ara), araç, son duyuru, program |
+| `/my-tickets/live/:departureId/chat` | Tur sohbeti (müşteri) | QR okutulunca açılır |
+| `/my-tickets/live/:departureId/announcements` | Duyurular (müşteri) | Bildirime dokununca da açılır |
+| `/notifications` | Bildirim kutusu | Üst çubuktaki zilden |
 | `/profile` | Profil | Alt menü: Profil |
 | `/guide` | Tur sorumlusu ana ekranı | Bugün / yaklaşan / tamamlanan tarihler |
 | `/guide/departures/:departureId` | Katılımcılar | Geldi/gelmedi, süzgeç, arama, elle "Geldi", "QR okut", "Turu bitir" |
 | `/guide/departures/:departureId/scan` | QR okutma | Kamera, sonuç ekranı, "Kodu elle gir" |
+| `/guide/departures/:departureId/chat` | Tur sohbeti (tur sorumlusu) | Tur bitince gizlenir |
+| `/guide/departures/:departureId/announcements` | Duyuru gönder ve gönderilenler | Alıcı sayısı gösterilir |
 
 ### 9.3 Giriş kimliği nasıl çalışıyor?
 
@@ -383,6 +420,17 @@ Bu adreslere hiçbir zaman e-posta gönderilmez. Şifre unutulursa firma yöneti
 - **Sunucuya gidilen anlar:** ekran açılınca, aşağı çekince, okutma, elle işaretleme ve turu bitir.
 - **Kamera:** `mobile_scanner` paketi, sadece QR biçimi. Android'de kamera izni istenir; kamerası olmayan cihaza da kurulabilir.
 
+### 9.5 Push bildirimi nasıl çalışıyor?
+
+```
+duyuru yazılır ─► bildirimler toplu yazılır ─► tetikleyici (pg_net) ─► send-push ─► FCM ─► telefon
+```
+
+- Müşteri girişinde bildirim izni istenir ve telefonun FCM kaydı `register_device_token` ile hesaba bağlanır. Aynı telefonda başka hesapla girilirse kayıt yeni hesaba geçer; token yenilenirse tekrar yazılır.
+- Çıkışta kayıt hesaptan silinir ve FCM kaydı kaldırılır.
+- Firebase ayar dosyası (`google-services.json`) repoya girmez. Dosya yoksa uygulama yine derlenir ve çalışır; sadece push kapalıdır.
+- Firebase'in gizli anahtarı (service account) sadece Supabase'de `send-push` fonksiyonunun gizli ayarı (`FCM_SERVICE_ACCOUNT`) olarak durur; uygulamada ve repoda yoktur.
+
 ---
 
 ## 10. Web paneli
@@ -397,6 +445,9 @@ Bu adreslere hiçbir zaman e-posta gönderilmez. Şifre unutulursa firma yöneti
 | `staff` | Tur sorumlusu ve dışarıdan müşteri hesapları, aktif/pasif, şifre sıfırlama |
 | `tickets` | Bir tarihin katılımcıları (telefon, "tura katıldı (elle)"), yönetici iptali, "Bilet kes" |
 | `completions` | Turu bitirme talepleri: onay ve ret |
+| `chat` | Katılımcı penceresinden tur sohbeti denetimi: okuma, firma olarak yazma (tarih açıkken), mesaj silme |
+| `announcements` | Sistem yöneticisinden firmalara duyuru (yayınla, sil); firma okur |
+| `feedback` | Firmadan sistem yöneticisine geri bildirim; durum değiştirme |
 
 ### 10.2 Sayfalar
 
@@ -410,6 +461,10 @@ Bu adreslere hiçbir zaman e-posta gönderilmez. Şifre unutulursa firma yöneti
 | `/c/:companyId/tours/:tourId` | Firma alanı | Tur düzenleyici |
 | `/c/:companyId/staff` | Firma alanı | Personel ve müşteriler |
 | `/c/:companyId/completions` | Firma alanı | Turu bitirme talepleri |
+| `/c/:companyId/announcements` | Firma alanı | Sistem yöneticisinin duyuruları (okuma) |
+| `/c/:companyId/feedback` | Firma alanı | Geri bildirim gönder ve gönderilenler |
+| `/announcements` | Sistem yöneticisi | Firmalara duyuru yayınla |
+| `/feedback` | Sistem yöneticisi | Bütün firmaların geri bildirimleri |
 
 Firma yöneticisi sadece kendi firmasının sayfalarına girebilir. Sistem yöneticisi her firmanın sayfasına girebilir.
 
@@ -418,6 +473,7 @@ Firma yöneticisi sadece kendi firmasının sayfalarına girebilir. Sistem yöne
 - Bir işlem bitince ekran ya pencereyi kapatır ya da mesaj gösterir.
 - Kayıt ekleyince ya da düzenleyince liste baştan indirilmez, sadece ilgili satır güncellenir.
 - Kapak görseli yüklenmeden önce tarayıcıda küçültülür.
+- Panelde canlı bağlantı yok: sohbet penceresi açılınca son 100 mesaj gelir, "Yenile" ile güncellenir.
 
 ---
 
@@ -483,12 +539,14 @@ Firma yöneticisi sadece kendi firmasının sayfalarına girebilir. Sistem yöne
 
 | Tablo | Ne tutuyor |
 |---|---|
-| `messages` | Tur sohbeti mesajları |
+| `messages` | Tur sohbeti mesajları (gönderen adı ve rolü sunucuda yazılır) |
 | `announcements` | Tur sorumlusunun duyuruları |
-| `notifications` | Her kullanıcının bildirim kutusu |
+| `notifications` | Her kullanıcının bildirim kutusu (`push_sent_at`: push gönderildiyse zamanı) |
 | `device_tokens` | Bildirim göndermek için cihaz bilgileri |
 | `completion_requests` | Turu bitirme talepleri |
 | `feedbacks` | Firmaların geri bildirimleri |
+| `company_announcements` | Sistem yöneticisinin firmalara duyuruları (firma boşsa tüm firmalara) |
+| `private.settings` | API'ye açık olmayan ayarlar (push fonksiyonunun adresi) |
 
 ### 12.3 Tur ve tarih neden ayrı tablolarda?
 
@@ -513,7 +571,10 @@ Bir tur (örneğin "Kapadokya Turu") birçok tarihte yapılır. Koltuk sayısı,
 | `handle_new_user` | Yeni kullanıcı için profil oluşturur; rolü ve firmayı sunucunun yazdığı alandan alır |
 | `handle_user_app_metadata_update` | Sunucu kullanıcının rolünü sonradan yazarsa profili de günceller |
 | `departures_before_write` | Yeni tarihte boş koltuğu kontenjana eşitler; kontenjan değişince boş koltuğu da aynı farkla değiştirir; atanan tur sorumlusunun aynı firmada aktif olduğunu kontrol eder |
-| `messages_before_insert` | Mesajı gönderenin adını profilden yazar; kimse başkası adına mesaj atamaz |
+| `messages_before_insert` | Mesajı gönderenin adını ve rolünü profilden yazar (kimse başkası adına mesaj atamaz); dakikada 20 mesaj sınırı |
+| `announcements_before_insert` | Duyuruyu gönderenin kimliğini yazar; dakikada 5 duyuru sınırı |
+| `notifications_push` | Bildirimler yazılınca (tek seferde kaç tane olursa olsun) `send-push` fonksiyonunu bir kez çağırır; adres ayarlı değilse bir şey yapmaz |
+| `company_announcements_before_insert` | Firma duyurusunu yazan kişiyi kaydeder |
 | `announcements_fanout` | Duyuruyu sadece QR'ı okutulmuş yolcuların bildirim kutusuna dağıtır |
 | `tickets_copy_customer_phone` | Bilete telefon yazılmadıysa (panelden kesilen bilet) müşterinin profil telefonunu kopyalar; profildeki telefon bozuksa bilet yine kesilir |
 | `set_updated_at` | Kaydın güncellenme zamanını yazar |
@@ -536,6 +597,8 @@ Bu fonksiyonlar uygulamadan çağrılır ve veritabanında **tek seferde** çal�
 | `admin_issue_ticket` | Firma yöneticisi | Panelden açılmış müşteriye bilet keser, ödemeyi "elden" yazar | `not_allowed`, `departure_not_found`, `tour_not_available`, `departure_not_bookable`, `invalid_customer`, `no_seats_left`, `already_has_ticket` |
 | `set_profile_active` | Firma yöneticisi, sistem yöneticisi | Hesabı aktif ya da pasif yapar | `not_allowed`, `profile_not_found`, `cannot_change_self` |
 | `save_tour_program` | Firma yöneticisi | Gün gün programı tek seferde kaydeder | `invalid_program` |
+| `participant_departure_info` | Bileti olan müşteri | Aktif tur ekranı: tarih, araç, şoför, firma, tur sorumlusunun adı ve telefonu, program, son duyuru (QR okutulduysa), sohbete yazılabilir mi | `not_allowed`, `departure_not_active` |
+| `register_device_token` | Giriş yapmış kullanıcı | Telefonun push kaydını hesaba bağlar (başka hesaptaysa bu hesaba geçirir) | `not_allowed`, `invalid_token` |
 
 **Aynı anda iki kişi son koltuğu alırsa ne olur?** `book_ticket` satış yapmadan önce o tarihin satırını kilitler. İkinci kişi bekletilir; sıra ona gelince koltuk kalmadığı için `no_seats_left` hatası alır. Aynı koltuk iki kişiye satılamaz.
 
@@ -557,9 +620,12 @@ Veritabanında her tablo için "bu satırı kim görebilir, kim değiştirebilir
 | `profiles` | Kendisi; firma yöneticisi kendi firmasındaki hesapları; sistem yöneticisi herkesi | Kişi sadece adını, telefonunu ve seçili şehrini değiştirebilir; rolünü ve firmasını değiştiremez |
 | `tickets` | Bilet sahibi, firma yöneticisi, o tarihin tur sorumlusu (yolcu adı ve telefonu dahil) | **Uygulama doğrudan yazamaz**, sadece fonksiyonlar yazar |
 | `payments` | Firma yöneticisi, biletin sahibi | **Uygulama doğrudan yazamaz** |
-| `messages` | QR'ı okutulmuş yolcu, tur sorumlusu, firma yöneticisi | Aynı kişiler, sadece aktif tarihte |
-| `announcements` | Aynı kişiler | Tur sorumlusu, firma yöneticisi |
-| `notifications`, `device_tokens` | Sadece sahibi | Sadece sahibi |
+| `messages` | QR'ı okutulmuş yolcu ve tur sorumlusu **sadece tur bitene kadar**; firma yöneticisi her zaman | Aynı kişiler, sadece planlanmış tarihte. Silme: yolcu kendi mesajını, tur sorumlusu ve firma her mesajı |
+| `announcements` | QR'ı okutulmuş yolcu, tur sorumlusu, firma yöneticisi | Tur sorumlusu, firma yöneticisi (sadece planlanmış tarihte) |
+| `notifications` | Sadece sahibi | Sahibi sadece "okundu" alanını değiştirir ve silebilir; bildirimleri sunucu yazar |
+| `device_tokens` | Sadece sahibi | Sahibi (kayıt `register_device_token` ile) |
+| `company_announcements` | Sistem yöneticisi hepsini; firma yöneticisi genel ve kendi firmasına olanları | Sistem yöneticisi |
+| `feedbacks` | Firma yöneticisi kendi firmasınınkini; sistem yöneticisi hepsini | Firma yöneticisi yazar; durumu sistem yöneticisi değiştirir |
 | `completion_requests` | Talebi açan sorumlu, firma yöneticisi | **Uygulama doğrudan yazamaz** |
 
 ### 14.2 Tablo yetkileri
@@ -582,6 +648,8 @@ Yeni Supabase projelerinde tablolara erişim varsayılan olarak kapalı geliyor.
 
 - **Pasif firma:** Firma pasife alınınca yöneticisinin yetkileri sunucuda kapanır; panel girişinde de reddedilir.
 - **Anahtarlar:** Uygulamalarda sadece herkese açık olması için tasarlanmış, tek başına yetki vermeyen anahtar (publishable key) bulunur. Her şeye erişen gizli anahtar sadece sunucu fonksiyonunun içinde kullanılır.
+- **Push fonksiyonu gelen isteğe güvenmez:** `send-push` herkese açık bir adreste ama sadece "şu bildirim kimliklerine bak" bilgisini alır. İçeriği veritabanından kendisi okur; sadece henüz gönderilmemiş ve son 10 dakikada yazılmış bildirimleri gönderir ve gönderdiğini işaretler. Sahte bir istek içerik uyduramaz, aynı bildirimi iki kez gönderemez.
+- **Canlı bağlantı da kurallara uyar:** Realtime her aboneye satır bazlı kuralları ayrı uygular; bir yolcu başka bir turun sohbetini ya da başkasının biletini dinleyemez.
 - **Hız:** Yetki kuralları her satır için değil her sorgu için bir kez hesaplanacak şekilde yazıldı; ilişkili alanların hepsinde indeks var.
 
 ---
@@ -624,6 +692,15 @@ Web panelinden firma yöneticisi, tur sorumlusu ve dışarıdan müşteri hesab�
 
 Bu kurallar ayrı bir dosyada (`rules.ts`) tutulur ve ayrıca test edilir.
 
+### 16.1 Push gönderme fonksiyonu (send-push)
+
+- Bildirim kutusuna satır yazılınca veritabanı bu fonksiyonu `{ notification_ids: [...] }` ile çağırır.
+- Fonksiyon kimlikleri doğrular (sadece geçerli kimlikler, en fazla 500), bildirimleri kendisi okur ve gönderildi olarak işaretler, sahiplerinin Android cihazlarına FCM ile yollar.
+- Bildirim yüküne tur tarihi eklenir; telefonda bildirime dokununca o turun duyuruları açılır.
+- Artık geçersiz olan cihaz kayıtları (uygulama silinmiş vb.) silinir.
+- Firebase anahtarı tanımlı değilse hiçbir şey göndermez ve hata vermez.
+- Kurallar `rules.ts` dosyasında ve ayrıca test edilir.
+
 ---
 
 ## 17. Hata kodları
@@ -652,6 +729,10 @@ Bu kurallar ayrı bir dosyada (`rules.ts`) tutulur ve ayrıca test edilir.
 | `invalid_phone` | Telefon biçimi hatalı | Telefon numarası geçersiz |
 | `not_resettable` | Şifresi panelden sıfırlanamayan hesap | Bu hesabın şifresi panelden sıfırlanamaz |
 | `account_not_found` | Şifresi sıfırlanacak hesap yok | Kayıt bulunamadı |
+| `rate_limited` | Dakikada 20 mesaj / 5 duyuru sınırı aşıldı | Çok hızlı gönderiyorsun; biraz bekleyip tekrar dene |
+| `invalid_token` | Push cihaz kaydı geçersiz | (Kullanıcıya gösterilmez; push sessizce kapalı kalır) |
+| RLS reddi *(sohbet)* | Tur bitti ya da QR okutulmadı | Bu sohbete yazamazsın |
+| Karakter sınırı | Mesaj 2000, duyuru 1000 karakteri geçti | Metin çok uzun |
 | `ok` *(QR)* | Okutma başarılı | Hoş geldin! + yolcunun adı |
 | `already_used` *(QR)* | Bilet daha önce okutuldu | Daha önce okutuldu (ilk okutma saati) |
 | `wrong_departure` *(QR)* | Bilet başka bir tarihe ait | Başka bir tarihin bileti |
@@ -666,10 +747,11 @@ Bu kurallar ayrı bir dosyada (`rules.ts`) tutulur ve ayrıca test edilir.
 | Bölüm | Neyi test ediyor | Test sayısı |
 |---|---|---|
 | Ortak paket | İl listesinin saklanması, giriş kimliği | 13 |
-| Mobil uygulama | Yönlendirme kuralları, oturum, giriş, şehir seçimi, tur listesi (yatay bölge satırı, bölge ekranı) ve önbelleği, biletler, satın alma (telefon), iptal, tur sorumlusu (tarihler, katılımcılar, QR okutma, elle Geldi, turu bitir), ekran akışları | 102 |
-| Web paneli | Panel girişi, sayfa yenileme, firmalar, turlar, personel ve şifre sıfırlama, biletler (telefon, elle işareti), hata mesajları | 64 |
-| Veritabanı | Tablolar, yetki kuralları, bilet alma, telefon, kontenjan, iptal süresi, iade, QR, elle Geldi, tur sorumlusunun tarih listesi, turu bitirme, dosya yetkileri | 106 |
+| Mobil uygulama | Yönlendirme kuralları, oturum (çıkış temizliği), giriş, şehir seçimi, tur listesi ve önbelleği, biletler (canlı "Tura katıldı"), satın alma, iptal, tur sorumlusu, aktif tur, sohbet (sayfalama, sahte canlı kanal, hız sınırı, salt okunur), duyurular, bildirim kutusu, push kaydı, çıkışta önbellek silme, ekran akışları | 150 |
+| Web paneli | Panel girişi, sayfa yenileme ve yetkiler, firmalar, turlar, personel ve şifre sıfırlama, biletler, sohbet denetimi, firma duyuruları, geri bildirim, hata mesajları | 76 |
+| Veritabanı | Tablolar, yetki kuralları, bilet alma, telefon, kontenjan, iptal süresi, iade, QR, elle Geldi, tur sorumlusunun tarih listesi, turu bitirme, dosya yetkileri, sohbet (kim görür/yazar/siler, tur bitince gizlenme, hız sınırı), duyuru dağıtımı ve tek istekli push tetikleyicisi, aktif tur bilgisi, cihaz kaydı, Realtime yayını, firma duyuruları, geri bildirim | 142 |
 | Hesap açma fonksiyonu | `rules.ts` içindeki kurallar (hesap açma ve şifre sıfırlama) | 29 |
+| Push fonksiyonu | `send-push/rules.ts`: kimlik süzme, service account okuma, imza anahtarı, FCM mesajı, geçersiz token | 20 |
 
 **Veritabanı testleri nasıl çalışıyor?** Testler gerçek Supabase'e bağlanmaz. Bilgisayarda küçük bir PostgreSQL (PGlite) açılır, Supabase'in giriş ve depolama kısımları taklit edilir, bütün veritabanı dosyaları sırayla kurulur ve senaryolar farklı kullanıcılar olarak denenir. Yeni Supabase projelerinin "erişim varsayılan kapalı" davranışı da taklit edildiği için unutulan bir yetki testte yakalanır.
 
@@ -696,6 +778,8 @@ Veritabanındaki her değişiklik sıralı bir SQL dosyası olarak saklanır. Ç
 | 11 | `black_sea_split` | Karadeniz'in Batı ve Doğu olarak ikiye ayrılması |
 | 12 | `tickets` | Bilet sahibinin okuma yetkisi, tek bilet kuralı, panelden bilet kesme |
 | 13 | `guide` | Yolcu telefonu, katılım yöntemi (QR / elle), elle "Geldi", tur sorumlusunun tarih listesi |
+| 14 | `chat` | Sohbetin tur bitince gizlenmesi, gönderen rolü, mesaj/duyuru hız sınırı, aktif tur bilgisi, cihaz kaydı, Realtime yayını, push tetikleyicisi (pg_net), firma duyuruları |
+| 15 | `pg_net_schema` | pg_net eklentisinin `extensions` şemasına taşınması |
 
 ---
 
@@ -716,6 +800,12 @@ Veritabanındaki her değişiklik sıralı bir SQL dosyası olarak saklanır. Ç
 | Elle "Geldi" | Var, onay penceresiyle; kayıtta "elle" yazar | Telefonu kapalı/kırık yolcu tura alınabilsin |
 | Yolcu telefonu | Satın alırken istenir, bilete kopyalanır | Tur günü tur sorumlusu yolcuya ulaşabilsin |
 | Şifre sıfırlama | Panelden yönetici yapar, yeni geçici şifre bir kez gösterilir | Giriş kimlikli hesapların e-postası yok |
+| Sohbete kimler katılır | QR'ı okutulmuş yolcular, tur sorumlusu ve firma yöneticisi (panelden) | Tura gerçekten katılanlar konuşur; firma denetleyebilir |
+| Tur bitince sohbet | Yolculardan ve tur sorumlusundan gizlenir, veritabanında kalır | Eski turun sohbeti kafa karıştırmaz; kayıt firmada kalır, büyürse ileride sıkıştırılır |
+| Tur sorumlusunu arama | Aktif tur ekranında arama düğmesi telefonun arama uygulamasını açar | Tur günü yolcu sorumluya hemen ulaşabilsin |
+| Push | Firebase Cloud Messaging, sadece Android | Ücretsiz; iOS için ücretli geliştirici hesabı gerekir |
+| Panelde duyuru | Sistem yöneticisi firmalara yazar; yolculara duyuruyu tur sorumlusu yazar | Yolcuya giden duyuru tur günü sahadan gelir |
+| Çıkışta önbellek | Kişisel önbellek silinir | Paylaşılan telefonda önceki hesabın verisi kalmaz |
 | Koltuk seçimi | Sonraki sürüm | Veritabanı yapısı buna hazır |
 | Web paneli | Flutter Web | Mobille aynı dil ve ortak kod |
 
@@ -732,14 +822,18 @@ Veritabanındaki her değişiklik sıralı bir SQL dosyası olarak saklanır. Ç
 | 2 | Web paneli: firmalar, turlar, tarihler, program, görsel, hesap açma, turu bitirme onayı | Bitti |
 | 3 | Bilet satın alma, Turlarım, iptal ve iade, panelde katılımcılar ve "Bilet kes" | Bitti |
 | 4 | Tur sorumlusu ekranları: atanmış tarihler, katılımcılar, QR okutma, elle "Geldi", turu bitirme; yolcu telefonu; panelde şifre sıfırlama; yan yana kayan tur listesi | Bitti |
-| 5 | Tur sohbeti, duyurular, bildirimler | Sırada |
-| 6 | Ekran tasarımı ve demo hazırlığı | Planlandı |
+| 5 | Aktif tur ekranı, tur sohbeti (canlı), duyurular, bildirim kutusu, Android push, canlı "Tura katıldı", panelde sohbet denetimi, firma duyuruları ve geri bildirim, çıkışta önbellek temizliği | Bitti |
+| 6 | Ekran tasarımı ve demo hazırlığı | Sırada |
 
 ### 21.2 Bilinen eksikler
 
 - Uygulamadan kayıt olan müşteri şifresini unutursa e-postayla sıfırlama yok (e-posta bağlantısı ayarı sonra yapılacak).
 - QR okutma internet ister; internetsiz okutma kuyruğu yok.
 - Panelde bir tarihi "iptal edildi" yapma yok.
-- Satın alırken yazılan telefon profile kaydedilir ama uygulamadaki oturum bilgisi bir sonraki girişe kadar eski kalır; ikinci satın almada telefon yeniden yazılabilir.
-- Müşteri biletinin "Tura katıldı" olması canlı değil; Turlarım açılınca ya da aşağı çekince görünür (canlı dinleme Faz 5).
+- Push sadece Android'de; iOS yok.
+- Gerçek push uçtan uca henüz denenmedi: test bilgisayarındaki emülatör Google sunucularına ulaşamadığı için cihaz kaydı alınamadı. Sunucu tarafı (duyuru → bildirim → push fonksiyonu) çalışır durumda doğrulandı; gerçek bir Android telefonda denenecek.
+- Sohbette silinen mesaj karşı tarafta canlı kaybolmaz; sohbet yeniden açılınca kaybolur (silme olayları kota için dinlenmiyor).
+- Canlı bağlantı koptuğu anda gelen mesaj kaçabilir; sohbet yeniden açılınca gelir.
+- Panelde sohbet canlı değil ("Yenile" ile güncellenir).
+- Tamamlanan turların sohbeti veritabanında birikir; boyut büyürse arşivleme/sıkıştırma düşünülecek.
 - E-posta onay bağlantısı tıklanınca uygulamaya geri dönmüyor (bu ayar daha sonra yapılacak).

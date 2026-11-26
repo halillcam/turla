@@ -24,6 +24,7 @@ abstract final class AppPaddings {
   static const EdgeInsets horizontalLg = EdgeInsets.symmetric(horizontal: AppSpacing.lg);
   static const EdgeInsets horizontalXl = EdgeInsets.symmetric(horizontal: AppSpacing.xl);
 
+  static const EdgeInsets verticalXs = EdgeInsets.symmetric(vertical: AppSpacing.xs);
   static const EdgeInsets verticalSm = EdgeInsets.symmetric(vertical: AppSpacing.sm);
   static const EdgeInsets verticalLg = EdgeInsets.symmetric(vertical: AppSpacing.lg);
 

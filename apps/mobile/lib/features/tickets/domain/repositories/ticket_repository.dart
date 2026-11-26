@@ -23,6 +23,10 @@ abstract interface class TicketRepository {
   /// Bileti iptal eder (`cancel_ticket`), cihazdaki kaydı günceller.
   Future<Ticket> cancelTicket(Ticket ticket);
 
+  /// Bilet detayı açıkken o biletin sunucudaki değişiklikleri (Realtime). Gelen hal cihaza
+  /// da yazılır. Dinleme bitince kanal kapanır (ücretsiz plan kotası için sadece detayda).
+  Stream<Ticket> watchTicket(Ticket ticket);
+
   /// Cihazdaki liste her değiştiğinde (alma, iptal, yenileme) yeni listeyi yayar.
   Stream<List<Ticket>> get changes;
 }

@@ -40,6 +40,11 @@ void main() {
   group('super admin', () {
     final session = SessionState.signedIn(superAdminSession());
 
+    test('firmalara duyuru ve tüm geri bildirimler sayfasını açar', () {
+      expect(go(AppRoutes.announcements, session), isNull);
+      expect(go(AppRoutes.feedback, session), isNull);
+    });
+
     test('girişten firmalar listesine gider', () {
       expect(go(AppRoutes.login, session), AppRoutes.companies);
       expect(go(AppRoutes.splash, session), AppRoutes.companies);
@@ -90,6 +95,14 @@ void main() {
       expect(go(AppRoutes.companyDetail(companyA), session), home);
       expect(go(AppRoutes.tours(companyB), session), home);
       expect(go(AppRoutes.completions(companyB), session), home);
+    });
+
+    test('firma duyuru/geri bildirim yönetimine giremez, kendi firma sayfalarına girer', () {
+      expect(go(AppRoutes.announcements, session), home);
+      expect(go(AppRoutes.feedback, session), home);
+      expect(go(AppRoutes.companyAnnouncements(companyA), session), isNull);
+      expect(go(AppRoutes.companyFeedback(companyA), session), isNull);
+      expect(go(AppRoutes.companyFeedback(companyB), session), home);
     });
   });
 

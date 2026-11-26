@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../auth/presentation/utils/auth_navigation.dart';
 import '../../../../app/router/app_routes.dart';
 import '../../../../core/constants/strings.dart';
 import '../../../../core/di/injection.dart';
@@ -20,7 +21,7 @@ class TourDetailScreen extends StatelessWidget {
 
   Future<void> _onBuyPressed(BuildContext context, {required bool isSignedIn}) async {
     if (!isSignedIn) {
-      await context.push(AppRoutes.login);
+      await AuthNavigation.openLogin(context);
       return;
     }
     final cubit = context.read<TourDetailCubit>();

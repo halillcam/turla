@@ -231,4 +231,46 @@ abstract final class AppStrings {
   static const String rejectConfirmMessage = 'Tarih yeniden aktif olur; rehber turu sürdürür.';
   static const String requestedBy = 'Talep eden';
   static const String requestedAt = 'Talep zamanı';
+
+  // Ortak
+  static const String send = 'Gönder';
+  static const String publish = 'Yayınla';
+  static const String messageTitleLabel = 'Başlık';
+  static const String messageBodyLabel = 'Metin';
+
+  // Tur sohbeti (firma denetimi)
+  static const String chatButton = 'Sohbet';
+  static const String chatTitle = 'Tur sohbeti';
+  static const String chatEmpty = 'Bu tarihte henüz mesaj yok.';
+  static const String chatInputHint = 'Firma olarak mesaj yaz';
+  static const String chatLoadOlder = 'Önceki mesajlar';
+  static const String chatReadOnlyPanel =
+      'Tarih açık değil: yeni mesaj yazılamaz. Tur bitince sohbet yolculardan ve rehberden '
+      'gizlenir; kayıtlar burada görünmeye devam eder.';
+  static const String chatDeleteTitle = 'Mesaj silinsin mi?';
+  static const String chatGuideTag = 'Tur sorumlusu';
+  static const String chatCompanyTag = 'Firma';
+
+  // Firma duyuruları (super admin → firmalar)
+  static const String navAnnouncements = 'Duyurular';
+  static const String announcementsTitle = 'Duyurular';
+  static const String announcementsEmpty = 'Henüz duyuru yok.';
+  static const String publishAnnouncement = 'Duyuru yayınla';
+  static const String announcementTarget = 'Kime';
+  static const String allCompanies = 'Tüm firmalar';
+  static const String announcementPublished = 'Duyuru yayınlandı.';
+  static const String deleteAnnouncementTitle = 'Duyuru silinsin mi?';
+
+  // Geri bildirim (firma → super admin)
+  static const String navFeedback = 'Geri bildirim';
+  static const String feedbackTitle = 'Geri bildirimler';
+  static const String feedbackEmpty = 'Henüz geri bildirim yok.';
+  static const String sendFeedback = 'Geri bildirim gönder';
+  static const String feedbackSent = 'Geri bildirimin iletildi.';
+  static const String feedbackOpen = 'Açık';
+  static const String feedbackInProgress = 'İnceleniyor';
+  static const String feedbackResolved = 'Çözüldü';
+
+  // Hata
+  static const String errorChatRateLimited = 'Çok hızlı gönderiyorsun; biraz bekleyip tekrar dene.';
 }

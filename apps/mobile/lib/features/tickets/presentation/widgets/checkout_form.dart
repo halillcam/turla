@@ -9,7 +9,7 @@ import '../screens/checkout_screen.dart';
 import '../utils/ticket_display.dart';
 import '../utils/ticket_failure_message.dart';
 import 'demo_payment_card.dart';
-import 'info_row.dart';
+import '../../../../core/widgets/info_row.dart';
 
 /// Yolcu bilgisi: ad ve telefon.
 typedef PassengerSubmit = void Function(String name, String phone);

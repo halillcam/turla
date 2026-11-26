@@ -72,6 +72,7 @@ void main() {
     session = _MockSessionBloc();
     when(() => session.state).thenReturn(SessionState.signedIn(profileWith(UserRole.customer)));
     when(() => repository.changes).thenAnswer((_) => const Stream.empty());
+    when(() => repository.watchTicket(any())).thenAnswer((_) => const Stream.empty());
     getIt
       ..registerFactory<CheckoutCubit>(() => CheckoutCubit(repository))
       ..registerFactory<TicketDetailCubit>(

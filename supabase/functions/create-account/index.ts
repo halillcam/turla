@@ -10,6 +10,9 @@
 // Şifre sıfırlama (Faz 4): POST { action: 'reset_password', user_id }
 // Yanıt:  200 { user_id, login_id, password }  (yeni geçici şifre bir kez gösterilir)
 //
+// Firma yöneticilerinin e-postaları (Faz 6, sadece super admin):
+//   POST { action: 'admin_emails', company_id }  →  200 { admins: [{ user_id, email }] }
+//
 // verify_jwt kapalıdır; oturum token'ı burada auth.getUser ile doğrulanır.
 
 import { createClient } from 'npm:@supabase/supabase-js@2.49.4';
@@ -21,6 +24,7 @@ import {
   generatePassword,
   loginIdToEmail,
   planAccount,
+  planAdminEmails,
   planPasswordReset,
 } from './rules.ts';
 
@@ -82,6 +86,7 @@ Deno.serve(async (req) => {
   }
 
   if (body?.action === 'reset_password') return resetPassword(admin, caller, body.user_id);
+  if (body?.action === 'admin_emails') return adminEmails(admin, caller, body.company_id);
 
   const plan = planAccount(caller, body ?? {});
   if (!plan.ok) return json(plan.status, { code: plan.code });
@@ -202,4 +207,31 @@ async function resetPassword(
     return json(500, { code: 'reset_failed' });
   }
   return json(200, { user_id: plan.userId, login_id: plan.loginId, password });
+}
+
+async function adminEmails(
+  admin: ReturnType<typeof createClient>,
+  caller: Caller,
+  companyId: unknown,
+): Promise<Response> {
+  const plan = planAdminEmails(caller, companyId);
+  if (!plan.ok) return json(plan.status, { code: plan.code });
+
+  const { data: rows, error } = await admin
+    .from('profiles')
+    .select('id')
+    .eq('company_id', plan.companyId)
+    .eq('role', 'admin');
+  if (error) {
+    console.error('admin_emails: profile read failed', error.code, error.message);
+    return json(500, { code: 'server_error' });
+  }
+
+  const admins: { user_id: string; email: string | null }[] = [];
+  for (const row of rows ?? []) {
+    const { data, error: userError } = await admin.auth.admin.getUserById(row.id);
+    if (userError) console.error('admin_emails: user read failed', userError.code, userError.message);
+    admins.push({ user_id: row.id, email: data?.user?.email ?? null });
+  }
+  return json(200, { admins });
 }

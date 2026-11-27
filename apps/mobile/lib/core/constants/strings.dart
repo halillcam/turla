@@ -7,6 +7,8 @@ abstract final class AppStrings {
   static const String back = 'Geri';
   static const String change = 'Değiştir';
   static const String show = 'Gör';
+  static const String nameSeparator = ' · ';
+  static const String appTagline = "Anadolu'yu yerel firmalarla gez";
 
   // Alt menü
   static const String navTours = 'Turlar';
@@ -51,6 +53,27 @@ abstract final class AppStrings {
   static const String errorEmailNotConfirmed =
       'E-posta adresin henüz doğrulanmamış. Gelen kutunu kontrol et.';
   static const String errorUserAlreadyExists = 'Bu e-posta ile zaten bir hesap var.';
+  static const String errorSamePassword = 'Yeni şifre eskisiyle aynı olamaz.';
+
+  // Şifre sıfırlama
+  static const String forgotPassword = 'Şifremi unuttum';
+  static const String forgotPasswordTitle = 'Şifreni sıfırla';
+  static const String forgotPasswordSubtitle =
+      'Kayıt olduğun e-postayı yaz; şifreni yenilemen için bir bağlantı gönderelim. '
+      'Bağlantıyı bu telefonda aç.';
+  static const String sendResetLink = 'Bağlantı gönder';
+  static const String resetLinkSentTitle = 'E-postanı kontrol et';
+  static const String resetLinkSentMessage =
+      'Bu e-posta kayıtlıysa şifre sıfırlama bağlantısı gönderildi. Bağlantıyı bu telefonda '
+      'açınca yeni şifreni belirleyebilirsin.';
+  static const String staffResetHint =
+      'Tur sorumlusu ve firmanın açtığı hesaplarda şifreyi firman sıfırlar.';
+  static const String resetPasswordTitle = 'Yeni şifre';
+  static const String resetPasswordSubtitle = 'Hesabın için yeni bir şifre belirle.';
+  static const String newPasswordLabel = 'Yeni şifre';
+  static const String newPasswordAgainLabel = 'Yeni şifre (tekrar)';
+  static const String savePassword = 'Şifreyi kaydet';
+  static const String passwordUpdated = 'Şifren güncellendi.';
   static const String errorWeakPassword = 'Şifre çok zayıf. Daha uzun bir şifre seç.';
   static const String errorRateLimited = 'Çok fazla deneme yapıldı. Biraz sonra tekrar dene.';
   static const String errorAccountDisabled = 'Bu hesap kullanıma kapatılmış.';
@@ -97,7 +120,10 @@ abstract final class AppStrings {
   static const String selectDeparture = 'Bir kalkış tarihi seç';
 
   // Satın alma (demo ödeme)
-  static const String checkoutTitle = 'Bilet al';
+  static const String checkoutTitle = 'Ödeme';
+  static const String departureRowLabel = 'Kalkış';
+  static const String passengerRowLabel = 'Yolcu';
+  static const String preparingTicket = 'Bilet hazırlanıyor...';
   static const String checkoutMissing =
       'Satın alma bilgisi bulunamadı. Tur sayfasından tekrar dene.';
   static const String tripSummary = 'Tur bilgisi';
@@ -108,12 +134,12 @@ abstract final class AppStrings {
   static const String paymentSection = 'Ödeme';
   static const String demoPaymentTitle = 'Demo ödeme';
   static const String demoPaymentNote =
-      'Bu bir demo ödeme ekranıdır: gerçek tahsilat yapılmaz, kart bilgisi istenmez.';
+      'Bu bir demo sürümüdür. Kartından gerçek bir tahsilat yapılmaz, kart bilgisi istenmez; bilet doğrudan oluşturulur.';
   static const String totalAmount = 'Toplam';
-  static const String completePayment = 'Ödemeyi tamamla';
+  static const String completePayment = 'Ödemeyi onayla';
   static const String cancellationPolicy =
-      'Kalkıştan 1 saat öncesine kadar iptal edebilirsin; ödediğin tutarın tamamı iade edilir.';
-  static const String purchaseSuccessTitle = 'Biletin hazır!';
+      "Biletini kalkıştan 1 saat öncesine kadar Turlarım'dan iptal edebilirsin; ödediğin tutarın tamamı iade edilir.";
+  static const String purchaseSuccessTitle = 'Biletin hazır';
   static const String purchaseSuccessMessage =
       'Biletine her zaman Turlarım sekmesinden, internet olmadan da ulaşabilirsin.';
   static const String goToMyTickets = 'Turlarıma git';
@@ -126,6 +152,7 @@ abstract final class AppStrings {
   static const String pastTickets = 'Geçmiş';
   static const String noTickets = 'Henüz biletin yok. Turlara göz atıp ilk biletini alabilirsin.';
   static const String noUpcomingTickets = 'Yaklaşan turun yok.';
+  static const String noPastTickets = 'Geçmiş biletin yok.';
   static const String guestTicketsMessage = 'Biletlerini görmek için giriş yap.';
   static const String ticketsLoadError = 'Biletler yüklenemedi. İnternet bağlantını kontrol et.';
   static const String showingCachedTickets =
@@ -133,7 +160,8 @@ abstract final class AppStrings {
   static const String browseTours = 'Turlara göz at';
 
   // Bilet detayı
-  static const String ticketDetailTitle = 'Bilet';
+  static const String ticketDetailTitle = 'Biletim';
+  static const String callShort = 'Ara';
   static const String ticketNotFound = 'Bilet bu cihazda bulunamadı. Turlarım ekranını yenile.';
   static const String showQrToGuide = 'Tur günü bu kodu tur sorumlusuna okut.';
   static const String qrScannedTitle = 'QR kodun okutuldu';
@@ -203,6 +231,7 @@ abstract final class AppStrings {
   static const String arrivedCountLabel = 'Geldi';
   static const String notArrivedCountLabel = 'Gelmedi';
   static const String totalCountLabel = 'Toplam';
+  static const String participantCountSuffix = 'katılımcı';
   static const String awaitingApprovalBanner =
       'Turu bitirme talebin gönderildi. Firma onayı bekleniyor.';
   static const String completionRejectedBanner =
@@ -295,15 +324,15 @@ abstract final class AppStrings {
   static const String programTitle = 'Program';
   static const String tourChat = 'Tur sohbeti';
   static const String announcementsTitle = 'Duyurular';
-  static const String unlocksAfterCheckIn =
-      'Tur sohbeti ve duyurular QR kodun okutulunca açılır.';
+  static const String unlocksAfterCheckIn = 'Tur sohbeti ve duyurular QR kodun okutulunca açılır.';
 
   // Tur sohbeti
   static const String chatEmpty = 'Henüz mesaj yok. İlk mesajı sen yaz.';
   static const String chatLoadError = 'Mesajlar yüklenemedi.';
   static const String chatInputHint = 'Mesaj yaz';
   static const String chatSend = 'Gönder';
-  static const String chatReadOnly = 'Sohbet salt okunur: tur bitirme aşamasında yeni mesaj yazılamaz.';
+  static const String chatReadOnly =
+      'Sohbet salt okunur: tur bitirme aşamasında yeni mesaj yazılamaz.';
   static const String chatLoadOlder = 'Önceki mesajlar';
   static const String chatDeleteTitle = 'Mesaj silinsin mi?';
   static const String chatDeleteMessage = 'Mesaj sohbetten kaldırılır.';

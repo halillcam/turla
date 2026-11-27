@@ -13,8 +13,9 @@ import 'package:turla_mobile/features/guide/presentation/cubit/scan_cubit.dart';
 import 'package:turla_mobile/features/guide/presentation/screens/departure_screen.dart';
 import 'package:turla_mobile/features/guide/presentation/screens/scan_screen.dart';
 import 'package:turla_mobile/features/guide/presentation/widgets/camera_error_view.dart';
+import 'package:turla_mobile/features/guide/presentation/widgets/participant_tile.dart';
 import 'package:turla_mobile/features/tickets/presentation/widgets/ticket_detail_view.dart';
-import 'package:turla_mobile/features/tickets/presentation/widgets/ticket_qr_card.dart';
+import 'package:turla_mobile/features/tickets/presentation/widgets/ticket_qr_ticket_section.dart';
 
 import '../../helpers/fixtures.dart';
 import '../../helpers/guide_fixtures.dart';
@@ -138,7 +139,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Zeynep Ak'), findsOneWidget);
-    expect(find.widgetWithText(ListTile, AppStrings.notArrived), findsOneWidget);
+    expect(find.widgetWithText(ParticipantTile, AppStrings.notArrived), findsOneWidget);
     expect(find.text(AppStrings.scanQr), findsOneWidget);
     // Kalkış saati gelmedi (saat 04:00, kalkış 05:00): turu bitir gösterilmez.
     expect(find.text(AppStrings.finishTour), findsNothing);
@@ -192,7 +193,7 @@ void main() {
         ),
       ),
     );
-    expect(find.byType(TicketQrCard), findsNothing);
+    expect(find.byType(TicketQrSection), findsNothing);
     expect(find.textContaining(AppStrings.qrScannedTitle), findsOneWidget);
     expect(find.text(TicketStatus.checkedIn.label), findsOneWidget);
   });

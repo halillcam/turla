@@ -5,6 +5,9 @@ enum AuthFailureReason {
   emailNotConfirmed,
   userAlreadyExists,
   weakPassword,
+
+  /// Yeni şifre eskisiyle aynı.
+  samePassword,
   rateLimited,
   network,
   accountDisabled,

@@ -7,6 +7,7 @@ import '../../../../app/router/app_routes.dart';
 import '../../../../core/constants/strings.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/widgets/info_banner.dart';
+import '../../../../core/widgets/bordered_group.dart';
 import '../../../../core/widgets/stale_data_banner.dart';
 import '../../../../core/widgets/status_view.dart';
 import '../../../live_tour/presentation/screens/announcements_screen.dart';
@@ -47,7 +48,10 @@ class NotificationsScreen extends StatelessWidget {
               title: const Text(AppStrings.notificationsTitle),
               actions: [
                 if (state.hasUnread)
-                  TextButton(onPressed: cubit.markAllRead, child: const Text(AppStrings.markAllRead)),
+                  TextButton(
+                    onPressed: cubit.markAllRead,
+                    child: const Text(AppStrings.markAllRead),
+                  ),
               ],
             ),
             body: _body(context, state, cubit, permissionGranted),
@@ -74,13 +78,13 @@ class NotificationsScreen extends StatelessWidget {
     return RefreshIndicator(
       onRefresh: cubit.refresh,
       child: ListView(
-        padding: AppPaddings.screen,
+        padding: AppPaddings.detailBody,
         children: [
           if (!permissionGranted)
             const InfoBanner(
               message: AppStrings.notificationPermissionDenied,
               icon: Icons.notifications_off_outlined,
-              color: AppColors.warning,
+              tone: AppTone.warning,
             ),
           if (state.isStale) const StaleDataBanner(message: AppStrings.showingCachedNotifications),
           if (state.notifications.isEmpty)
@@ -89,11 +93,15 @@ class NotificationsScreen extends StatelessWidget {
               icon: Icons.notifications_none,
             )
           else
-            for (final notification in state.notifications)
-              NotificationTile(
-                notification: notification,
-                onTap: () => _open(context, notification),
-              ),
+            BorderedGroup(
+              children: [
+                for (final notification in state.notifications)
+                  NotificationTile(
+                    notification: notification,
+                    onTap: () => _open(context, notification),
+                  ),
+              ],
+            ),
         ],
       ),
     );

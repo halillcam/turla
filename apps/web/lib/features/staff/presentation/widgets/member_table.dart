@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:turla_core/turla_core.dart';
 
 import '../../../../core/constants/strings.dart';
 import '../../../../core/widgets/panel_page.dart';
@@ -13,6 +14,7 @@ class MemberTable extends StatelessWidget {
     this.onResetPassword,
     this.enabled = true,
     this.showLoginId = true,
+    this.emails,
     super.key,
   });
 
@@ -25,17 +27,20 @@ class MemberTable extends StatelessWidget {
   final bool enabled;
   final bool showLoginId;
 
+  /// Verilirse "E-posta" sütunu gösterilir (firma yöneticileri).
+  final Map<String, String>? emails;
+
   @override
   Widget build(BuildContext context) {
     if (members.isEmpty) return Center(child: Text(emptyMessage));
 
     return SingleChildScrollView(
-      child: SizedBox(
-        width: double.infinity,
+      child: PanelTableCard(
         child: DataTable(
           columns: [
             const DataColumn(label: Text(AppStrings.nameColumn)),
             if (showLoginId) const DataColumn(label: Text(AppStrings.loginIdColumn)),
+            if (emails != null) const DataColumn(label: Text(AppStrings.emailLabel)),
             const DataColumn(label: Text(AppStrings.phoneColumn)),
             const DataColumn(label: Text(AppStrings.statusColumn)),
             const DataColumn(label: SizedBox.shrink()),
@@ -45,7 +50,15 @@ class MemberTable extends StatelessWidget {
               DataRow(
                 cells: [
                   DataCell(Text(member.fullName)),
-                  if (showLoginId) DataCell(SelectableText(member.loginId ?? AppStrings.empty)),
+                  if (showLoginId)
+                    DataCell(
+                      SelectableText(
+                        member.loginId ?? AppStrings.empty,
+                        style: PanelTextStyles.mono,
+                      ),
+                    ),
+                  if (emails != null)
+                    DataCell(SelectableText(emails![member.id] ?? AppStrings.empty)),
                   DataCell(Text(member.phone ?? AppStrings.empty)),
                   DataCell(
                     ActiveChip(

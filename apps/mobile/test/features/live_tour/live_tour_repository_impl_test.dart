@@ -100,26 +100,31 @@ void main() {
     await expectLater(repository.fetch('dep-1'), failureWith(LiveTourFailureReason.notSignedIn));
   });
 
-  test('sunucu kodları eşlenir: rate_limited, RLS, kısıt, not_allowed, departure_not_active', () async {
-    final cases = {
-      const PostgrestException(message: 'rate_limited', code: 'P0001'):
-          LiveTourFailureReason.rateLimited,
-      const PostgrestException(message: 'new row violates row-level security policy', code: '42501'):
-          LiveTourFailureReason.notAllowed,
-      const PostgrestException(message: 'violates check constraint', code: '23514'):
-          LiveTourFailureReason.messageTooLong,
-      const PostgrestException(message: 'not_allowed', code: 'P0001'):
-          LiveTourFailureReason.notAllowed,
-      const PostgrestException(message: 'departure_not_active', code: 'P0001'):
-          LiveTourFailureReason.departureNotActive,
-      const PostgrestException(message: 'beklenmeyen', code: 'XX000'):
-          LiveTourFailureReason.unknown,
-    };
-    for (final entry in cases.entries) {
-      remote.error = entry.key;
-      await expectLater(repository.send('dep-1', 'x'), failureWith(entry.value));
-    }
-  });
+  test(
+    'sunucu kodları eşlenir: rate_limited, RLS, kısıt, not_allowed, departure_not_active',
+    () async {
+      final cases = {
+        const PostgrestException(message: 'rate_limited', code: 'P0001'):
+            LiveTourFailureReason.rateLimited,
+        const PostgrestException(
+          message: 'new row violates row-level security policy',
+          code: '42501',
+        ): LiveTourFailureReason.notAllowed,
+        const PostgrestException(message: 'violates check constraint', code: '23514'):
+            LiveTourFailureReason.messageTooLong,
+        const PostgrestException(message: 'not_allowed', code: 'P0001'):
+            LiveTourFailureReason.notAllowed,
+        const PostgrestException(message: 'departure_not_active', code: 'P0001'):
+            LiveTourFailureReason.departureNotActive,
+        const PostgrestException(message: 'beklenmeyen', code: 'XX000'):
+            LiveTourFailureReason.unknown,
+      };
+      for (final entry in cases.entries) {
+        remote.error = entry.key;
+        await expectLater(repository.send('dep-1', 'x'), failureWith(entry.value));
+      }
+    },
+  );
 
   test('ağ hatası network', () async {
     remote.error = ClientException('yok');
@@ -154,7 +159,11 @@ void main() {
       'guide_phone': '0532',
       'chat_open': false,
       'program': [
-        {'day_no': 1, 'title': 'Göksun', 'activities': ['Kahvaltı']},
+        {
+          'day_no': 1,
+          'title': 'Göksun',
+          'activities': ['Kahvaltı'],
+        },
       ],
       'last_announcement': null,
     });

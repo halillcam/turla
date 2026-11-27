@@ -76,6 +76,16 @@ abstract final class AppStrings {
       'Bu tarihe bilet kesilemez (kalkış saati geçti veya tarih kapandı).';
   static const String errorNotResettable =
       'Bu hesabın şifresi panelden sıfırlanamaz (sadece REH-/MUS- giriş kimlikli hesaplar).';
+  static const String errorDepartureNotCancellable =
+      'Bu tarih iptal edilemez (başlamış, tamamlanmış ya da zaten iptal edilmiş).';
+  static const String refundLabel = 'İade';
+  static const String cancelDeparture = 'Tarihi iptal et';
+  static const String cancelDepartureTitle = 'Tarih iptal edilsin mi?';
+  static const String cancelDepartureMessage =
+      'Bu tarihteki tüm biletler iptal edilir, ödenen tutarların tamamı iade olarak kaydedilir '
+      've yolculara bildirim gider. Bu işlem geri alınamaz.';
+  static const String cancelDepartureConfirm = 'Tarihi iptal et';
+  static const String departureCancelledPrefix = 'Tarih iptal edildi. İptal edilen bilet:';
   static const String errorTicketNotCancellable =
       'Bu bilet iptal edilemez (kullanıldı, tur tamamlandı veya zaten iptal edildi).';
 
@@ -85,6 +95,7 @@ abstract final class AppStrings {
   static const String navStaff = 'Personel ve müşteriler';
   static const String navCompletions = 'Tur bitirme talepleri';
   static const String backToCompanies = 'Tüm firmalar';
+  static const String managingCompanySuffix = 'firmasını yönetiyorsunuz.';
 
   // Firmalar (super admin)
   static const String companiesTitle = 'Firmalar';

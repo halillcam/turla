@@ -9,6 +9,7 @@ extension AuthFailureMessage on AuthFailureReason {
     AuthFailureReason.emailNotConfirmed => AppStrings.errorEmailNotConfirmed,
     AuthFailureReason.userAlreadyExists => AppStrings.errorUserAlreadyExists,
     AuthFailureReason.weakPassword => AppStrings.errorWeakPassword,
+    AuthFailureReason.samePassword => AppStrings.errorSamePassword,
     AuthFailureReason.rateLimited => AppStrings.errorRateLimited,
     AuthFailureReason.network => CoreStrings.networkError,
     AuthFailureReason.accountDisabled => AppStrings.errorAccountDisabled,

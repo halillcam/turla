@@ -6,6 +6,7 @@ import 'package:turla_core/turla_core.dart';
 import '../../../../app/router/app_routes.dart';
 import '../../../../core/constants/strings.dart';
 import '../../../../core/di/injection.dart';
+import '../../../../core/widgets/page_header.dart';
 import '../../../../core/widgets/stale_data_banner.dart';
 import '../../../../core/widgets/status_view.dart';
 import '../../../auth/presentation/bloc/session_bloc.dart';
@@ -34,16 +35,6 @@ class _GuideHomeView extends StatelessWidget {
     final name = context.select((SessionBloc bloc) => bloc.state.profile?.fullName ?? '');
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(AppStrings.guideHomeTitle),
-        actions: [
-          IconButton(
-            tooltip: AppStrings.signOut,
-            onPressed: () => context.read<SessionBloc>().add(const SessionSignOutRequested()),
-            icon: const Icon(Icons.logout),
-          ),
-        ],
-      ),
       body: SafeArea(
         child: BlocBuilder<GuideHomeCubit, GuideHomeState>(
           builder: (context, state) {
@@ -59,13 +50,18 @@ class _GuideHomeView extends StatelessWidget {
             return RefreshIndicator(
               onRefresh: cubit.refresh,
               child: ListView(
-                padding: AppPaddings.screen,
+                padding: AppPaddings.listBody,
                 children: [
-                  Text(
-                    '${AppStrings.guideWelcomePrefix} $name',
-                    style: Theme.of(context).textTheme.titleLarge,
+                  PageHeader(
+                    title: '${AppStrings.guideWelcomePrefix} $name',
+                    padding: AppPaddings.guideHeader,
+                    trailing: IconButton(
+                      tooltip: AppStrings.signOut,
+                      onPressed: () =>
+                          context.read<SessionBloc>().add(const SessionSignOutRequested()),
+                      icon: const RoundIcon(icon: Icons.logout),
+                    ),
                   ),
-                  const SizedBox(height: AppSpacing.md),
                   if (state.isStale)
                     const StaleDataBanner(message: AppStrings.showingCachedDepartures),
                   if (state.isEmpty)
@@ -88,10 +84,7 @@ class _GuideHomeView extends StatelessWidget {
   List<Widget> _section(BuildContext context, String title, List<GuideDeparture> departures) {
     if (departures.isEmpty) return const [];
     return [
-      Padding(
-        padding: AppPaddings.verticalSm,
-        child: Text(title, style: Theme.of(context).textTheme.titleMedium),
-      ),
+      SectionHeader(title: title.turkishUpper, padding: AppPaddings.verticalSm),
       for (final departure in departures)
         GuideDepartureCard(
           departure: departure,

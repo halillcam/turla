@@ -23,7 +23,7 @@ class CameraErrorView extends StatelessWidget {
               Icon(
                 permissionDenied ? Icons.no_photography_outlined : Icons.videocam_off_outlined,
                 size: AppSizes.iconXl,
-                color: AppColors.textMuted,
+                color: AppColors.textSecondary,
               ),
               const SizedBox(height: AppSpacing.md),
               Text(

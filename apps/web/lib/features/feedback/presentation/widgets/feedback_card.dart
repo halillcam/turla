@@ -32,9 +32,17 @@ class FeedbackCard extends StatelessWidget {
               children: [
                 Expanded(child: Text(item.title, style: textTheme.titleMedium)),
                 if (onChanged == null)
-                  Chip(label: Text(item.status.label))
+                  ToneBadge(
+                    label: item.status.label,
+                    tone: switch (item.status) {
+                      FeedbackStatus.open => AppTone.warning,
+                      FeedbackStatus.inProgress => AppTone.primary,
+                      FeedbackStatus.resolved => AppTone.success,
+                    },
+                  )
                 else
                   DropdownButton<FeedbackStatus>(
+                    style: PanelTextStyles.body,
                     value: item.status,
                     items: [
                       for (final status in FeedbackStatus.values)

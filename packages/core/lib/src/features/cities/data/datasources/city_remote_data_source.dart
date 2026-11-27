@@ -18,7 +18,7 @@ class CityRemoteDataSourceImpl implements CityRemoteDataSource {
 
   @override
   Future<List<CityModel>> fetchCities() async {
-    final rows = await _client.from(_table).select(_columns).order(_orderColumn);
+    final rows = await _client.from(_table).select(_columns).order(_orderColumn, ascending: true);
     return rows.map(CityModel.fromJson).toList();
   }
 }

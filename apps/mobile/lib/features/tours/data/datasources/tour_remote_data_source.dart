@@ -29,8 +29,8 @@ class TourRemoteDataSourceImpl implements TourRemoteDataSource {
         .eq('is_active', true)
         .eq('$_departures.status', _scheduled)
         .gt('$_departures.departure_at', _nowIso())
-        .order('departure_at', referencedTable: _departures)
-        .order('title');
+        .order('departure_at', referencedTable: _departures, ascending: true)
+        .order('title', ascending: true);
 
     return rows
         .map(TourModel.fromRow)
@@ -48,8 +48,8 @@ class TourRemoteDataSourceImpl implements TourRemoteDataSource {
         .eq('is_active', true)
         .eq('$_departures.status', _scheduled)
         .gt('$_departures.departure_at', _nowIso())
-        .order('departure_at', referencedTable: _departures)
-        .order('day_no', referencedTable: _program)
+        .order('departure_at', referencedTable: _departures, ascending: true)
+        .order('day_no', referencedTable: _program, ascending: true)
         .maybeSingle();
     return row == null ? null : TourModel.fromRow(row);
   }

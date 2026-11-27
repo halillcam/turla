@@ -100,6 +100,7 @@ class _TourInfoFormState extends State<TourInfoForm> {
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: DropdownButtonFormField<int>(
+                    style: PanelTextStyles.body,
                     menuMaxHeight: AppSizes.dropdownMenuMaxHeight,
                     initialValue: _cityId,
                     decoration: const InputDecoration(labelText: AppStrings.tourCity),
@@ -114,6 +115,7 @@ class _TourInfoFormState extends State<TourInfoForm> {
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: DropdownButtonFormField<TourRegion>(
+                    style: PanelTextStyles.body,
                     menuMaxHeight: AppSizes.dropdownMenuMaxHeight,
                     initialValue: _region,
                     decoration: const InputDecoration(labelText: AppStrings.tourRegion),

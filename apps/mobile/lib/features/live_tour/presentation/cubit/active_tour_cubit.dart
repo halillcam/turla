@@ -29,7 +29,13 @@ class ActiveTourCubit extends Cubit<ActiveTourState> {
       emit(ActiveTourState(status: ActiveTourStatus.ready, tour: tour));
     } on LiveTourFailure catch (failure) {
       if (isClosed) return;
-      emit(ActiveTourState(status: ActiveTourStatus.failure, tour: state.tour, failure: failure.reason));
+      emit(
+        ActiveTourState(
+          status: ActiveTourStatus.failure,
+          tour: state.tour,
+          failure: failure.reason,
+        ),
+      );
     }
   }
 }

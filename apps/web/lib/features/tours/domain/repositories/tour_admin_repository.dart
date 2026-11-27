@@ -36,4 +36,7 @@ abstract interface class TourAdminRepository {
   Future<Departure> updateDeparture(String departureId, DepartureDraft draft);
 
   Future<void> deleteDeparture(String departureId);
+
+  /// Tarihi iptal eder: biletler iptal, tam iade, yolculara bildirim (`cancel_departure`).
+  Future<DepartureCancellation> cancelDeparture(String departureId);
 }

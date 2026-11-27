@@ -26,6 +26,10 @@ void main() {
         PanelErrorMapper.fromPostgrest('P0001', 'rate_limited'),
         PanelFailureReason.rateLimited,
       );
+      expect(
+        PanelErrorMapper.fromPostgrest('P0001', 'departure_not_cancellable'),
+        PanelFailureReason.departureNotCancellable,
+      );
     });
 
     test('Postgres kodları', () {

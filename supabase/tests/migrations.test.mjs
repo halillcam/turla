@@ -799,5 +799,59 @@ await expectOk('firma admini geri bildirim yollar, super admin görür ve durumu
 await expectError('firma admini başka firma adına geri bildirim yazamaz', 'row-level security', () => asUser(admin,
   `insert into public.feedbacks (company_id, created_by, title, body) values ($1, $2, 'Sahte', 'x')`, [otherCompany, admin]));
 
+// ─── Faz 6: panelden tarih iptali (migration 16) ─────────────────────────
+const f6Dep = (await scalar(`insert into public.tour_departures (tour_id, departure_at, capacity)
+  values ($1, now() + interval '2 days', 10) returning id`, [tour])).id;
+const f6Buyer1 = await mkUser(null, null, 'İptal Yolcu 1');
+const f6Buyer2 = await mkUser(null, null, 'İptal Yolcu 2');
+const f6Cancelled = await mkUser(null, null, 'Önceden İptal');
+await asUser(f6Buyer1, `select * from public.book_ticket($1, 'Yolcu Bir')`, [f6Dep]);
+await asUser(f6Buyer2, `select * from public.book_ticket($1, 'Yolcu İki')`, [f6Dep]);
+const f6Pre = (await asUser(f6Cancelled, `select * from public.book_ticket($1, 'Önceden')`, [f6Dep])).rows[0];
+await asUser(f6Cancelled, `select public.cancel_ticket($1)`, [f6Pre.id]);
+
+await expectError('müşteri tarih iptal edemez', 'not_allowed', () => asUser(f6Buyer1,
+  `select public.cancel_departure($1)`, [f6Dep]));
+await expectError('başka firmanın admini tarih iptal edemez', 'not_allowed', () => asUser(otherAdmin,
+  `select public.cancel_departure($1)`, [f6Dep]));
+await expectError('rehber tarih iptal edemez', 'not_allowed', () => asUser(guide,
+  `select public.cancel_departure($1)`, [f6Dep]));
+await expectError('misafir tarih iptal edemez', 'permission denied', () => asUser(null,
+  `select public.cancel_departure($1)`, [f6Dep]));
+await expectError('olmayan tarih', 'departure_not_found', () => asUser(admin,
+  `select public.cancel_departure(gen_random_uuid())`));
+await expectOk('admin tarihi iptal eder: biletler iptal, tam iade, koltuk kapasiteye döner, yolcuya bildirim', async () => {
+  const r = (await asUser(admin, `select public.cancel_departure($1) v`, [f6Dep])).rows[0].v;
+  const d = await scalar(`select status, seats_left, capacity from public.tour_departures where id = $1`, [f6Dep]);
+  const open = await scalar(`select count(*)::int n from public.tickets where departure_id = $1 and status <> 'cancelled'`, [f6Dep]);
+  const refunds = await scalar(`select count(*)::int n from public.payments p join public.tickets t on t.id = p.ticket_id
+    where t.departure_id = $1 and p.type = 'refund'`, [f6Dep]);
+  const notes = await scalar(`select count(*)::int n from public.notifications where departure_id = $1`, [f6Dep]);
+  // Önceden iptal edilen bilet yeniden iptal edilmez ve ikinci iade yazılmaz: 2 yeni + 1 eski iade.
+  if (r.cancelled_tickets !== 2 || d.status !== 'cancelled' || d.seats_left !== d.capacity
+      || open.n !== 0 || refunds.n !== 3 || notes.n !== 2) {
+    throw new Error(JSON.stringify([r, d, open, refunds, notes]));
+  }
+});
+await expectOk('iptal bildirimini yolcu kendisi görür', async () => {
+  const n = (await asUser(f6Buyer1, `select count(*)::int n from public.notifications where departure_id = $1`, [f6Dep])).rows[0].n;
+  if (n !== 1) throw new Error(String(n));
+});
+await expectError('iptal edilmiş tarih yeniden iptal edilemez', 'departure_not_cancellable', () => asUser(admin,
+  `select public.cancel_departure($1)`, [f6Dep]));
+await expectError('iptal edilen tarihe bilet alınamaz', 'departure_not_bookable', () => asUser(f6Buyer1,
+  `select * from public.book_ticket($1, 'Tekrar')`, [f6Dep]));
+await expectOk('super admin her firmanın tarihini iptal edebilir', async () => {
+  const dep = (await scalar(`insert into public.tour_departures (tour_id, departure_at, capacity)
+    values ($1, now() + interval '5 days', 3) returning id`, [tour])).id;
+  const r = (await asUser(superAdmin, `select public.cancel_departure($1) v`, [dep])).rows[0].v;
+  if (r.cancelled_tickets !== 0) throw new Error(JSON.stringify(r));
+});
+await expectError('başlamış tarih iptal edilemez', 'departure_not_cancellable', async () => {
+  const dep = (await scalar(`insert into public.tour_departures (tour_id, departure_at, capacity)
+    values ($1, now() - interval '10 minutes', 3) returning id`, [tour])).id;
+  return asUser(admin, `select public.cancel_departure($1)`, [dep]);
+});
+
 console.log(failures === 0 ? '\nTÜM TESTLER GEÇTİ' : `\n${failures} TEST BAŞARISIZ`);
 process.exit(failures === 0 ? 0 : 1);

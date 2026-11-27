@@ -15,11 +15,11 @@ class DepartureStatusBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     final message = departure.statusBanner;
     if (message == null) return const SizedBox.shrink();
-    final (icon, color) = departure.wasRejected
-        ? (Icons.report_outlined, AppColors.error)
+    final (icon, tone) = departure.wasRejected
+        ? (Icons.report_outlined, AppTone.error)
         : departure.isAwaitingApproval
-        ? (Icons.hourglass_top, AppColors.warning)
-        : (Icons.check_circle_outline, AppColors.info);
-    return InfoBanner(message: message, icon: icon, color: color);
+        ? (Icons.hourglass_top, AppTone.warning)
+        : (Icons.check_circle_outline, AppTone.success);
+    return InfoBanner(message: message, icon: icon, tone: tone);
   }
 }

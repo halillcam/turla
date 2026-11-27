@@ -22,3 +22,23 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^6.0.0
   shared_preferences_platform_interface: ^2.4.2
+
+flutter:
+  # Yazı tipleri uygulamaya gömülüdür (internetten indirilmez). Lisanslar klasörlerde (SIL OFL 1.1).
+  fonts:
+    - family: Fraunces
+      fonts:
+        - asset: assets/fonts/fraunces/Fraunces-SemiBold.ttf
+          weight: 600
+    - family: IBMPlexSans
+      fonts:
+        - asset: assets/fonts/ibm_plex_sans/IBMPlexSans-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/ibm_plex_sans/IBMPlexSans-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/ibm_plex_sans/IBMPlexSans-SemiBold.ttf
+          weight: 600
+    - family: IBMPlexMono
+      fonts:
+        - asset: assets/fonts/ibm_plex_mono/IBMPlexMono-Medium.ttf
+          weight: 500

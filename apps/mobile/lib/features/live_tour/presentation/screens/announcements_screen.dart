@@ -53,11 +53,11 @@ class AnnouncementsScreen extends StatelessWidget {
               children: [
                 if (args.canSend)
                   Padding(
-                    padding: AppPaddings.allSm,
+                    padding: AppPaddings.bannerTop,
                     child: InfoBanner(
                       message: announcementRecipientsLabel(args.recipientCount),
                       icon: Icons.groups_outlined,
-                      color: AppColors.info,
+                      tone: AppTone.primary,
                     ),
                   ),
                 Expanded(child: _list(state, cubit)),
@@ -99,7 +99,7 @@ class AnnouncementsScreen extends StatelessWidget {
     return RefreshIndicator(
       onRefresh: cubit.retry,
       child: ListView(
-        padding: AppPaddings.screen,
+        padding: AppPaddings.detailBody,
         children: [
           for (final announcement in state.announcements)
             AnnouncementCard(announcement: announcement),

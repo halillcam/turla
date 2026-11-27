@@ -68,7 +68,7 @@ class _QrScannerViewState extends State<QrScannerView> {
               width: AppSizes.scanWindow,
               height: AppSizes.scanWindow,
               decoration: BoxDecoration(
-                border: Border.all(color: AppColors.onPrimary, width: AppSizes.scanWindowBorder),
+                border: Border.all(color: AppColors.onCamera, width: AppSizes.scanWindowBorder),
                 borderRadius: AppRadius.lgAll,
               ),
             ),
@@ -84,12 +84,18 @@ class _QrScannerViewState extends State<QrScannerView> {
               Text(
                 AppStrings.scanHint,
                 textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.onPrimary),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.onCamera),
               ),
               const SizedBox(height: AppSpacing.md),
-              FilledButton.tonalIcon(
+              FilledButton.icon(
                 onPressed: widget.onEnterCode,
-                icon: const Icon(Icons.keyboard),
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.surface,
+                  foregroundColor: AppColors.textPrimary,
+                  shape: const StadiumBorder(),
+                  textStyle: AppTextStyles.labelMedium,
+                ),
+                icon: const Icon(Icons.keyboard, size: AppSizes.iconBanner),
                 label: const Text(AppStrings.enterCodeManually),
               ),
             ],

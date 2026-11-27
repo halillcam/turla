@@ -49,35 +49,51 @@ class _MessageComposerState extends State<MessageComposer> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      top: false,
-      child: Padding(
-        padding: AppPaddings.allSm,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Expanded(
-              child: TextField(
-                controller: _controller,
-                minLines: 1,
-                maxLines: widget.maxLines,
-                maxLength: widget.maxLength,
-                textCapitalization: TextCapitalization.sentences,
-                decoration: InputDecoration(hintText: widget.hint, counterText: ''),
+    return DecoratedBox(
+      decoration: const BoxDecoration(
+        color: AppColors.surface,
+        border: Border(
+          top: BorderSide(color: AppColors.border, width: AppSizes.borderWidth),
+        ),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: AppPaddings.composer,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _controller,
+                  minLines: 1,
+                  maxLines: widget.maxLines,
+                  maxLength: widget.maxLength,
+                  textCapitalization: TextCapitalization.sentences,
+                  decoration: InputDecoration(
+                    hintText: widget.hint,
+                    counterText: '',
+                    fillColor: AppColors.background,
+                  ),
+                ),
               ),
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            IconButton.filled(
-              onPressed: widget.isSending ? null : _submit,
-              tooltip: widget.sendLabel,
-              icon: widget.isSending
-                  ? const SizedBox.square(
-                      dimension: AppSizes.iconMd,
-                      child: CircularProgressIndicator(strokeWidth: AppSizes.progressStroke),
-                    )
-                  : const Icon(Icons.send),
-            ),
-          ],
+              const SizedBox(width: AppSpacing.sm),
+              IconButton.filled(
+                onPressed: widget.isSending ? null : _submit,
+                style: IconButton.styleFrom(
+                  shape: const RoundedRectangleBorder(borderRadius: AppRadius.mdAll),
+                  minimumSize: const Size.square(AppSizes.minTapTarget),
+                ),
+                tooltip: widget.sendLabel,
+                icon: widget.isSending
+                    ? const SizedBox.square(
+                        dimension: AppSizes.iconMd,
+                        child: CircularProgressIndicator(strokeWidth: AppSizes.progressStroke),
+                      )
+                    : const Icon(Icons.send, size: AppSizes.iconMd, color: AppColors.onPrimary),
+              ),
+            ],
+          ),
         ),
       ),
     );

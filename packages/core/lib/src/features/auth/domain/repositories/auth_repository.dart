@@ -23,6 +23,16 @@ abstract interface class AuthRepository {
 
   Future<void> signOut();
 
+  /// E-postayla kayıtlı müşteriye şifre sıfırlama bağlantısı gönderir. Bağlantı uygulamayı
+  /// açar; Supabase oturumu kurar ve [passwordRecoveryRequests] tetiklenir.
+  Future<void> sendPasswordReset(String email);
+
+  /// Şifre sıfırlama bağlantısıyla uygulama açıldığında tetiklenir (yeni şifre ekranı açılır).
+  Stream<void> get passwordRecoveryRequests;
+
+  /// Oturumdaki kullanıcının şifresini değiştirir (sıfırlama bağlantısından sonra).
+  Future<void> updatePassword(String newPassword);
+
   /// Oturumdaki kullanıcının seçili ilini profiline yazar.
   Future<void> updateSelectedCity(int cityId);
 }

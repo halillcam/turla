@@ -45,7 +45,12 @@ void main() {
     chat = FakeChatRepository(
       pages: [
         [
-          messageWith(id: 'g', senderName: 'Selin Rehber', role: UserRole.guide, body: 'Hoş geldiniz'),
+          messageWith(
+            id: 'g',
+            senderName: 'Selin Rehber',
+            role: UserRole.guide,
+            body: 'Hoş geldiniz',
+          ),
           messageWith(id: 'me', senderId: 'me', senderName: 'Ben', body: 'Teşekkürler'),
         ],
       ],
@@ -136,30 +141,35 @@ void main() {
     expect(find.byType(TextField), findsNothing);
   });
 
-  testWidgets('aktif tur: okutulmuş yolcu rehberi arama düğmesini, sohbet/duyuru düğmelerini görür', (
-    tester,
-  ) async {
-    var chatOpened = false;
-    await tester.pumpWidget(
-      _wrap(
-        Scaffold(
-          body: ActiveTourView(
-            tour: activeTourWith(
-              lastAnnouncement: Announcement(id: 'a', body: 'Toplanma 14:00', createdAt: baseTime),
+  testWidgets(
+    'aktif tur: okutulmuş yolcu rehberi arama düğmesini, sohbet/duyuru düğmelerini görür',
+    (tester) async {
+      var chatOpened = false;
+      await tester.pumpWidget(
+        _wrap(
+          Scaffold(
+            body: ActiveTourView(
+              tour: activeTourWith(
+                lastAnnouncement: Announcement(
+                  id: 'a',
+                  body: 'Toplanma 14:00',
+                  createdAt: baseTime,
+                ),
+              ),
+              onOpenChat: () => chatOpened = true,
+              onOpenAnnouncements: () {},
             ),
-            onOpenChat: () => chatOpened = true,
-            onOpenAnnouncements: () {},
           ),
         ),
-      ),
-    );
-    expect(find.text('Selin Rehber'), findsOneWidget);
-    expect(find.byTooltip(AppStrings.callGuide), findsOneWidget);
-    expect(find.text('Toplanma 14:00'), findsOneWidget);
-    expect(find.text(AppStrings.unlocksAfterCheckIn), findsNothing);
-    await tester.tap(find.text(AppStrings.tourChat));
-    expect(chatOpened, isTrue);
-  });
+      );
+      expect(find.text('Selin Rehber'), findsOneWidget);
+      expect(find.byTooltip(AppStrings.callGuide), findsOneWidget);
+      expect(find.text('Toplanma 14:00'), findsOneWidget);
+      expect(find.text(AppStrings.unlocksAfterCheckIn), findsNothing);
+      await tester.tap(find.text(AppStrings.tourChat));
+      expect(chatOpened, isTrue);
+    },
+  );
 
   testWidgets('aktif tur: QR okutulmadan sohbet kilitli, telefon yoksa arama düğmesi yok', (
     tester,
@@ -168,7 +178,11 @@ void main() {
       _wrap(
         Scaffold(
           body: ActiveTourView(
-            tour: activeTourWith(ticketStatus: TicketStatus.paid, chatOpen: false, guidePhone: null),
+            tour: activeTourWith(
+              ticketStatus: TicketStatus.paid,
+              chatOpen: false,
+              guidePhone: null,
+            ),
             onOpenChat: () {},
             onOpenAnnouncements: () {},
           ),

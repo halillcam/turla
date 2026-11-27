@@ -163,6 +163,37 @@ void main() {
       expect(result.failure, PanelFailureReason.capacityBelowSoldSeats);
       await cubit.close();
     });
+
+    test(
+      'tarih iptali: satır yerelde iptal olur, koltuklar boşalır, liste yeniden çekilmez',
+      () async {
+        when(() => tours.cancelDeparture('d2')).thenAnswer(
+          (_) async => const DepartureCancellation(cancelledTickets: 3, refundedTotal: 5550),
+        );
+        final cubit = DeparturesCubit(
+          companyId: companyA,
+          tourId: 'tour-1',
+          tourRepository: tours,
+          accountRepository: accounts,
+        );
+        await cubit.load();
+        expect(cubit.state.departures.single.canBeCancelledAt(now), isTrue);
+
+        final result = await cubit.cancel('d2');
+        expect(result.value!.cancelledTickets, 3);
+        final cancelled = cubit.state.departures.single;
+        expect(cancelled.status, DepartureStatus.cancelled);
+        expect(cancelled.seatsLeft, cancelled.capacity);
+        expect(cancelled.canBeCancelledAt(now), isFalse);
+        verify(() => tours.listDepartures('tour-1')).called(1);
+        await cubit.close();
+      },
+    );
+
+    test('başlamış tarih panelde iptal edilemez görünür', () {
+      final past = departure('p', now.subtract(const Duration(minutes: 5)));
+      expect(past.canBeCancelledAt(now), isFalse);
+    });
   });
 
   group('CompletionsCubit', () {

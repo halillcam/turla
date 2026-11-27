@@ -65,5 +65,11 @@ final class NotificationCenterState extends Equatable {
   );
 
   @override
-  List<Object?> get props => [isActive, unreadCount, pushPermissionGranted, openRequest, foreground];
+  List<Object?> get props => [
+    isActive,
+    unreadCount,
+    pushPermissionGranted,
+    openRequest,
+    foreground,
+  ];
 }

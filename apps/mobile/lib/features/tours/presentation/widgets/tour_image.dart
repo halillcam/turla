@@ -4,12 +4,13 @@ import 'package:turla_core/turla_core.dart';
 
 import '../../../../core/cache/turla_image_cache_manager.dart';
 
-/// Tur görseli. Görsel cihazda önbelleğe alınır; adres yoksa yer tutucu gösterilir.
+/// Tur görseli. Görsel cihazda önbelleğe alınır; adres yoksa sakin bir yer tutucu gösterilir.
+/// [height] verilmezse bulunduğu alanı doldurur.
 class TourImage extends StatelessWidget {
-  const TourImage({required this.imageUrl, required this.height, super.key});
+  const TourImage({required this.imageUrl, this.height, super.key});
 
   final String? imageUrl;
-  final double height;
+  final double? height;
 
   @override
   Widget build(BuildContext context) {
@@ -32,16 +33,20 @@ class TourImage extends StatelessWidget {
 class _Placeholder extends StatelessWidget {
   const _Placeholder({required this.height});
 
-  final double height;
+  final double? height;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       height: height,
       width: double.infinity,
-      color: AppColors.primaryLight,
+      color: AppColors.primaryTint,
       alignment: Alignment.center,
-      child: const Icon(Icons.landscape_outlined, size: AppSizes.iconXl, color: AppColors.primary),
+      child: const Icon(
+        Icons.landscape_outlined,
+        size: AppSizes.iconPlaceholder,
+        color: AppColors.primary,
+      ),
     );
   }
 }

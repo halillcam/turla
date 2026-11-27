@@ -53,6 +53,7 @@ class _ParticipantsDialog extends StatelessWidget {
       title: AppStrings.cancelTicketTitle,
       message: '${ticket.passengerName}\n\n${AppStrings.cancelTicketMessage}',
       confirmLabel: AppStrings.cancelTicket,
+      isDestructive: true,
     );
     if (!confirmed) return;
     final result = await cubit.cancel(ticket.id);

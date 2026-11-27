@@ -65,7 +65,7 @@ class _ScanView extends StatelessWidget {
               return ScanResultView(
                 title: AppStrings.scanFailureTitle,
                 message: failure.message,
-                color: AppColors.notArrived,
+                tone: AppTone.error,
                 icon: Icons.wifi_off,
                 onNext: cubit.next,
                 onBackToList: () => context.pop(),

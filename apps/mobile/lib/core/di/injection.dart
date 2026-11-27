@@ -4,6 +4,7 @@ import 'package:turla_core/turla_core.dart';
 import '../../features/auth/presentation/bloc/session_bloc.dart';
 import '../../features/auth/presentation/cubit/login_cubit.dart';
 import '../../features/auth/presentation/cubit/register_cubit.dart';
+import '../../features/auth/presentation/cubit/password_reset_cubit.dart';
 import '../../features/city_choice/data/datasources/selected_city_local_data_source.dart';
 import '../../features/city_choice/data/repositories/selected_city_repository_impl.dart';
 import '../../features/city_choice/domain/repositories/selected_city_repository.dart';
@@ -133,6 +134,8 @@ void configureDependencies({required PushMessagingDataSource pushMessaging}) {
     // Ekran Cubit'leri
     ..registerFactory<LoginCubit>(() => LoginCubit(getIt()))
     ..registerFactory<RegisterCubit>(() => RegisterCubit(getIt()))
+    ..registerFactory<ForgotPasswordCubit>(() => ForgotPasswordCubit(getIt()))
+    ..registerFactory<ResetPasswordCubit>(() => ResetPasswordCubit(getIt()))
     ..registerFactory<CityChoiceCubit>(() => CityChoiceCubit(getIt()))
     ..registerFactory<TourListCubit>(() => TourListCubit(getIt()))
     ..registerFactory<TourDetailCubit>(() => TourDetailCubit(getIt()))

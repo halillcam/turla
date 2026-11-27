@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Açılış ekranı zemini: Turla kâğıt rengi (AppColors.background). -->
+    <color name="splash_background">#F6F2EA</color>
+    <!-- Uyarlanabilir uygulama ikonunun zemini (çam yeşili). -->
+    <color name="ic_launcher_background">#1F5E4E</color>
+</resources>

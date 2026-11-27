@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:turla_core/turla_core.dart';
 
 import '../constants/strings.dart';
 
@@ -8,6 +9,7 @@ Future<bool> showConfirmDialog(
   required String title,
   required String message,
   String confirmLabel = AppStrings.confirm,
+  bool isDestructive = false,
 }) async {
   final result = await showDialog<bool>(
     context: context,
@@ -19,7 +21,11 @@ Future<bool> showConfirmDialog(
           onPressed: () => Navigator.pop(context, false),
           child: const Text(AppStrings.cancel),
         ),
-        FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(confirmLabel)),
+        FilledButton(
+          onPressed: () => Navigator.pop(context, true),
+          style: isDestructive ? FilledButton.styleFrom(backgroundColor: AppColors.error) : null,
+          child: Text(confirmLabel),
+        ),
       ],
     ),
   );

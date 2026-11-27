@@ -62,7 +62,14 @@ class CompletionTile extends StatelessWidget {
                 child: const Text(AppStrings.approve),
               ),
             ] else
-              Chip(label: Text(statusLabel(request.status))),
+              ToneBadge(
+                label: statusLabel(request.status),
+                tone: switch (request.status) {
+                  CompletionStatus.approved => AppTone.success,
+                  CompletionStatus.rejected => AppTone.error,
+                  CompletionStatus.pending => AppTone.warning,
+                },
+              ),
           ],
         ),
       ),

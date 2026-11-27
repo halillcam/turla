@@ -8,13 +8,14 @@ import '../../domain/entities/ticket_failure.dart';
 import '../screens/checkout_screen.dart';
 import '../utils/ticket_display.dart';
 import '../utils/ticket_failure_message.dart';
+import 'checkout_summary_card.dart';
 import 'demo_payment_card.dart';
-import '../../../../core/widgets/info_row.dart';
 
 /// Yolcu bilgisi: ad ve telefon.
 typedef PassengerSubmit = void Function(String name, String phone);
 
-/// Tur özeti, yolcu adı/telefonu ve demo ödeme. Bilet sadece hesap sahibine kesilir.
+/// Tur özeti, yolcu adı/telefonu ve demo ödeme; onay düğmesi alta yapışık.
+/// Bilet sadece hesap sahibine kesilir.
 class CheckoutForm extends StatefulWidget {
   const CheckoutForm({
     required this.args,
@@ -61,59 +62,77 @@ class _CheckoutFormState extends State<CheckoutForm> {
     final args = widget.args;
     final failure = widget.failure;
 
-    return Form(
-      key: _formKey,
-      child: ListView(
-        padding: AppPaddings.screen,
-        children: [
-          Text(AppStrings.tripSummary, style: textTheme.titleMedium),
-          const SizedBox(height: AppSpacing.sm),
-          Text(args.tourTitle, style: textTheme.titleLarge),
-          InfoRow(icon: Icons.business, label: AppStrings.organizer, value: args.companyName),
-          InfoRow(icon: Icons.event, label: AppStrings.departureDate, value: args.departureLabel),
-          const SizedBox(height: AppSpacing.lg),
-          Text(AppStrings.passengerSection, style: textTheme.titleMedium),
-          const SizedBox(height: AppSpacing.sm),
-          TextFormField(
-            controller: _name,
-            enabled: !widget.isSubmitting,
-            textCapitalization: TextCapitalization.words,
-            decoration: const InputDecoration(
-              labelText: AppStrings.fullNameLabel,
-              helperText: AppStrings.passengerHint,
+    return Column(
+      children: [
+        Expanded(
+          child: Form(
+            key: _formKey,
+            child: ListView(
+              padding: AppPaddings.detailBody,
+              children: [
+                CheckoutSummaryCard(args: args, passengerName: widget.initialPassengerName),
+                const SizedBox(height: AppSpacing.xl),
+                Text(AppStrings.passengerSection, style: textTheme.titleLarge),
+                const SizedBox(height: AppSpacing.md),
+                TextFormField(
+                  controller: _name,
+                  enabled: !widget.isSubmitting,
+                  textCapitalization: TextCapitalization.words,
+                  decoration: const InputDecoration(
+                    labelText: AppStrings.fullNameLabel,
+                    helperText: AppStrings.passengerHint,
+                  ),
+                  validator: AuthValidators.fullName,
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                TextFormField(
+                  key: const Key('checkout-phone'),
+                  controller: _phone,
+                  enabled: !widget.isSubmitting,
+                  keyboardType: TextInputType.phone,
+                  decoration: const InputDecoration(
+                    labelText: AppStrings.phoneLabel,
+                    helperText: AppStrings.phoneHint,
+                  ),
+                  validator: AuthValidators.phone,
+                ),
+                const SizedBox(height: AppSpacing.xl),
+                const DemoPaymentCard(),
+                const SizedBox(height: AppSpacing.lg),
+                Text(AppStrings.cancellationPolicy, style: textTheme.bodySmall),
+                if (failure != null) ...[
+                  const SizedBox(height: AppSpacing.lg),
+                  ToneBanner(
+                    message: failure.message,
+                    tone: AppTone.error,
+                    icon: Icons.error_outline,
+                  ),
+                ],
+              ],
             ),
-            validator: AuthValidators.fullName,
           ),
-          const SizedBox(height: AppSpacing.md),
-          TextFormField(
-            key: const Key('checkout-phone'),
-            controller: _phone,
-            enabled: !widget.isSubmitting,
-            keyboardType: TextInputType.phone,
-            decoration: const InputDecoration(
-              labelText: AppStrings.phoneLabel,
-              helperText: AppStrings.phoneHint,
+        ),
+        DecoratedBox(
+          decoration: const BoxDecoration(
+            color: AppColors.surface,
+            border: Border(
+              top: BorderSide(color: AppColors.border, width: AppSizes.borderWidth),
             ),
-            validator: AuthValidators.phone,
           ),
-          const SizedBox(height: AppSpacing.xl),
-          Text(AppStrings.paymentSection, style: textTheme.titleMedium),
-          const SizedBox(height: AppSpacing.sm),
-          DemoPaymentCard(priceLabel: args.priceLabel),
-          const SizedBox(height: AppSpacing.md),
-          Text(AppStrings.cancellationPolicy, style: textTheme.bodySmall),
-          if (failure != null) ...[
-            const SizedBox(height: AppSpacing.lg),
-            Text(failure.message, style: textTheme.bodyMedium?.copyWith(color: AppColors.error)),
-          ],
-          const SizedBox(height: AppSpacing.xl),
-          SubmitButton(
-            label: '${AppStrings.completePayment} (${args.priceLabel})',
-            isLoading: widget.isSubmitting,
-            onPressed: _submit,
+          child: SafeArea(
+            top: false,
+            child: Padding(
+              padding: AppPaddings.bottomBar,
+              child: SubmitButton(
+                label: '${AppStrings.completePayment} · ${args.priceLabel}',
+                loadingLabel: AppStrings.preparingTicket,
+                isLoading: widget.isSubmitting,
+                onPressed: _submit,
+              ),
+            ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

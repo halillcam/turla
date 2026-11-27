@@ -91,6 +91,8 @@ abstract final class PanelErrorMapper {
     'no_seats_left': PanelFailureReason.noSeatsLeft,
     'departure_not_bookable': PanelFailureReason.departureNotBookable,
     'ticket_not_cancellable': PanelFailureReason.ticketNotCancellable,
+    // Tarih iptali (Faz 6)
+    'departure_not_cancellable': PanelFailureReason.departureNotCancellable,
     'not_resettable': PanelFailureReason.notResettable,
     'account_not_found': PanelFailureReason.notFound,
     // Sohbet / duyuru (Faz 5)

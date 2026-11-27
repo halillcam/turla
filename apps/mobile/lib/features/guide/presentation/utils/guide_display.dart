@@ -21,6 +21,12 @@ extension GuideDepartureDisplay on GuideDeparture {
     return parts.isEmpty ? null : parts.join(' · ');
   }
 
+  /// "Şoför Ali Demir"; şoför yoksa null.
+  String? get driverLine {
+    final name = driverName?.trim() ?? '';
+    return name.isEmpty ? null : '${AppStrings.driver} $name';
+  }
+
   bool get hasDriverPhone => driverPhone?.trim().isNotEmpty ?? false;
 
   /// Sohbet ve duyurular tur açıkken görünür; tur bitince sohbet gizlenir.

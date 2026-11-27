@@ -3,7 +3,9 @@ import 'package:turla_core/turla_core.dart';
 
 import '../../features/auth/presentation/bloc/session_bloc.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
+import '../../features/auth/presentation/screens/forgot_password_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
+import '../../features/auth/presentation/screens/reset_password_screen.dart';
 import '../../features/city_choice/presentation/cubit/selected_city_cubit.dart';
 import '../../features/city_choice/presentation/screens/city_choice_screen.dart';
 import '../../features/guide/presentation/screens/departure_screen.dart';
@@ -42,6 +44,8 @@ class AppRouter {
         GoRoute(path: AppRoutes.splash, builder: (_, _) => const SplashScreen()),
         GoRoute(path: AppRoutes.login, builder: (_, _) => const LoginScreen()),
         GoRoute(path: AppRoutes.register, builder: (_, _) => const RegisterScreen()),
+        GoRoute(path: AppRoutes.forgotPassword, builder: (_, _) => const ForgotPasswordScreen()),
+        GoRoute(path: AppRoutes.resetPassword, builder: (_, _) => const ResetPasswordScreen()),
         GoRoute(path: AppRoutes.citySelection, builder: (_, _) => const CityChoiceScreen()),
         GoRoute(
           path: AppRoutes.guideHome,

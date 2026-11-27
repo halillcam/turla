@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:turla_core/turla_core.dart';
 
+import '../../../../core/constants/strings.dart';
 import '../../domain/entities/chat_message.dart';
 import '../utils/live_tour_display.dart';
 
-/// Sohbet mesajı balonu. Kendi mesajın sağda, diğerleri solda; rehber/firma
-/// mesajları vurgulu renkte ve etiketli.
+/// Sohbet mesajı: balonun üstünde gönderen adı (rehber/firma etiketi ana renkte),
+/// balonun içinde metin ve sağ altta saat. Kendi mesajın sağda ve açık yeşil zeminde.
 class ChatMessageBubble extends StatelessWidget {
   const ChatMessageBubble({
     required this.message,
@@ -26,40 +27,72 @@ class ChatMessageBubble extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final mine = message.isMine(currentUserId);
-    final background = mine
-        ? AppColors.primaryLight
-        : (message.isStaff ? AppColors.surfaceMuted : AppColors.surface);
+    final foreground = mine ? AppColors.primary : AppColors.textPrimary;
+    final tag = message.roleTag;
+    final name = message.senderDisplayName(currentUserId);
 
     return Align(
       alignment: mine ? Alignment.centerRight : Alignment.centerLeft,
-      child: GestureDetector(
-        onLongPress: onLongPress,
-        child: Container(
-          constraints: const BoxConstraints(maxWidth: AppSizes.chatBubbleMaxWidth),
-          margin: AppPaddings.verticalXs,
-          padding: AppPaddings.allMd,
-          decoration: BoxDecoration(
-            color: background,
-            borderRadius: AppRadius.mdAll,
-            border: Border.all(
-              color: message.isStaff ? AppColors.primary : AppColors.border,
-              width: AppSizes.borderWidth,
-            ),
-          ),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: AppSizes.chatBubbleMaxWidth),
+        child: Padding(
+          padding: AppPaddings.chatMessage,
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: mine ? CrossAxisAlignment.end : CrossAxisAlignment.start,
             children: [
-              Text(
-                message.senderLabel(currentUserId),
-                style: textTheme.labelMedium?.copyWith(
-                  color: message.isStaff ? AppColors.primaryDark : AppColors.textSecondary,
-                  fontWeight: FontWeight.w600,
+              Padding(
+                padding: AppPaddings.horizontalXs,
+                child: Text.rich(
+                  TextSpan(
+                    text: name,
+                    children: [
+                      if (tag != null) ...[
+                        const TextSpan(text: AppStrings.nameSeparator),
+                        TextSpan(
+                          text: tag,
+                          style: const TextStyle(color: AppColors.primary),
+                        ),
+                      ],
+                    ],
+                  ),
+                  style: textTheme.labelSmall?.copyWith(
+                    color: mine ? AppColors.textSecondary : AppColors.textPrimary,
+                  ),
                 ),
               ),
-              const SizedBox(height: AppSpacing.xxs),
-              Text(message.body, style: textTheme.bodyMedium),
-              const SizedBox(height: AppSpacing.xxs),
-              Text(message.timeLabel(now), style: textTheme.labelSmall),
+              const SizedBox(height: AppSpacing.xs),
+              GestureDetector(
+                onLongPress: onLongPress,
+                child: Container(
+                  padding: AppPaddings.chatBubble,
+                  decoration: BoxDecoration(
+                    color: mine ? AppColors.primaryTint : AppColors.surface,
+                    borderRadius: AppRadius.lgAll,
+                    border: Border.all(color: AppColors.border, width: AppSizes.borderWidth),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        widthFactor: 1,
+                        child: Text(
+                          message.body,
+                          style: textTheme.bodyMedium?.copyWith(color: foreground),
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.xs),
+                      Text(
+                        message.timeLabel(now),
+                        style: textTheme.labelSmall?.copyWith(
+                          color: mine ? AppColors.primary : AppColors.textSecondary,
+                          fontFeatures: AppTextStyles.tabularFigures,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ],
           ),
         ),

@@ -3,7 +3,7 @@ import 'package:turla_core/turla_core.dart';
 
 import '../../../../core/constants/strings.dart';
 
-/// "Geldi 12 · Gelmedi 3 · Toplam 15" sayaçları.
+/// "Geldi 12" / "Gelmedi 3" rozetleri ve sağda "15 katılımcı".
 class AttendanceCounts extends StatelessWidget {
   const AttendanceCounts({required this.arrived, required this.notArrived, super.key});
 
@@ -12,45 +12,28 @@ class AttendanceCounts extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Wrap(
-      spacing: AppSpacing.sm,
-      runSpacing: AppSpacing.xs,
+    return Row(
       children: [
-        _CountChip(label: AppStrings.arrivedCountLabel, value: arrived, color: AppColors.arrived),
-        _CountChip(
-          label: AppStrings.notArrivedCountLabel,
-          value: notArrived,
-          color: AppColors.notArrived,
+        Expanded(
+          child: Wrap(
+            spacing: AppSpacing.sm,
+            runSpacing: AppSpacing.xs,
+            children: [
+              ToneBadge(label: '${AppStrings.arrivedCountLabel} $arrived', tone: AppTone.success),
+              ToneBadge(
+                label: '${AppStrings.notArrivedCountLabel} $notArrived',
+                tone: AppTone.error,
+              ),
+            ],
+          ),
         ),
-        _CountChip(
-          label: AppStrings.totalCountLabel,
-          value: arrived + notArrived,
-          color: AppColors.textSecondary,
+        Text(
+          '${arrived + notArrived} ${AppStrings.participantCountSuffix}',
+          style: Theme.of(
+            context,
+          ).textTheme.bodySmall?.copyWith(fontFeatures: AppTextStyles.tabularFigures),
         ),
       ],
-    );
-  }
-}
-
-class _CountChip extends StatelessWidget {
-  const _CountChip({required this.label, required this.value, required this.color});
-
-  final String label;
-  final int value;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xxs),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: AppRadius.pillAll,
-      ),
-      child: Text(
-        '$label $value',
-        style: TextStyle(color: color, fontSize: AppFontSizes.caption, fontWeight: FontWeight.w600),
-      ),
     );
   }
 }

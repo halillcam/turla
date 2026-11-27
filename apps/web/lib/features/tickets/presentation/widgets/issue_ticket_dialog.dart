@@ -86,6 +86,7 @@ class _IssueTicketDialogState extends State<_IssueTicketDialog> {
               if (hasCustomers) ...[
                 const SizedBox(height: AppSpacing.lg),
                 DropdownButtonFormField<String>(
+                  style: PanelTextStyles.body,
                   initialValue: _customerId,
                   menuMaxHeight: AppSizes.dropdownMenuMaxHeight,
                   decoration: const InputDecoration(labelText: AppStrings.issueTicketCustomer),

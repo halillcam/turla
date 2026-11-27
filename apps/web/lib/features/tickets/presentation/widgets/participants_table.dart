@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/constants/strings.dart';
+import '../../../../core/widgets/panel_page.dart';
 import '../../domain/entities/participant_ticket.dart';
 import '../utils/participant_display.dart';
 
@@ -22,8 +23,7 @@ class ParticipantsTable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      child: SizedBox(
-        width: double.infinity,
+      child: PanelTableCard(
         child: DataTable(
           columns: const [
             DataColumn(label: Text(AppStrings.passengerColumn)),

@@ -8,6 +8,8 @@ import '../../../../core/constants/strings.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/utils/phone_launcher.dart';
 import '../../../../core/widgets/confirm_dialog.dart';
+import '../../../../core/widgets/app_bar_title.dart';
+import '../../../../core/widgets/bordered_group.dart';
 import '../../../../core/widgets/stale_data_banner.dart';
 import '../../../../core/widgets/status_view.dart';
 import '../../../live_tour/presentation/screens/announcements_screen.dart';
@@ -100,7 +102,7 @@ class _DepartureView extends StatelessWidget {
         final departure = state.departure;
         return Scaffold(
           appBar: AppBar(
-            title: Text(departure?.tourTitle ?? AppStrings.participantsTitle),
+            title: AppBarTitle(title: AppStrings.participantsTitle, subtitle: departure?.tourTitle),
             actions: [
               if (departure != null && departure.showsLiveTools) ...[
                 IconButton(
@@ -155,7 +157,7 @@ class _DepartureView extends StatelessWidget {
     return RefreshIndicator(
       onRefresh: cubit.refresh,
       child: ListView(
-        padding: AppPaddings.screen,
+        padding: AppPaddings.detailBody,
         children: [
           if (state.isStale) const StaleDataBanner(message: AppStrings.showingCachedParticipants),
           DepartureHeader(
@@ -164,13 +166,15 @@ class _DepartureView extends StatelessWidget {
             notArrived: state.notArrivedCount,
             onCallDriver: () => PhoneLauncher.call(departure.driverPhone ?? ''),
           ),
-          const SizedBox(height: AppSpacing.lg),
+          const SizedBox(height: AppSpacing.xl),
           ParticipantFilterBar(
             filter: state.filter,
+            arrived: state.arrivedCount,
+            notArrived: state.notArrivedCount,
             onFilterChanged: cubit.setFilter,
             onSearchChanged: cubit.search,
           ),
-          const SizedBox(height: AppSpacing.sm),
+          const SizedBox(height: AppSpacing.lg),
           if (state.status == DepartureViewStatus.loading)
             const Padding(padding: AppPaddings.allXl, child: StatusView.loading())
           else if (state.status == DepartureViewStatus.failure)
@@ -187,12 +191,18 @@ class _DepartureView extends StatelessWidget {
               icon: Icons.people_outline,
             )
           else
-            for (final participant in participants)
-              ParticipantTile(
-                participant: participant,
-                onCheckIn: state.canCheckIn ? () => _confirmCheckIn(context, participant) : null,
-                onCall: () => PhoneLauncher.call(participant.phone ?? ''),
-              ),
+            BorderedGroup(
+              children: [
+                for (final participant in participants)
+                  ParticipantTile(
+                    participant: participant,
+                    onCheckIn: state.canCheckIn
+                        ? () => _confirmCheckIn(context, participant)
+                        : null,
+                    onCall: () => PhoneLauncher.call(participant.phone ?? ''),
+                  ),
+              ],
+            ),
         ],
       ),
     );
@@ -202,29 +212,38 @@ class _DepartureView extends StatelessWidget {
     final departure = state.departure!;
     final busy = state.actionStatus == DepartureAction.inProgress;
     if (!state.canCheckIn) return null;
-    return SafeArea(
-      child: Padding(
-        padding: AppPaddings.screen,
-        child: Row(
-          children: [
-            Expanded(
-              child: ElevatedButton.icon(
-                onPressed: busy ? null : () => _openScanner(context, departure.id),
-                icon: const Icon(Icons.qr_code_scanner),
-                label: const Text(AppStrings.scanQr),
-              ),
-            ),
-            if (state.canRequestCompletion) ...[
-              const SizedBox(width: AppSpacing.md),
+    return DecoratedBox(
+      decoration: const BoxDecoration(
+        color: AppColors.surface,
+        border: Border(
+          top: BorderSide(color: AppColors.border, width: AppSizes.borderWidth),
+        ),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: AppPaddings.bottomBar,
+          child: Row(
+            children: [
               Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: busy ? null : () => _confirmFinish(context),
-                  icon: const Icon(Icons.flag_outlined),
-                  label: const Text(AppStrings.finishTour),
+                child: ElevatedButton.icon(
+                  onPressed: busy ? null : () => _openScanner(context, departure.id),
+                  icon: const Icon(Icons.qr_code_scanner),
+                  label: const Text(AppStrings.scanQr),
                 ),
               ),
+              if (state.canRequestCompletion) ...[
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: busy ? null : () => _confirmFinish(context),
+                    icon: const Icon(Icons.flag_outlined),
+                    label: const Text(AppStrings.finishTour),
+                  ),
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );

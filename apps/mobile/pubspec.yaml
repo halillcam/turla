@@ -36,6 +36,16 @@ dev_dependencies:
   bloc_test: ^10.0.0
   mocktail: ^1.0.5
   shared_preferences_platform_interface: ^2.4.2
+  flutter_launcher_icons: ^0.14.4
 
 flutter:
   uses-material-design: true
+
+# Uygulama ikonu: `dart run flutter_launcher_icons` (görseller packages/core/tool/brand ile üretilir).
+flutter_launcher_icons:
+  android: true
+  ios: true
+  remove_alpha_ios: true
+  image_path: assets/icon/app_icon.png
+  adaptive_icon_background: "#1F5E4E"
+  adaptive_icon_foreground: assets/icon/app_icon_foreground.png

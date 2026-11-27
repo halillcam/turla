@@ -7,25 +7,13 @@ class TicketStatusChip extends StatelessWidget {
 
   final TicketStatus status;
 
-  Color get _color => switch (status) {
-    TicketStatus.reserved || TicketStatus.paid => AppColors.success,
-    TicketStatus.checkedIn || TicketStatus.completed => AppColors.info,
-    TicketStatus.cancelled || TicketStatus.noShow => AppColors.error,
+  AppTone get _tone => switch (status) {
+    TicketStatus.reserved || TicketStatus.paid => AppTone.primary,
+    TicketStatus.checkedIn => AppTone.success,
+    TicketStatus.completed => AppTone.neutral,
+    TicketStatus.cancelled || TicketStatus.noShow => AppTone.error,
   };
 
   @override
-  Widget build(BuildContext context) {
-    final color = _color;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xxs),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: AppRadius.pillAll,
-      ),
-      child: Text(
-        status.label,
-        style: TextStyle(color: color, fontSize: AppFontSizes.caption, fontWeight: FontWeight.w600),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => ToneBadge(label: status.label, tone: _tone);
 }

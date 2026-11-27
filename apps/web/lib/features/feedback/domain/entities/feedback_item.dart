@@ -51,5 +51,14 @@ class FeedbackItem extends Equatable {
   );
 
   @override
-  List<Object?> get props => [id, companyId, companyName, authorName, title, body, status, createdAt];
+  List<Object?> get props => [
+    id,
+    companyId,
+    companyName,
+    authorName,
+    title,
+    body,
+    status,
+    createdAt,
+  ];
 }

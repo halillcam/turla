@@ -25,7 +25,7 @@ class AccountRepositoryImpl implements AccountRepository {
       [for (final role in roles) role.value],
     );
     if (activeOnly) query = query.eq('is_active', true);
-    final rows = await query.order('full_name');
+    final rows = await query.order('full_name', ascending: true);
     return rows.map(_fromRow).toList();
   });
 
@@ -51,6 +51,23 @@ class AccountRepositoryImpl implements AccountRepository {
       email: data['email'] as String,
       loginId: data['login_id'] as String?,
     );
+  });
+
+  @override
+  Future<Map<String, String>> adminEmails(String companyId) => guardPanel(() async {
+    final response = await _client.functions.invoke(
+      _createAccountFunction,
+      body: {'action': 'admin_emails', 'company_id': companyId},
+    );
+    final data = response.data;
+    if (data is! Map || data['admins'] is! List) {
+      throw const PanelFailure(PanelFailureReason.unknown);
+    }
+    return {
+      for (final row in (data['admins'] as List).whereType<Map<dynamic, dynamic>>())
+        if (row['user_id'] is String && row['email'] is String)
+          row['user_id'] as String: row['email'] as String,
+    };
   });
 
   @override

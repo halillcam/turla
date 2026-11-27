@@ -29,20 +29,23 @@ class CityChoiceScreen extends StatelessWidget {
     return BlocProvider(
       create: (_) => getIt<CityChoiceCubit>()..load(),
       child: Scaffold(
-        appBar: AppBar(
-          automaticallyImplyLeading: selectedCityId != null,
-          title: const Text(AppStrings.cityChoiceTitle),
-        ),
+        // Şehir değiştirirken geri düğmesi için boş üst çubuk; ilk açılışta yok.
+        appBar: selectedCityId != null ? AppBar(shape: const Border()) : null,
         body: SafeArea(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Padding(
-                padding: AppPaddings.screen,
+                padding: AppPaddings.listHeader,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text(AppStrings.cityChoiceSubtitle, style: textTheme.bodyMedium),
+                    Text(AppStrings.cityChoiceTitle, style: textTheme.headlineSmall),
+                    const SizedBox(height: AppSpacing.xs),
+                    Text(
+                      AppStrings.cityChoiceSubtitle,
+                      style: textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
+                    ),
                     const SizedBox(height: AppSpacing.md),
                     Builder(
                       builder: (context) =>

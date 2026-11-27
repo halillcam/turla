@@ -58,7 +58,7 @@ void main() {
 
     final scroll = tester.widget<SingleChildScrollView>(find.byType(SingleChildScrollView));
     expect(scroll.scrollDirection, Axis.horizontal);
-    expect(find.text(TourRegion.dayTrip.label.toUpperCase()), findsOneWidget);
+    expect(find.text(TourRegion.dayTrip.label.turkishUpper), findsOneWidget);
 
     // 800 px genişlikte ilk iki kart (280 + 12 + 280) ekranda; ikinci kart da görünür.
     final firstCard = tester.getRect(find.byType(TourCard).first);

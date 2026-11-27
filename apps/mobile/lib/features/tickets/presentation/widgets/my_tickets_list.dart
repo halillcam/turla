@@ -2,14 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:turla_core/turla_core.dart';
 
 import '../../../../core/constants/strings.dart';
+import '../../../../core/widgets/segmented_tabs.dart';
 import '../../../../core/widgets/stale_data_banner.dart';
 import '../../../../core/widgets/status_view.dart';
 import '../../domain/entities/ticket.dart';
 import '../cubit/my_tickets_cubit.dart';
 import 'ticket_tile.dart';
 
-/// Aşağı çekince yenilenen bilet listesi (Yaklaşan / Geçmiş).
-class MyTicketsList extends StatelessWidget {
+/// Yaklaşan / Geçmiş sekmeli, aşağı çekince yenilenen bilet listesi.
+/// Seçili sekme sadece görünüm durumudur; listeler state'ten gelir.
+class MyTicketsList extends StatefulWidget {
   const MyTicketsList({
     required this.state,
     required this.onRefresh,
@@ -24,25 +26,34 @@ class MyTicketsList extends StatelessWidget {
   final VoidCallback onBrowseTours;
 
   @override
+  State<MyTicketsList> createState() => _MyTicketsListState();
+}
+
+class _MyTicketsListState extends State<MyTicketsList> {
+  static const int _upcomingTab = 0;
+  int _tab = _upcomingTab;
+
+  @override
   Widget build(BuildContext context) {
+    final state = widget.state;
     if (state.status == MyTicketsStatus.loading) return const StatusView.loading();
     if (state.status == MyTicketsStatus.failure) {
       return StatusView.message(
         message: AppStrings.ticketsLoadError,
         icon: Icons.wifi_off,
-        onAction: onRefresh,
+        onAction: widget.onRefresh,
       );
     }
 
     final textTheme = Theme.of(context).textTheme;
-    final upcoming = state.upcoming;
-    final past = state.past;
+    final showsUpcoming = _tab == _upcomingTab;
+    final tickets = showsUpcoming ? state.upcoming : state.past;
 
     return RefreshIndicator(
-      onRefresh: onRefresh,
+      onRefresh: widget.onRefresh,
       child: ListView(
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: AppPaddings.screen,
+        padding: AppPaddings.listBody,
         children: [
           if (state.isStale) const StaleDataBanner(message: AppStrings.showingCachedTickets),
           if (state.tickets.isEmpty) ...[
@@ -50,26 +61,27 @@ class MyTicketsList extends StatelessWidget {
             StatusView.message(
               message: AppStrings.noTickets,
               icon: Icons.confirmation_number_outlined,
-              onAction: onBrowseTours,
+              onAction: widget.onBrowseTours,
               actionLabel: AppStrings.browseTours,
             ),
           ] else ...[
-            Text(AppStrings.upcomingTickets, style: textTheme.titleMedium),
-            const SizedBox(height: AppSpacing.sm),
-            if (upcoming.isEmpty)
+            SegmentedTabs(
+              labels: const [AppStrings.upcomingTickets, AppStrings.pastTickets],
+              selectedIndex: _tab,
+              onChanged: (index) => setState(() => _tab = index),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            if (tickets.isEmpty)
               Padding(
-                padding: AppPaddings.verticalSm,
-                child: Text(AppStrings.noUpcomingTickets, style: textTheme.bodyMedium),
+                padding: AppPaddings.verticalLg,
+                child: Text(
+                  showsUpcoming ? AppStrings.noUpcomingTickets : AppStrings.noPastTickets,
+                  style: textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
+                  textAlign: TextAlign.center,
+                ),
               ),
-            for (final ticket in upcoming)
-              TicketTile(ticket: ticket, onTap: () => onTicketTap(ticket)),
-            if (past.isNotEmpty) ...[
-              const SizedBox(height: AppSpacing.lg),
-              Text(AppStrings.pastTickets, style: textTheme.titleMedium),
-              const SizedBox(height: AppSpacing.sm),
-              for (final ticket in past)
-                TicketTile(ticket: ticket, onTap: () => onTicketTap(ticket)),
-            ],
+            for (final ticket in tickets)
+              TicketTile(ticket: ticket, onTap: () => widget.onTicketTap(ticket)),
           ],
         ],
       ),

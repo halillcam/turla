@@ -185,6 +185,7 @@ class _DepartureFormDialogState extends State<_DepartureFormDialog> {
               ),
               const SizedBox(height: AppSpacing.md),
               DropdownButtonFormField<String?>(
+                style: PanelTextStyles.body,
                 menuMaxHeight: AppSizes.dropdownMenuMaxHeight,
                 initialValue: _guideId,
                 decoration: const InputDecoration(labelText: AppStrings.departureGuide),

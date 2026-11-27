@@ -146,9 +146,9 @@ void main() {
     }
 
     testWidgets('açık tarihte rehber etiketi görünür ve firma mesaj yazabilir', (tester) async {
-      when(() => chat.listMessages('dep-1')).thenAnswer(
-        (_) async => [_msg('g', role: UserRole.guide)],
-      );
+      when(
+        () => chat.listMessages('dep-1'),
+      ).thenAnswer((_) async => [_msg('g', role: UserRole.guide)]);
       await open(tester, DepartureStatus.scheduled);
       expect(find.text('Kişi g · ${AppStrings.chatGuideTag}'), findsOneWidget);
       expect(find.byType(TextField), findsOneWidget);
@@ -179,7 +179,8 @@ void main() {
       when(
         () => announcements.create(title: 'Bakım', body: 'Pazar gece', companyId: null),
       ).thenAnswer(
-        (_) async => CompanyAnnouncement(id: 'a1', title: 'Bakım', body: 'Pazar gece', createdAt: _t),
+        (_) async =>
+            CompanyAnnouncement(id: 'a1', title: 'Bakım', body: 'Pazar gece', createdAt: _t),
       );
       final cubit = CompanyAnnouncementsCubit(
         companyId: null,

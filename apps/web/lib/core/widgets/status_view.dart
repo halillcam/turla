@@ -37,9 +37,13 @@ class StatusView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: AppSizes.iconXl, color: AppColors.textMuted),
+            Icon(icon, size: AppSizes.iconXl, color: AppColors.textSecondary),
             const SizedBox(height: AppSpacing.md),
-            Text(message!, style: textTheme.bodyMedium, textAlign: TextAlign.center),
+            Text(
+              message!,
+              style: textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
+              textAlign: TextAlign.center,
+            ),
             if (onAction != null) ...[
               const SizedBox(height: AppSpacing.lg),
               OutlinedButton(onPressed: onAction, child: Text(actionLabel)),

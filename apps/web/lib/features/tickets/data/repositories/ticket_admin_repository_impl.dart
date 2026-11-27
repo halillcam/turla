@@ -16,7 +16,7 @@ class TicketAdminRepositoryImpl implements TicketAdminRepository {
         .from(ParticipantTicketModel.table)
         .select(ParticipantTicketModel.columns)
         .eq('departure_id', departureId)
-        .order('created_at');
+        .order('created_at', ascending: true);
     return rows.map(ParticipantTicketModel.fromRow).toList();
   });
 

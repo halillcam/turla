@@ -32,9 +32,7 @@ class FeedbackCubit extends Cubit<FeedbackState> {
   Future<ActionResult<FeedbackItem>> send({required String title, required String body}) async {
     final id = companyId;
     if (id == null) return const ActionResult.failed(PanelFailureReason.notAllowed);
-    final result = await runAction(
-      () => _repository.send(companyId: id, title: title, body: body),
-    );
+    final result = await runAction(() => _repository.send(companyId: id, title: title, body: body));
     final created = result.value;
     if (created != null) emit(state.copyWith(items: [created, ...state.items]));
     return result;
@@ -51,11 +49,7 @@ class FeedbackCubit extends Cubit<FeedbackState> {
 }
 
 final class FeedbackState extends Equatable {
-  const FeedbackState({
-    this.status = LoadStatus.initial,
-    this.items = const [],
-    this.loadFailure,
-  });
+  const FeedbackState({this.status = LoadStatus.initial, this.items = const [], this.loadFailure});
 
   final LoadStatus status;
   final List<FeedbackItem> items;

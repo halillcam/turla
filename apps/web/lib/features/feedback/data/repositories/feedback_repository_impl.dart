@@ -20,7 +20,9 @@ class FeedbackRepositoryImpl implements FeedbackRepository {
   Future<List<FeedbackItem>> list({String? companyId}) => guardPanel(() async {
     var query = _client.from(_table).select(_columns);
     if (companyId != null) query = query.eq('company_id', companyId);
-    final rows = await query.order('created_at', ascending: false).limit(FeedbackRepository.pageSize);
+    final rows = await query
+        .order('created_at', ascending: false)
+        .limit(FeedbackRepository.pageSize);
     return rows.map(fromRow).toList();
   });
 
@@ -54,11 +56,10 @@ class FeedbackRepositoryImpl implements FeedbackRepository {
   });
 
   @override
-  Future<FeedbackItem> setStatus(FeedbackItem item, FeedbackStatus status) =>
-      guardPanel(() async {
-        await _client.from(_table).update({'status': status.value}).eq('id', item.id);
-        return item.withStatus(status);
-      });
+  Future<FeedbackItem> setStatus(FeedbackItem item, FeedbackStatus status) => guardPanel(() async {
+    await _client.from(_table).update({'status': status.value}).eq('id', item.id);
+    return item.withStatus(status);
+  });
 
   static FeedbackItem fromRow(Map<String, dynamic> row) => FeedbackItem(
     id: row['id'] as String,

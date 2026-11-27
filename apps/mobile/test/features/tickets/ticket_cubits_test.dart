@@ -206,9 +206,9 @@ void main() {
     blocTest<TicketDetailCubit, TicketDetailState>(
       'geçmiş bilette canlı dinleme açılmaz',
       build: () {
-        when(() => repository.getCachedTickets()).thenAnswer(
-          (_) async => [ticketWith(id: 'old', status: TicketStatus.completed)],
-        );
+        when(
+          () => repository.getCachedTickets(),
+        ).thenAnswer((_) async => [ticketWith(id: 'old', status: TicketStatus.completed)]);
         return TicketDetailCubit(repository, clock: early);
       },
       act: (cubit) => cubit.load('old'),

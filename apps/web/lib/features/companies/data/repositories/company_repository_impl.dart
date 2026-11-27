@@ -12,7 +12,10 @@ class CompanyRepositoryImpl implements CompanyRepository {
 
   @override
   Future<List<Company>> listCompanies() => guardPanel(() async {
-    final rows = await _client.from(CompanyModel.table).select(CompanyModel.columns).order('name');
+    final rows = await _client
+        .from(CompanyModel.table)
+        .select(CompanyModel.columns)
+        .order('name', ascending: true);
     return rows.map(CompanyModel.fromRow).toList();
   });
 

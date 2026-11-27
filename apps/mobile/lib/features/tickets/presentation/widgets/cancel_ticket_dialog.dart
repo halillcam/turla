@@ -18,9 +18,9 @@ abstract final class CancelTicketDialog {
             onPressed: () => Navigator.of(dialogContext).pop(false),
             child: const Text(AppStrings.cancelDialogDismiss),
           ),
-          TextButton(
+          FilledButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            style: TextButton.styleFrom(foregroundColor: AppColors.error),
+            style: FilledButton.styleFrom(backgroundColor: AppColors.error),
             child: const Text(AppStrings.cancelDialogConfirm),
           ),
         ],

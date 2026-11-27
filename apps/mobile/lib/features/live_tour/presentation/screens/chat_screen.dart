@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:turla_core/turla_core.dart';
 
 import '../../../../core/constants/strings.dart';
+import '../../../../core/widgets/app_snack_bar.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/widgets/confirm_dialog.dart';
 import '../../../../core/widgets/info_banner.dart';
@@ -31,8 +32,7 @@ class ChatScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) =>
-          getIt<ChatCubit>()..start(departureId, canWrite: args?.canWrite ?? false),
+      create: (_) => getIt<ChatCubit>()..start(departureId, canWrite: args?.canWrite ?? false),
       child: const _ChatView(),
     );
   }
@@ -48,6 +48,7 @@ class _ChatView extends StatelessWidget {
       title: AppStrings.chatDeleteTitle,
       message: AppStrings.chatDeleteMessage,
       confirmLabel: AppStrings.chatDeleteConfirm,
+      isDestructive: true,
     );
     if (confirmed) await cubit.delete(message);
   }
@@ -58,9 +59,7 @@ class _ChatView extends StatelessWidget {
       listenWhen: (previous, current) =>
           current.actionFailure != null && previous.actionFailure != current.actionFailure,
       listener: (context, state) {
-        ScaffoldMessenger.of(context)
-          ..hideCurrentSnackBar()
-          ..showSnackBar(SnackBar(content: Text(state.actionFailure!.message)));
+        AppSnackBar.show(context, state.actionFailure!.message, isError: true);
         context.read<ChatCubit>().clearActionFailure();
       },
       builder: (context, state) {
@@ -71,11 +70,11 @@ class _ChatView extends StatelessWidget {
             children: [
               if (!state.canWrite)
                 const Padding(
-                  padding: AppPaddings.allSm,
+                  padding: AppPaddings.bannerTop,
                   child: InfoBanner(
                     message: AppStrings.chatReadOnly,
                     icon: Icons.lock_outline,
-                    color: AppColors.info,
+                    tone: AppTone.primary,
                   ),
                 ),
               Expanded(child: _messages(context, state, cubit)),
@@ -121,7 +120,10 @@ class _ChatView extends StatelessWidget {
           return Center(
             child: state.isLoadingMore
                 ? const Padding(padding: AppPaddings.allSm, child: CircularProgressIndicator())
-                : TextButton(onPressed: cubit.loadMore, child: const Text(AppStrings.chatLoadOlder)),
+                : TextButton(
+                    onPressed: cubit.loadMore,
+                    child: const Text(AppStrings.chatLoadOlder),
+                  ),
           );
         }
         final message = messages[index];

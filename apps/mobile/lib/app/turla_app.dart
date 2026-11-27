@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -30,6 +32,7 @@ class _TurlaAppState extends State<TurlaApp> {
   late final SelectedCityCubit _selectedCityCubit;
   late final NotificationCenterCubit _notificationCenter;
   late final AppRouter _appRouter;
+  StreamSubscription<void>? _passwordRecovery;
 
   @override
   void initState() {
@@ -38,10 +41,15 @@ class _TurlaAppState extends State<TurlaApp> {
     _selectedCityCubit = getIt<SelectedCityCubit>()..load();
     _notificationCenter = getIt<NotificationCenterCubit>();
     _appRouter = AppRouter(sessionBloc: _sessionBloc, selectedCityCubit: _selectedCityCubit);
+    // Şifre sıfırlama bağlantısıyla açıldı: oturum kuruldu, yeni şifre ekranı açılır.
+    _passwordRecovery = getIt<AuthRepository>().passwordRecoveryRequests.listen(
+      (_) => _appRouter.router.go(AppRoutes.resetPassword),
+    );
   }
 
   @override
   void dispose() {
+    _passwordRecovery?.cancel();
     _appRouter.dispose();
     _sessionBloc.close();
     _selectedCityCubit.close();

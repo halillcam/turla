@@ -22,9 +22,9 @@ abstract final class ConfirmDialog {
             onPressed: () => Navigator.of(dialogContext).pop(false),
             child: const Text(AppStrings.dialogDismiss),
           ),
-          TextButton(
+          FilledButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            style: isDestructive ? TextButton.styleFrom(foregroundColor: AppColors.error) : null,
+            style: isDestructive ? FilledButton.styleFrom(backgroundColor: AppColors.error) : null,
             child: Text(confirmLabel),
           ),
         ],

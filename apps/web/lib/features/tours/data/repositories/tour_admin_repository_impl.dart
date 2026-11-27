@@ -132,7 +132,7 @@ class TourAdminRepositoryImpl implements TourAdminRepository {
         .from(ProgramDayModel.table)
         .select(ProgramDayModel.columns)
         .eq('tour_id', tourId)
-        .order('day_no');
+        .order('day_no', ascending: true);
     return rows.map(ProgramDayModel.fromRow).toList();
   });
 
@@ -156,7 +156,7 @@ class TourAdminRepositoryImpl implements TourAdminRepository {
         .from(DepartureModel.table)
         .select(DepartureModel.columns)
         .eq('tour_id', tourId)
-        .order('departure_at');
+        .order('departure_at', ascending: true);
     return rows.map(DepartureModel.fromRow).toList();
   });
 
@@ -185,5 +185,17 @@ class TourAdminRepositoryImpl implements TourAdminRepository {
   @override
   Future<void> deleteDeparture(String departureId) => guardPanel(() async {
     await _client.from(DepartureModel.table).delete().eq('id', departureId);
+  });
+
+  @override
+  Future<DepartureCancellation> cancelDeparture(String departureId) => guardPanel(() async {
+    final row = await _client.rpc<Map<String, dynamic>>(
+      'cancel_departure',
+      params: {'p_departure_id': departureId},
+    );
+    return DepartureCancellation(
+      cancelledTickets: (row['cancelled_tickets'] as num).toInt(),
+      refundedTotal: (row['refunded_total'] as num).toDouble(),
+    );
   });
 }

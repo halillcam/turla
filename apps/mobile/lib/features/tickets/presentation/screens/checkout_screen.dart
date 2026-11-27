@@ -70,10 +70,6 @@ class CheckoutScreen extends StatelessWidget {
           final ticket = state.ticket;
           if (state.status == CheckoutStatus.success && ticket != null) {
             return Scaffold(
-              appBar: AppBar(
-                title: const Text(AppStrings.purchaseSuccessTitle),
-                automaticallyImplyLeading: false,
-              ),
               body: PurchaseSuccessView(
                 ticket: ticket,
                 onMyTickets: () => context.go(AppRoutes.myTickets),

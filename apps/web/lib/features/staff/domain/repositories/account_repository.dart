@@ -19,6 +19,10 @@ abstract interface class AccountRepository {
   /// hesaba (REH-/MUS-) yeni geçici şifre verir, şifreyi döndürür (bir kez gösterilir).
   Future<String> resetPassword(String profileId);
 
+  /// `create-account` Edge Function'ının `admin_emails` aksiyonu (sadece super admin):
+  /// firma yöneticilerinin e-postaları, profil kimliğine göre.
+  Future<Map<String, String>> adminEmails(String companyId);
+
   /// `set_profile_active` ile hesabı aktif / pasif yapar.
   Future<void> setActive(String profileId, {required bool isActive});
 }

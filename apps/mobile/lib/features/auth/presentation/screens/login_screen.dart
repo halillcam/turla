@@ -5,6 +5,7 @@ import 'package:turla_core/turla_core.dart';
 
 import '../../../../app/router/app_routes.dart';
 import '../../../../core/constants/strings.dart';
+import '../../../../core/widgets/app_snack_bar.dart';
 import '../../../../core/di/injection.dart';
 import '../cubit/login_cubit.dart';
 import '../utils/auth_failure_message.dart';
@@ -29,12 +30,10 @@ class LoginScreen extends StatelessWidget {
             AuthNavigation.afterSignIn(context, role);
             return;
           }
-          ScaffoldMessenger.of(context)
-            ..hideCurrentSnackBar()
-            ..showSnackBar(SnackBar(content: Text(state.failure!.message)));
+          AppSnackBar.show(context, state.failure!.message, isError: true);
         },
         child: Scaffold(
-          appBar: AppBar(),
+          appBar: AppBar(shape: const Border()),
           body: SafeArea(
             child: ListView(
               padding: AppPaddings.screen,
@@ -42,6 +41,14 @@ class LoginScreen extends StatelessWidget {
                 const AuthHeader(title: AppStrings.loginTitle, subtitle: AppStrings.loginSubtitle),
                 const SizedBox(height: AppSpacing.xl),
                 const LoginForm(),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () => context.push(AppRoutes.forgotPassword),
+                    style: TextButton.styleFrom(textStyle: AppTextStyles.labelMedium),
+                    child: const Text(AppStrings.forgotPassword),
+                  ),
+                ),
                 const SizedBox(height: AppSpacing.md),
                 AuthFooterLink(
                   question: AppStrings.noAccount,

@@ -19,6 +19,24 @@ extension ActiveTourDisplay on ActiveTour {
     return parts.isEmpty ? AppStrings.notSpecified : parts.join(' · ');
   }
 
+  /// Araç kartının ana satırı: plaka; plaka yoksa şoför adı ya da "Belirtilmedi".
+  String get vehicleTitle {
+    final plate = busPlate?.trim() ?? '';
+    if (plate.isNotEmpty) return plate;
+    final driver = driverName?.trim() ?? '';
+    return driver.isNotEmpty ? driver : AppStrings.notSpecified;
+  }
+
+  /// Plakanın yanındaki "· Şoför Mehmet Kaya" (plaka ya da şoför yoksa null).
+  String? get vehicleDriverDetail {
+    final plate = busPlate?.trim() ?? '';
+    final driver = driverName?.trim() ?? '';
+    if (plate.isEmpty || driver.isEmpty) return null;
+    return '${AppStrings.nameSeparator}${AppStrings.driver} $driver';
+  }
+
+  bool get hasVehiclePlate => (busPlate?.trim() ?? '').isNotEmpty;
+
   bool get hasDriverPhone => (driverPhone ?? '').trim().isNotEmpty;
 
   String get companyPhoneLabel => _orFallback(companyPhone, AppStrings.notSpecified);
@@ -35,9 +53,13 @@ extension ChatMessageDisplay on ChatMessage {
     UserRole.customer => null,
   };
 
+  /// Gönderen adı; kendi mesajında "Sen".
+  String senderDisplayName(String? currentUserId) =>
+      isMine(currentUserId) ? AppStrings.you : senderName;
+
   /// "Ahmet Yılmaz · Tur sorumlusu"
   String senderLabel(String? currentUserId) {
-    final name = isMine(currentUserId) ? AppStrings.you : senderName;
+    final name = senderDisplayName(currentUserId);
     final tag = roleTag;
     return tag == null ? name : '$name · $tag';
   }

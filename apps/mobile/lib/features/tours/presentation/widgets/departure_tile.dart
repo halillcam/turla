@@ -5,7 +5,8 @@ import '../../../../core/utils/formatters.dart';
 import '../../domain/entities/tour_departure.dart';
 import 'seats_badge.dart';
 
-/// Kalkış tarihi satırı: tarih, saat ve boş koltuk. Dokununca seçilir (dolu tarih seçilemez).
+/// Kalkış tarihi seçim kartı: tarih · saat ve boş koltuk. Dokununca seçilir; dolu tarih
+/// soluk görünür ve seçilemez.
 class DepartureTile extends StatelessWidget {
   const DepartureTile({
     required this.departure,
@@ -22,40 +23,55 @@ class DepartureTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final isEnabled = !departure.isSoldOut;
+    final background = isSelected
+        ? AppColors.primaryTint
+        : isEnabled
+        ? AppColors.surface
+        : AppColors.surfaceMuted;
+    final dateStyle = isSelected
+        ? textTheme.labelLarge?.copyWith(color: AppColors.primary)
+        : textTheme.bodyMedium?.copyWith(
+            color: isEnabled ? AppColors.textPrimary : AppColors.textSecondary,
+          );
+
     return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+      padding: AppMargins.listItem,
       child: Material(
-        color: isSelected ? AppColors.primaryLight : AppColors.surface,
+        color: background,
         shape: RoundedRectangleBorder(
-          borderRadius: AppRadius.mdAll,
+          borderRadius: AppRadius.lgAll,
           side: BorderSide(
             color: isSelected ? AppColors.primary : AppColors.border,
             width: AppSizes.borderWidth,
           ),
         ),
         child: InkWell(
-          borderRadius: AppRadius.mdAll,
+          borderRadius: AppRadius.lgAll,
           onTap: isEnabled ? onSelected : null,
           child: Padding(
-            padding: AppPaddings.allMd,
+            padding: AppPaddings.tourCard,
             child: Row(
               children: [
                 Icon(
                   isSelected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
-                  size: AppSizes.iconMd,
-                  color: isEnabled ? AppColors.primary : AppColors.textMuted,
+                  size: AppSizes.navigationIcon,
+                  color: isSelected ? AppColors.primary : AppColors.textSecondary,
                 ),
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(Formatters.date(departure.departureAt), style: textTheme.bodyLarge),
-                      Text(Formatters.time(departure.departureAt), style: textTheme.bodySmall),
+                      Text(
+                        '${Formatters.date(departure.departureAt)} · '
+                        '${Formatters.time(departure.departureAt)}',
+                        style: dateStyle?.copyWith(fontFeatures: AppTextStyles.tabularFigures),
+                      ),
+                      const SizedBox(height: AppSpacing.xs),
+                      SeatsBadge(seatsLeft: departure.seatsLeft),
                     ],
                   ),
                 ),
-                SeatsBadge(seatsLeft: departure.seatsLeft),
               ],
             ),
           ),

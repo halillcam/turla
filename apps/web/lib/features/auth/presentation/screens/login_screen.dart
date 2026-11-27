@@ -33,7 +33,7 @@ class LoginScreen extends StatelessWidget {
                 constraints: const BoxConstraints(maxWidth: AppSizes.loginFormMaxWidth),
                 child: Card(
                   child: Padding(
-                    padding: AppPaddings.allXl,
+                    padding: AppPaddings.panelPage,
                     child: BlocBuilder<LoginCubit, LoginState>(
                       builder: (context, state) => LoginForm(
                         isSubmitting: state.isSubmitting,

@@ -104,6 +104,7 @@ class _TitleBodyFormDialogState extends State<_TitleBodyFormDialog> {
             children: [
               if (widget.targets.isNotEmpty) ...[
                 DropdownButtonFormField<String?>(
+                  style: PanelTextStyles.body,
                   menuMaxHeight: AppSizes.dropdownMenuMaxHeight,
                   initialValue: _target,
                   decoration: InputDecoration(labelText: widget.targetLabel),
@@ -143,10 +144,7 @@ class _TitleBodyFormDialogState extends State<_TitleBodyFormDialog> {
           onPressed: _submitting ? null : () => Navigator.pop(context, false),
           child: const Text(AppStrings.cancel),
         ),
-        FilledButton(
-          onPressed: _submitting ? null : _submit,
-          child: Text(widget.submitLabel),
-        ),
+        FilledButton(onPressed: _submitting ? null : _submit, child: Text(widget.submitLabel)),
       ],
     );
   }

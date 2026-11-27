@@ -35,7 +35,7 @@ class _TurlaAppState extends State<TurlaApp> {
       child: MaterialApp.router(
         title: AppStrings.panelTitle,
         debugShowCheckedModeBanner: false,
-        theme: AppTheme.light,
+        theme: AppTheme.panel,
         routerConfig: _appRouter.router,
         locale: _turkish,
         supportedLocales: const [_turkish],

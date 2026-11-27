@@ -7,6 +7,7 @@ import '../utils/tour_display.dart';
 import 'seats_badge.dart';
 import 'tour_image.dart';
 
+/// Tur kartı: görsel (16:10), başlık, firma, ilk kalkış, koltuk rozeti ve fiyat.
 class TourCard extends StatelessWidget {
   const TourCard({
     required this.tour,
@@ -26,16 +27,18 @@ class TourCard extends StatelessWidget {
 
     return Card(
       margin: margin,
-      clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: onTap,
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            TourImage(imageUrl: tour.imageUrl, height: AppSizes.tourCardImageHeight),
+            AspectRatio(
+              aspectRatio: AppSizes.tourCardImageAspect,
+              child: TourImage(imageUrl: tour.imageUrl),
+            ),
             Padding(
-              padding: AppPaddings.card,
+              padding: AppPaddings.tourCard,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -45,33 +48,45 @@ class TourCard extends StatelessWidget {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: AppSpacing.xxs),
+                  const SizedBox(height: AppSpacing.xs),
                   Text(
                     tour.companyName,
                     style: textTheme.bodySmall,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: AppSpacing.md),
+                  const SizedBox(height: AppSpacing.sm),
                   Row(
                     children: [
                       const Icon(
-                        Icons.event,
+                        Icons.calendar_today_outlined,
                         size: AppSizes.iconSm,
                         color: AppColors.textSecondary,
                       ),
                       const SizedBox(width: AppSpacing.xs),
-                      Expanded(child: Text(tour.nextDepartureLabel, style: textTheme.bodyMedium)),
-                      Text(
-                        Formatters.price(tour.price),
-                        style: textTheme.titleMedium?.copyWith(color: AppColors.primary),
+                      Expanded(
+                        child: Text(
+                          tour.nextDepartureLabel,
+                          style: textTheme.bodySmall?.copyWith(
+                            fontFeatures: AppTextStyles.tabularFigures,
+                          ),
+                        ),
                       ),
                     ],
                   ),
-                  if (next != null) ...[
-                    const SizedBox(height: AppSpacing.sm),
-                    SeatsBadge(seatsLeft: next.seatsLeft),
-                  ],
+                  const SizedBox(height: AppSpacing.md),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: next == null ? null : SeatsBadge(seatsLeft: next.seatsLeft),
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      Text(Formatters.price(tour.price), style: AppTextStyles.price),
+                    ],
+                  ),
                 ],
               ),
             ),

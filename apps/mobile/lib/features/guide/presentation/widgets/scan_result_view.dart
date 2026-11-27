@@ -2,15 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:turla_core/turla_core.dart';
 
 import '../../../../core/constants/strings.dart';
+import '../../../../core/widgets/status_circle.dart';
 import '../../domain/entities/check_in_result.dart';
 import '../utils/guide_display.dart';
 
-/// Okutma sonucu: yeşil (katıldı) veya kırmızı/turuncu (sorun), "Sıradaki yolcu".
+/// Okutma sonucu kartı: tonlu daire içinde ikon, başlık, yolcu adı, açıklama ve
+/// "Sıradaki yolcu". Yeşil (katıldı), turuncu (daha önce okutulmuş), kırmızı (sorun).
 class ScanResultView extends StatelessWidget {
   const ScanResultView({
     required this.title,
     required this.message,
-    required this.color,
+    required this.tone,
     required this.icon,
     required this.onNext,
     required this.onBackToList,
@@ -23,16 +25,18 @@ class ScanResultView extends StatelessWidget {
     required VoidCallback onNext,
     required VoidCallback onBackToList,
   }) {
-    final (color, icon) = switch (result.code) {
-      CheckInCode.ok => (AppColors.arrived, Icons.check_circle),
-      CheckInCode.alreadyUsed => (AppColors.warning, Icons.history),
-      _ => (AppColors.notArrived, Icons.error),
+    final (tone, icon) = switch (result.code) {
+      CheckInCode.ok => (AppTone.success, Icons.check_circle),
+      CheckInCode.alreadyUsed => (AppTone.warning, Icons.history),
+      CheckInCode.wrongDeparture => (AppTone.error, Icons.event_busy),
+      CheckInCode.notFound => (AppTone.error, Icons.search_off),
+      _ => (AppTone.error, Icons.error_outline),
     };
     return ScanResultView(
       title: result.title,
       message: result.message,
       passengerName: result.passengerName,
-      color: color,
+      tone: tone,
       icon: icon,
       onNext: onNext,
       onBackToList: onBackToList,
@@ -42,7 +46,7 @@ class ScanResultView extends StatelessWidget {
   final String title;
   final String message;
   final String? passengerName;
-  final Color color;
+  final AppTone tone;
   final IconData icon;
   final VoidCallback onNext;
   final VoidCallback onBackToList;
@@ -52,34 +56,47 @@ class ScanResultView extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     final name = passengerName;
 
-    return Padding(
-      padding: AppPaddings.allXl,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Icon(icon, size: AppSizes.statusIconLarge, color: color),
-          const SizedBox(height: AppSpacing.lg),
-          Text(
-            title,
-            style: textTheme.headlineSmall?.copyWith(color: color),
-            textAlign: TextAlign.center,
+    return Center(
+      child: SingleChildScrollView(
+        padding: AppPaddings.screen,
+        child: Card(
+          child: Padding(
+            padding: AppPaddings.allXl,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Center(
+                  child: StatusCircle(icon: icon, tone: tone),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                Text(
+                  title,
+                  style: textTheme.titleLarge?.copyWith(color: tone.foreground),
+                  textAlign: TextAlign.center,
+                ),
+                if (name != null) ...[
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(name, style: textTheme.headlineSmall, textAlign: TextAlign.center),
+                ],
+                const SizedBox(height: AppSpacing.sm),
+                Text(
+                  message,
+                  style: textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: AppSpacing.xl),
+                ElevatedButton.icon(
+                  onPressed: onNext,
+                  icon: const Icon(Icons.qr_code_scanner, size: AppSizes.iconMd),
+                  label: const Text(AppStrings.nextPassenger),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                TextButton(onPressed: onBackToList, child: const Text(AppStrings.backToList)),
+              ],
+            ),
           ),
-          if (name != null) ...[
-            const SizedBox(height: AppSpacing.sm),
-            Text(name, style: textTheme.titleLarge, textAlign: TextAlign.center),
-          ],
-          const SizedBox(height: AppSpacing.sm),
-          Text(message, style: textTheme.bodyMedium, textAlign: TextAlign.center),
-          const SizedBox(height: AppSpacing.xxl),
-          ElevatedButton.icon(
-            onPressed: onNext,
-            icon: const Icon(Icons.qr_code_scanner),
-            label: const Text(AppStrings.nextPassenger),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          TextButton(onPressed: onBackToList, child: const Text(AppStrings.backToList)),
-        ],
+        ),
       ),
     );
   }

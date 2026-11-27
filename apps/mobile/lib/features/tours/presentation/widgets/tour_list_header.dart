@@ -3,12 +3,13 @@ import 'package:turla_core/turla_core.dart';
 
 import '../../../../core/constants/strings.dart';
 
-/// Kalkış şehri ve arama kutusu.
+/// Kalkış şehri, bildirim zili ve arama kutusu.
 class TourListHeader extends StatelessWidget {
   const TourListHeader({
     required this.cityName,
     required this.onChangeCity,
     required this.onSearchChanged,
+    this.trailing,
     super.key,
   });
 
@@ -16,26 +17,51 @@ class TourListHeader extends StatelessWidget {
   final VoidCallback onChangeCity;
   final ValueChanged<String> onSearchChanged;
 
+  /// Sağ üstte gösterilecek ek düğme (bildirim zili).
+  final Widget? trailing;
+
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    final action = trailing;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            const Icon(Icons.place_outlined, size: AppSizes.iconMd, color: AppColors.primary),
-            const SizedBox(width: AppSpacing.xs),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(AppStrings.departingFrom, style: textTheme.bodySmall),
-                  Text(cityName, style: textTheme.titleMedium),
+                  Text(
+                    AppStrings.departingFrom,
+                    style: textTheme.labelSmall?.copyWith(color: AppColors.textSecondary),
+                  ),
+                  const SizedBox(height: AppSpacing.xxs),
+                  Row(
+                    children: [
+                      const Icon(Icons.place, size: AppSizes.iconMd, color: AppColors.primary),
+                      const SizedBox(width: AppSpacing.xs),
+                      Flexible(
+                        child: Text(
+                          cityName,
+                          style: textTheme.headlineSmall,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
-            TextButton(onPressed: onChangeCity, child: const Text(AppStrings.change)),
+            TextButton(
+              onPressed: onChangeCity,
+              style: TextButton.styleFrom(textStyle: AppTextStyles.labelMedium),
+              child: const Text(AppStrings.change),
+            ),
+            ?action,
           ],
         ),
         const SizedBox(height: AppSpacing.md),
@@ -44,7 +70,7 @@ class TourListHeader extends StatelessWidget {
           textInputAction: TextInputAction.search,
           decoration: const InputDecoration(
             hintText: AppStrings.tourSearchHint,
-            prefixIcon: Icon(Icons.search),
+            prefixIcon: Icon(Icons.search, size: AppSizes.iconMd),
           ),
         ),
       ],

@@ -11,20 +11,11 @@ class StaleDataBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return ToneBanner(
+      message: message,
+      icon: Icons.wifi_off,
+      tone: AppTone.warning,
       margin: AppMargins.cardList,
-      padding: AppPaddings.allMd,
-      decoration: BoxDecoration(
-        color: AppColors.warning.withValues(alpha: 0.12),
-        borderRadius: AppRadius.mdAll,
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.wifi_off, size: AppSizes.iconMd, color: AppColors.warning),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(child: Text(message, style: Theme.of(context).textTheme.bodyMedium)),
-        ],
-      ),
     );
   }
 }

@@ -5,6 +5,9 @@ abstract final class AppRoutes {
   static const String splash = '/';
   static const String login = '/login';
   static const String register = '/register';
+  static const String forgotPassword = '/forgot-password';
+  // Şifre sıfırlama bağlantısıyla açılan yeni şifre ekranı (kurtarma oturumu açıkken).
+  static const String resetPassword = '/reset-password';
   static const String citySelection = '/city';
   static const String tours = '/tours';
   static const String tourDetailParam = 'tourId';
@@ -48,5 +51,5 @@ abstract final class AppRoutes {
       location == guideHome || location.startsWith('$guideHome/');
 
   /// Misafirin girebildiği giriş ekranları.
-  static const Set<String> authRoutes = {login, register};
+  static const Set<String> authRoutes = {login, register, forgotPassword};
 }

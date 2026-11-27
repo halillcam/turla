@@ -16,6 +16,10 @@ class AuthRepositoryImpl implements AuthRepository {
   static const String _profilesTable = 'profiles';
   static const String _fullNameMetaKey = 'full_name';
 
+  /// Şifre sıfırlama e-postasındaki bağlantının açacağı adres (Android intent filter ile
+  /// aynı). Supabase panelinde Auth > URL Configuration > Redirect URLs listesinde olmalı.
+  static const String passwordResetRedirect = 'com.turla.app://login-callback';
+
   final SupabaseClient _client;
 
   GoTrueClient get _auth => _client.auth;
@@ -73,6 +77,19 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<void> signOut() => _guard(_auth.signOut);
 
   @override
+  Future<void> sendPasswordReset(String email) =>
+      _guard(() => _auth.resetPasswordForEmail(email.trim(), redirectTo: passwordResetRedirect));
+
+  @override
+  Stream<void> get passwordRecoveryRequests => _auth.onAuthStateChange
+      .where((state) => state.event == AuthChangeEvent.passwordRecovery)
+      .map((_) {});
+
+  @override
+  Future<void> updatePassword(String newPassword) =>
+      _guard(() => _auth.updateUser(UserAttributes(password: newPassword)));
+
+  @override
   Future<void> updateSelectedCity(int cityId) => _guard(() async {
     final user = _auth.currentUser;
     if (user == null) return;
@@ -124,6 +141,8 @@ class AuthRepositoryImpl implements AuthRepository {
         return AuthFailureReason.userAlreadyExists;
       case 'weak_password':
         return AuthFailureReason.weakPassword;
+      case 'same_password':
+        return AuthFailureReason.samePassword;
       case 'over_request_rate_limit':
       case 'over_email_send_rate_limit':
         return AuthFailureReason.rateLimited;

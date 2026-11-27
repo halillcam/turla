@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:turla_core/turla_core.dart';
 
-import '../../../../core/constants/strings.dart';
+import '../../../../core/widgets/see_all_button.dart';
 import '../../domain/entities/tour.dart';
 import '../cubit/tour_list_cubit.dart';
 import 'tour_card.dart';
@@ -27,23 +27,10 @@ class RegionSectionView extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: AppPaddings.horizontalLg,
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    section.region.label.toUpperCase(),
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 1,
-                    ),
-                  ),
-                ),
-                TextButton(onPressed: onSeeAll, child: const Text(AppStrings.seeAll)),
-              ],
-            ),
+          SectionHeader(
+            title: section.region.label.turkishUpper,
+            padding: AppPaddings.sectionHeader,
+            trailing: SeeAllButton(onPressed: onSeeAll),
           ),
           // Bir bölgede birkaç tur olur; kartlar içeriğine göre aynı yükseklikte dizilir
           // (sabit yükseklik büyük yazı boyutunda taşardı).

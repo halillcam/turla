@@ -76,8 +76,11 @@ class Ticket extends Equatable {
   );
 
   /// Sunucudan canlı gelen durum değişikliği (ör. tur sorumlusu QR'ı okuttu).
-  Ticket withLiveChange({required TicketStatus status, DateTime? scannedAt, DateTime? cancelledAt}) =>
-      _copyWith(status: status, scannedAt: scannedAt, cancelledAt: cancelledAt);
+  Ticket withLiveChange({
+    required TicketStatus status,
+    DateTime? scannedAt,
+    DateTime? cancelledAt,
+  }) => _copyWith(status: status, scannedAt: scannedAt, cancelledAt: cancelledAt);
 
   Ticket _copyWith({
     TicketStatus? status,

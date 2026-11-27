@@ -7,6 +7,7 @@ import 'app_routes.dart';
 /// Kurallar:
 /// - Oturum veya seçili il henüz yüklenmediyse açılış ekranı gösterilir.
 /// - Tur sorumlusu sadece kendi ekranını görür.
+/// - Yeni şifre ekranı sadece oturum varken (sıfırlama bağlantısı) açılır.
 /// - Giriş yapmış kullanıcı giriş/kayıt ekranına dönmez.
 /// - İl seçilmemişse (giriş ekranları hariç) önce şehir seçimi açılır.
 abstract final class RouteGuard {
@@ -17,6 +18,11 @@ abstract final class RouteGuard {
   }) {
     final isReady = session.status != SessionStatus.unknown && !city.isLoading;
     if (!isReady) return location == AppRoutes.splash ? null : AppRoutes.splash;
+
+    // Yeni şifre ekranı sadece sıfırlama bağlantısıyla açılan oturumda anlamlı; il seçimi beklenmez.
+    if (location == AppRoutes.resetPassword) {
+      return session.isSignedIn ? null : AppRoutes.login;
+    }
 
     if (session.isGuide) {
       return AppRoutes.isGuideRoute(location) ? null : AppRoutes.guideHome;

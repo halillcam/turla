@@ -7,6 +7,7 @@ class SubmitButton extends StatelessWidget {
     required this.label,
     required this.isLoading,
     required this.onPressed,
+    this.loadingLabel,
     super.key,
   });
 
@@ -14,16 +15,32 @@ class SubmitButton extends StatelessWidget {
   final bool isLoading;
   final VoidCallback onPressed;
 
+  /// İşlem sürerken göstergenin yanında yazılacak metin ("Bilet hazırlanıyor...").
+  final String? loadingLabel;
+
   @override
   Widget build(BuildContext context) {
+    final busyLabel = loadingLabel;
     return ElevatedButton(
       onPressed: isLoading ? null : onPressed,
       child: isLoading
-          ? const SizedBox.square(
-              dimension: AppSizes.iconMd,
-              child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.onPrimary),
+          ? Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox.square(
+                  dimension: AppSizes.iconSm,
+                  child: CircularProgressIndicator(
+                    strokeWidth: AppSizes.progressStroke,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                if (busyLabel != null) ...[
+                  const SizedBox(width: AppSpacing.sm),
+                  Flexible(child: Text(busyLabel, overflow: TextOverflow.ellipsis)),
+                ],
+              ],
             )
-          : Text(label),
+          : Text(label, textAlign: TextAlign.center),
     );
   }
 }

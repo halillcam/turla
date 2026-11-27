@@ -97,6 +97,12 @@ void main() {
     await tester.pumpWidget(_app(CheckoutScreen(args: _args), session));
     await tester.pumpAndSettle();
 
+    // Demo notu formun altında: liste kaydırılınca görünür.
+    await tester.scrollUntilVisible(
+      find.text(AppStrings.demoPaymentNote),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
     expect(find.text(AppStrings.demoPaymentNote), findsOneWidget);
     expect(find.widgetWithText(TextFormField, 'Test Kullanıcı'), findsOneWidget);
     expect(find.widgetWithText(TextFormField, '0532 111 22 33'), findsOneWidget);
@@ -150,6 +156,11 @@ void main() {
     await tester.enterText(find.byKey(const Key('checkout-phone')), '0532 111 22 33');
     await _tapVisible(tester, find.textContaining(AppStrings.completePayment));
     await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text(AppStrings.errorNoSeatsLeft),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
     expect(find.text(AppStrings.errorNoSeatsLeft), findsOneWidget);
   });
 

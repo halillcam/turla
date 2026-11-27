@@ -19,6 +19,7 @@ enum PanelFailureReason {
   alreadyHasTicket,
   noSeatsLeft,
   departureNotBookable,
+  departureNotCancellable,
   ticketNotCancellable,
   notResettable,
   rateLimited,

@@ -176,3 +176,19 @@ export function generatePassword(randomInt: (max: number) => number): string {
   }
   return password;
 }
+
+export interface AdminEmailsPlan {
+  ok: true;
+  companyId: string;
+}
+
+/**
+ * Firma yöneticilerinin e-postalarını kim görebilir? (Faz 6)
+ * Sadece aktif super admin; e-postalar auth.users'ta durur, profiles'ta tutulmaz.
+ */
+export function planAdminEmails(caller: Caller, companyId: unknown): AdminEmailsPlan | PlanError {
+  if (!caller.isActive || caller.role !== 'super_admin') return fail(403, 'not_allowed');
+  const id = text(companyId);
+  if (!UUID_RE.test(id)) return fail(400, 'invalid_body');
+  return { ok: true, companyId: id };
+}

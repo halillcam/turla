@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:turla_core/turla_core.dart';
 
+import '../../../../core/widgets/panel_page.dart';
+
 import '../../../../core/bloc/load_status.dart';
 import '../../../../core/constants/strings.dart';
 import '../../../../core/utils/failure_messages.dart';
@@ -10,6 +12,7 @@ import '../../../../core/widgets/dialogs.dart';
 import '../../../../core/widgets/status_view.dart';
 import '../../../tickets/presentation/widgets/participants_dialog.dart';
 import '../../domain/entities/departure.dart';
+import '../utils/departure_display.dart';
 import '../cubit/departures_cubit.dart';
 import 'departure_form_dialog.dart';
 
@@ -48,6 +51,7 @@ class DeparturesPanel extends StatelessWidget {
       title: AppStrings.deleteConfirmTitle,
       message: '${Formatters.dateTime(departure.departureAt)}\n${AppStrings.deleteConfirmMessage}',
       confirmLabel: AppStrings.delete,
+      isDestructive: true,
     );
     if (!confirmed) return;
     final result = await cubit.delete(departure.id);
@@ -56,9 +60,27 @@ class DeparturesPanel extends StatelessWidget {
     }
   }
 
+  Future<void> _cancel(BuildContext context, Departure departure) async {
+    final cubit = context.read<DeparturesCubit>();
+    final confirmed = await showConfirmDialog(
+      context,
+      title: AppStrings.cancelDepartureTitle,
+      message:
+          '${Formatters.dateTime(departure.departureAt)}\n${AppStrings.cancelDepartureMessage}',
+      confirmLabel: AppStrings.cancelDepartureConfirm,
+      isDestructive: true,
+    );
+    if (!confirmed) return;
+    final result = await cubit.cancel(departure.id);
+    if (context.mounted) {
+      showMessage(context, result.isSuccess ? result.value!.summary : result.failure!.message);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = context.watch<DeparturesCubit>().state;
+    final now = DateTime.now();
 
     return switch (state.status) {
       LoadStatus.initial || LoadStatus.loading => const StatusView.loading(),
@@ -84,8 +106,7 @@ class DeparturesPanel extends StatelessWidget {
             child: state.departures.isEmpty
                 ? const StatusView.message(message: AppStrings.departuresEmpty)
                 : SingleChildScrollView(
-                    child: SizedBox(
-                      width: double.infinity,
+                    child: PanelTableCard(
                       child: DataTable(
                         columns: const [
                           DataColumn(label: Text(AppStrings.departureDate)),
@@ -105,7 +126,12 @@ class DeparturesPanel extends StatelessWidget {
                                   Text(state.guideName(departure.guideId) ?? AppStrings.noGuide),
                                 ),
                                 DataCell(Text(departure.busPlate ?? AppStrings.empty)),
-                                DataCell(Text(departure.status.label)),
+                                DataCell(
+                                  ToneBadge(
+                                    label: departure.status.label,
+                                    tone: departure.status.tone,
+                                  ),
+                                ),
                                 DataCell(
                                   Row(
                                     mainAxisSize: MainAxisSize.min,
@@ -126,6 +152,14 @@ class DeparturesPanel extends StatelessWidget {
                                             ? AppStrings.edit
                                             : AppStrings.departureLocked,
                                       ),
+                                      if (departure.canBeCancelledAt(now))
+                                        IconButton(
+                                          onPressed: state.isBusy
+                                              ? null
+                                              : () => _cancel(context, departure),
+                                          icon: const Icon(Icons.event_busy_outlined),
+                                          tooltip: AppStrings.cancelDeparture,
+                                        ),
                                       IconButton(
                                         onPressed: state.isBusy
                                             ? null

@@ -41,6 +41,7 @@ class _ToursView extends StatelessWidget {
       title: AppStrings.deleteConfirmTitle,
       message: '${tour.title}\n${AppStrings.deleteConfirmMessage}',
       confirmLabel: AppStrings.delete,
+      isDestructive: true,
     );
     if (!confirmed) return;
     final result = await cubit.delete(tour);
@@ -77,8 +78,7 @@ class _ToursView extends StatelessWidget {
           message: AppStrings.toursEmpty,
         ),
         LoadStatus.ready => SingleChildScrollView(
-          child: SizedBox(
-            width: double.infinity,
+          child: PanelTableCard(
             child: DataTable(
               showCheckboxColumn: false,
               columns: const [

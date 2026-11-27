@@ -44,10 +44,21 @@ class CompanyDetailCubit extends Cubit<CompanyDetailState> {
           cities: await _cities.getCities(),
         ),
       );
+      await _loadAdminEmails();
     } on PanelFailure catch (failure) {
       emit(state.copyWith(status: LoadStatus.failure, loadFailure: failure.reason));
     } on CitiesUnavailableException {
       emit(state.copyWith(status: LoadStatus.failure, loadFailure: PanelFailureReason.network));
+    }
+  }
+
+  /// E-postalar ayrı (Edge Function) okunur; okunamazsa sayfa yine açılır, sütun boş kalır.
+  Future<void> _loadAdminEmails() async {
+    try {
+      final emails = await _accounts.adminEmails(companyId);
+      if (!isClosed) emit(state.copyWith(adminEmails: emails));
+    } on PanelFailure {
+      // Sütun boş kalır.
     }
   }
 
@@ -88,7 +99,12 @@ class CompanyDetailCubit extends Cubit<CompanyDetailState> {
       isActive: true,
       phone: phone,
     );
-    emit(state.copyWith(admins: [...state.admins, admin]));
+    emit(
+      state.copyWith(
+        admins: [...state.admins, admin],
+        adminEmails: {...state.adminEmails, created.userId: created.email},
+      ),
+    );
     return created;
   });
 
@@ -117,6 +133,7 @@ final class CompanyDetailState extends Equatable {
     this.status = LoadStatus.initial,
     this.company,
     this.admins = const [],
+    this.adminEmails = const {},
     this.cities = const [],
     this.loadFailure,
     this.isBusy = false,
@@ -125,6 +142,9 @@ final class CompanyDetailState extends Equatable {
   final LoadStatus status;
   final Company? company;
   final List<StaffMember> admins;
+
+  /// Yönetici e-postaları (profil kimliğine göre); super admin için Edge Function'dan.
+  final Map<String, String> adminEmails;
   final List<City> cities;
   final PanelFailureReason? loadFailure;
   final bool isBusy;
@@ -133,17 +153,19 @@ final class CompanyDetailState extends Equatable {
     LoadStatus? status,
     Company? company,
     List<StaffMember>? admins,
+    Map<String, String>? adminEmails,
     PanelFailureReason? loadFailure,
     bool? isBusy,
   }) => CompanyDetailState(
     status: status ?? this.status,
     company: company ?? this.company,
     admins: admins ?? this.admins,
+    adminEmails: adminEmails ?? this.adminEmails,
     cities: cities,
     loadFailure: loadFailure ?? this.loadFailure,
     isBusy: isBusy ?? this.isBusy,
   );
 
   @override
-  List<Object?> get props => [status, company, admins, cities, loadFailure, isBusy];
+  List<Object?> get props => [status, company, admins, adminEmails, cities, loadFailure, isBusy];
 }

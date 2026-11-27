@@ -13,11 +13,11 @@ class AuthHeader extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(CoreStrings.appName, style: textTheme.titleMedium?.copyWith(color: AppColors.primary)),
+        Text(CoreStrings.appName, style: textTheme.titleLarge?.copyWith(color: AppColors.primary)),
+        const SizedBox(height: AppSpacing.md),
+        Text(title, style: textTheme.displaySmall),
         const SizedBox(height: AppSpacing.sm),
-        Text(title, style: textTheme.headlineSmall),
-        const SizedBox(height: AppSpacing.xs),
-        Text(subtitle, style: textTheme.bodyMedium),
+        Text(subtitle, style: textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary)),
       ],
     );
   }

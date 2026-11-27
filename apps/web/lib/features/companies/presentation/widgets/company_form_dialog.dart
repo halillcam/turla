@@ -95,6 +95,7 @@ class _CompanyFormDialogState extends State<_CompanyFormDialog> {
               ),
               const SizedBox(height: AppSpacing.md),
               DropdownButtonFormField<int>(
+                style: PanelTextStyles.body,
                 menuMaxHeight: AppSizes.dropdownMenuMaxHeight,
                 initialValue: _cityId,
                 decoration: const InputDecoration(labelText: AppStrings.companyCity),

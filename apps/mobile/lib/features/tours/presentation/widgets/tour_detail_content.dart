@@ -8,7 +8,7 @@ import 'program_day_card.dart';
 import 'section_title.dart';
 import 'tour_image.dart';
 
-/// Tur detayının kaydırılabilir içeriği.
+/// Tur detayının kaydırılabilir içeriği: tam genişlikte kapak, başlık, program, tarihler.
 class TourDetailContent extends StatelessWidget {
   const TourDetailContent({
     required this.tour,
@@ -30,37 +30,45 @@ class TourDetailContent extends StatelessWidget {
         SliverAppBar(
           pinned: true,
           expandedHeight: AppSizes.tourDetailImageHeight,
-          flexibleSpace: FlexibleSpaceBar(
-            background: TourImage(imageUrl: tour.imageUrl, height: AppSizes.tourDetailImageHeight),
-          ),
+          flexibleSpace: FlexibleSpaceBar(background: TourImage(imageUrl: tour.imageUrl)),
         ),
         SliverPadding(
-          padding: AppPaddings.screen,
+          padding: AppPaddings.detailBody,
           sliver: SliverList.list(
             children: [
               Text(
                 tour.region.label,
-                style: textTheme.bodySmall?.copyWith(color: AppColors.primary),
+                style: textTheme.labelMedium?.copyWith(color: AppColors.primary),
               ),
-              const SizedBox(height: AppSpacing.xs),
-              Text(tour.title, style: textTheme.headlineSmall),
               const SizedBox(height: AppSpacing.sm),
-              Text('${AppStrings.organizer}: ${tour.companyName}', style: textTheme.bodyMedium),
+              Text(tour.title, style: textTheme.headlineMedium),
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                '${AppStrings.organizer}: ${tour.companyName}',
+                style: textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
+              ),
               if (tour.description.isNotEmpty) ...[
                 const SectionTitle(AppStrings.aboutTour),
-                Text(tour.description, style: textTheme.bodyLarge),
+                Text(tour.description, style: textTheme.bodyMedium),
               ],
               if (tour.programDays.isNotEmpty) ...[
                 const SectionTitle(AppStrings.program),
-                for (final day in tour.programDays) ProgramDayCard(day: day),
+                for (final (index, day) in tour.programDays.indexed)
+                  ProgramDayCard(day: day, initiallyExpanded: index == 0),
               ],
               if (tour.extraDetail.isNotEmpty) ...[
                 const SectionTitle(AppStrings.extraDetails),
-                Text(tour.extraDetail, style: textTheme.bodyMedium),
+                Text(
+                  tour.extraDetail,
+                  style: textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
+                ),
               ],
               const SectionTitle(AppStrings.departures),
               if (tour.departures.isEmpty)
-                Text(AppStrings.noUpcomingDepartures, style: textTheme.bodyMedium)
+                Text(
+                  AppStrings.noUpcomingDepartures,
+                  style: textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
+                )
               else
                 for (final departure in tour.departures)
                   DepartureTile(

@@ -50,10 +50,6 @@ class _TourListView extends StatelessWidget {
     );
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(CoreStrings.appName),
-        actions: const [NotificationBell()],
-      ),
       body: SafeArea(
         child: BlocBuilder<TourListCubit, TourListState>(
           builder: (context, state) {
@@ -63,12 +59,13 @@ class _TourListView extends StatelessWidget {
               child: CustomScrollView(
                 slivers: [
                   SliverPadding(
-                    padding: AppPaddings.screen,
+                    padding: AppPaddings.listHeader,
                     sliver: SliverToBoxAdapter(
                       child: TourListHeader(
                         cityName: cityName,
                         onChangeCity: () => context.push(AppRoutes.citySelection),
                         onSearchChanged: cubit.search,
+                        trailing: const NotificationBell(),
                       ),
                     ),
                   ),
@@ -117,6 +114,7 @@ class _TourListView extends StatelessWidget {
         children: [
           if (state.isStale)
             const Padding(padding: AppPaddings.horizontalLg, child: StaleDataBanner()),
+          const SizedBox(height: AppSpacing.sm),
           for (final section in sections)
             RegionSectionView(
               section: section,

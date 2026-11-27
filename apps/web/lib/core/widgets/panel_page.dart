@@ -1,32 +1,55 @@
 import 'package:flutter/material.dart';
 import 'package:turla_core/turla_core.dart';
 
-/// Panel ekranlarının ortak iskeleti: başlık, sağda işlemler, altında içerik.
+/// Panel ekranlarının ortak iskeleti: Fraunces başlık (+ isteğe bağlı açıklama),
+/// sağda işlemler, altında içerik. En fazla 1200 px genişlik, 32 px kenar boşluğu.
 class PanelPage extends StatelessWidget {
-  const PanelPage({required this.title, required this.child, this.actions = const [], super.key});
+  const PanelPage({
+    required this.title,
+    required this.child,
+    this.subtitle,
+    this.actions = const [],
+    super.key,
+  });
 
   final String title;
+  final String? subtitle;
   final List<Widget> actions;
   final Widget child;
 
   @override
   Widget build(BuildContext context) {
+    final description = subtitle;
     return Align(
       alignment: Alignment.topCenter,
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: AppSizes.panelMaxContentWidth),
         child: Padding(
-          padding: AppPaddings.allXl,
+          padding: AppPaddings.panelPage,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Row(
                 children: [
-                  Expanded(child: Text(title, style: Theme.of(context).textTheme.headlineSmall)),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(title, style: PanelTextStyles.pageTitle),
+                        if (description != null) ...[
+                          const SizedBox(height: AppSpacing.xs),
+                          Text(
+                            description,
+                            style: PanelTextStyles.body.copyWith(color: AppColors.textSecondary),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
                   for (final action in actions) ...[const SizedBox(width: AppSpacing.sm), action],
                 ],
               ),
-              const SizedBox(height: AppSpacing.lg),
+              const SizedBox(height: AppSpacing.xl),
               Expanded(child: child),
             ],
           ),
@@ -51,10 +74,24 @@ class ActiveChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Chip(
-      label: Text(isActive ? activeLabel : passiveLabel),
-      backgroundColor: isActive ? AppColors.primaryLight : AppColors.surfaceMuted,
-      visualDensity: VisualDensity.compact,
+    return ToneBadge(
+      label: isActive ? activeLabel : passiveLabel,
+      tone: isActive ? AppTone.success : AppTone.neutral,
+    );
+  }
+}
+
+/// Tabloyu saran kenarlıklı yüzey (12 px köşe, tam genişlik). Başlık satırı soluk zeminde,
+/// köşelerden kırpılır.
+class PanelTableCard extends StatelessWidget {
+  const PanelTableCard({required this.child, super.key});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: SizedBox(width: double.infinity, child: child),
     );
   }
 }

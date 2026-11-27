@@ -61,8 +61,7 @@ class _CompaniesView extends StatelessWidget {
           message: AppStrings.companiesEmpty,
         ),
         LoadStatus.ready => SingleChildScrollView(
-          child: SizedBox(
-            width: double.infinity,
+          child: PanelTableCard(
             child: DataTable(
               showCheckboxColumn: false,
               columns: const [

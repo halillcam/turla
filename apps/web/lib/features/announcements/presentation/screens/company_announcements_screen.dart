@@ -59,6 +59,7 @@ class _AnnouncementsView extends StatelessWidget {
       title: AppStrings.deleteAnnouncementTitle,
       message: announcement.title,
       confirmLabel: AppStrings.delete,
+      isDestructive: true,
     );
     if (!confirmed) return;
     final result = await cubit.delete(announcement);

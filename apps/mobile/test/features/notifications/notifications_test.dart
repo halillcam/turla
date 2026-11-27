@@ -160,7 +160,13 @@ void main() {
       remote.error = ClientException('yok');
       await expectLater(
         repository.refresh(),
-        throwsA(isA<NotificationFailure>().having((f) => f.reason, 'r', NotificationFailureReason.network)),
+        throwsA(
+          isA<NotificationFailure>().having(
+            (f) => f.reason,
+            'r',
+            NotificationFailureReason.network,
+          ),
+        ),
       );
       expect((await repository.getCached())!.single.id, 'eski');
     });

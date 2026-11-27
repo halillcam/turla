@@ -5,6 +5,7 @@ import {
   loginIdToEmail,
   generatePassword,
   planAccount,
+  planAdminEmails,
   planPasswordReset,
 } from '../functions/create-account/rules.ts';
 
@@ -96,6 +97,15 @@ check('olmayan hesap', planPasswordReset(admin, null), { ok: false, code: 'accou
   check('geçici şifre 10 karakter, karışan harf yok',
     { ok: p.length === 10 && !/[0O1lI]/.test(p) }, { ok: true });
 }
+
+// ─── Firma yöneticisi e-postaları (Faz 6) ──────────────────────────────────
+check('super admin firma yöneticisi e-postalarını görür',
+  planAdminEmails(superAdmin, company), { ok: true, companyId: company });
+check('firma admini göremez', planAdminEmails(admin, company), { ok: false, code: 'not_allowed' });
+check('rehber göremez', planAdminEmails(guide, company), { ok: false, code: 'not_allowed' });
+check('pasif super admin göremez',
+  planAdminEmails({ ...superAdmin, isActive: false }, company), { ok: false, code: 'not_allowed' });
+check('geçersiz firma kimliği', planAdminEmails(superAdmin, 'abc'), { ok: false, code: 'invalid_body' });
 
 console.log(failures === 0 ? '\nTÜM KURAL TESTLERİ GEÇTİ' : `\n${failures} TEST BAŞARISIZ`);
 process.exit(failures === 0 ? 0 : 1);

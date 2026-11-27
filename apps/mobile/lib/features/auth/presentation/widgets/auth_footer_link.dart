@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:turla_core/turla_core.dart';
 
 /// "Hesabın yok mu? Kayıt ol" gibi alt bağlantı.
 class AuthFooterLink extends StatelessWidget {
@@ -18,8 +19,12 @@ class AuthFooterLink extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text(question, style: Theme.of(context).textTheme.bodyMedium),
-        TextButton(onPressed: onPressed, child: Text(actionLabel)),
+        Text(question, style: Theme.of(context).textTheme.bodySmall),
+        TextButton(
+          onPressed: onPressed,
+          style: TextButton.styleFrom(textStyle: AppTextStyles.labelMedium),
+          child: Text(actionLabel),
+        ),
       ],
     );
   }

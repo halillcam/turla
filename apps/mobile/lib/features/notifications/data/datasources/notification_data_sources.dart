@@ -38,12 +38,10 @@ class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
   }
 
   @override
-  Future<void> markRead(String id) =>
-      _client.from(_table).update({'is_read': true}).eq('id', id);
+  Future<void> markRead(String id) => _client.from(_table).update({'is_read': true}).eq('id', id);
 
   @override
-  Future<void> markAllRead() =>
-      _client.from(_table).update({'is_read': true}).eq('is_read', false);
+  Future<void> markAllRead() => _client.from(_table).update({'is_read': true}).eq('is_read', false);
 }
 
 /// Bildirim kutusunu kullanıcı bazında cihazda saklar.

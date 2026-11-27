@@ -5,6 +5,7 @@ import 'package:turla_core/turla_core.dart';
 
 import '../../../../app/router/app_routes.dart';
 import '../../../../core/constants/strings.dart';
+import '../../../../core/widgets/app_snack_bar.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/widgets/status_view.dart';
 import '../cubit/register_cubit.dart';
@@ -30,9 +31,7 @@ class RegisterScreen extends StatelessWidget {
             AuthNavigation.afterSignIn(context, UserRole.customer);
             return;
           }
-          ScaffoldMessenger.of(context)
-            ..hideCurrentSnackBar()
-            ..showSnackBar(SnackBar(content: Text(state.failure!.message)));
+          AppSnackBar.show(context, state.failure!.message, isError: true);
         },
         builder: (context, state) {
           if (state.status == RegisterStatus.confirmationRequired) {
@@ -47,7 +46,7 @@ class RegisterScreen extends StatelessWidget {
             );
           }
           return Scaffold(
-            appBar: AppBar(),
+            appBar: AppBar(shape: const Border()),
             body: SafeArea(
               child: ListView(
                 padding: AppPaddings.screen,

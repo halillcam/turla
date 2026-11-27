@@ -57,4 +57,11 @@ void main() {
     expect(redirect(AppRoutes.guideHome, customer, withCity), AppRoutes.tours);
     expect(redirect(AppRoutes.guideScanOf('d1'), customer, withCity), AppRoutes.tours);
   });
+
+  test('şifremi unuttum ekranı il seçilmeden açılır; yeni şifre ekranı sadece oturumla', () {
+    expect(redirect(AppRoutes.forgotPassword, guest, noCity), isNull);
+    expect(redirect(AppRoutes.forgotPassword, customer, withCity), AppRoutes.tours);
+    expect(redirect(AppRoutes.resetPassword, customer, noCity), isNull);
+    expect(redirect(AppRoutes.resetPassword, guest, withCity), AppRoutes.login);
+  });
 }

@@ -485,11 +485,53 @@ Firma yöneticisi sadece kendi firmasının sayfalarına girebilir. Sistem yöne
 | `enums/` | Veritabanıyla birebir aynı tipler: roller, bölgeler, bilet durumları, tarih durumları |
 | `config/env.dart` | `.env` dosyasından okunan Supabase adresi ve anahtarı |
 | `supabase/` | Supabase bağlantısının başlatılması |
-| `theme/` | Ortak tema |
+| `theme/` | Ortak tema (mobil `AppTheme.light`, panel `AppTheme.panel`), yazı stilleri, gömülü fontlar |
+| `widgets/` | Ortak küçük parçalar: durum tonu (`AppTone`), rozet (`ToneBadge`), bilgi bandı (`ToneBanner`), bölüm başlığı (`SectionHeader`) |
 | `features/auth` | Oturum, profil ve giriş kimliği dönüşümü |
 | `features/cities` | 81 il ve telefondaki kalıcı kopyası |
 
 `.env` dosyası yoksa uygulama çökmez; eksik ayarı anlatan bir ekran gösterir.
+
+### 11.1 Tasarım sistemi (Faz 6)
+
+Ekranlar Google Stitch'te tasarlandı ("Turla Mobil" 21 ekran, "Turla Web" 14 ekran) ve Flutter'a birebir aktarıldı. Bütün renk, yazı, boşluk ve köşe değerleri `turla_core` içindeki sabitlerden gelir; ekranlarda ham renk ya da sayı yazılmaz.
+
+**Dil:** sıcak kâğıt rengi zemin, çam yeşili ana renk, terracotta sadece küçük vurgu (okunmamış bildirim noktası, son duyuru şeridi, ikondaki nokta). Mor, gradyan ve emoji yok; arayüz tamamen Türkçe.
+
+**Renkler (`AppColors`)**
+
+| Ad | Renk | Kullanım |
+|---|---|---|
+| `background` | #F6F2EA | Ekran zemini, açılış ekranı |
+| `surface` | #FFFDF9 | Kart, giriş alanı, alt menü |
+| `surfaceMuted` | #EFE8DC | Soluk yüzey, panel sol menüsü, tablo başlığı |
+| `border` | #E2D8C8 | İnce kenarlıklar ve ayraçlar |
+| `textPrimary` / `textSecondary` / `textMuted` | #1E2422 / #5B625E / #8D928C | Metin; soluk ton sadece ipucu ve pasif öğe |
+| `primary` / `primaryPressed` / `primaryTint` | #1F5E4E / #174A3D / #DCEAE3 | Ana düğme, seçili öğe, açık yeşil zemin |
+| `accent` | #C1603E | Terracotta, sadece küçük vurgu |
+| `success` / `warning` / `error` (+ `…Tint`, `on…Tint`) | #2F7D4F / #B7791F / #B23A35 | Durum rozetleri ve bantları (açık zemin + koyu metin) |
+
+**Durum tonu (`AppTone`):** `neutral`, `primary`, `success`, `warning`, `error`. Her ton açık bir zemin, onun üstünde okunur (AA kontrastlı) bir metin rengi ve tek başına kullanılan güçlü bir renk verir. Rozetler (`ToneBadge`: "4 koltuk kaldı", "Ödendi", "Geldi") ve bantlar (`ToneBanner`: "İnternet bağlantısı yok", "Demo ödeme") bunu kullanır.
+
+**Yazı tipleri (uygulamaya gömülü, internetten indirilmez):**
+
+| Font | Ağırlık | Nerede |
+|---|---|---|
+| Fraunces | 600 | Başlıklar, fiyat, "Turla" yazı-logosu |
+| IBM Plex Sans | 400 / 500 / 600 | Metin, etiket, düğme |
+| IBM Plex Mono | 500 | Plaka, REH-/MUS- kimliği, bilet kodu |
+
+Dosyalar `packages/core/assets/fonts` altında, SIL Open Font License (OFL) lisans dosyalarıyla birlikte. Aile adları `AppFonts` içinde `packages/turla_core/…` önekiyle yazılır.
+
+**Yazı ölçeği (`AppTextStyles`, mobil):** display 28, headline-lg 26, headline 22, title 18 / 17 (Fraunces); body 16 / 15 / 13, label 15 / 13 / 12 (Plex Sans); bölüm başlığı 12 büyük harf ve geniş aralık; mono 13. **Panel (`PanelTextStyles`):** sayfa başlığı Fraunces 24, yazı-logosu 20, metin 14.
+
+**Ölçüler:** köşe 4 / 10 / 12 / 16 / 24 (panelde düğme 8, kart 12); düğme ve giriş alanı yüksekliği mobilde 48, panelde 40; dokunma hedefi en az 48 dp (`AppSizes.minTapTarget`).
+
+**Tema:** `AppTheme.light` (mobil) düğmeleri, giriş alanlarını, kartları, alt menüyü, pencereleri, SnackBar'ı ve geri düğmesini (açık yüzeyli yuvarlak daire) tasarıma göre çizer. `AppTheme.panel` aynı renklerle daha sıkı ölçek kullanır.
+
+**Uygulama kimliği:** ikon çam yeşili zemin üstünde kâğıt rengi Fraunces "T" ve tabanında terracotta nokta. Görseller `packages/core/tool/brand/generate_brand_icons_test.dart` ile gömülü fonttan üretilir (`flutter test tool/brand/generate_brand_icons_test.dart`); Android/iOS ikonları `flutter_launcher_icons` ile (`dart run flutter_launcher_icons`). Android açılış zemini #F6F2EA; web paneli favicon, ikonlar ve `manifest.json` aynı kimlikte.
+
+**Stitch'te olmayan ekranlar** (bildirim kutusu, müşteri duyuru listesi, panelde duyurular, geri bildirim, sohbet penceresi) aynı bileşenlerle türetildi. Kalkış tarihi seçimi tasarımdaki alt pencere yerine tur detayında satır içi seçim kartlarıyla yapılıyor (akış değişmesin diye).
 
 ---
 
@@ -598,6 +640,7 @@ Bu fonksiyonlar uygulamadan çağrılır ve veritabanında **tek seferde** çal�
 | `set_profile_active` | Firma yöneticisi, sistem yöneticisi | Hesabı aktif ya da pasif yapar | `not_allowed`, `profile_not_found`, `cannot_change_self` |
 | `save_tour_program` | Firma yöneticisi | Gün gün programı tek seferde kaydeder | `invalid_program` |
 | `participant_departure_info` | Bileti olan müşteri | Aktif tur ekranı: tarih, araç, şoför, firma, tur sorumlusunun adı ve telefonu, program, son duyuru (QR okutulduysa), sohbete yazılabilir mi | `not_allowed`, `departure_not_active` |
+| `cancel_departure` | Firma yöneticisi, sistem yöneticisi | Başlamamış tarihi iptal eder: geçerli biletler iptal, her ödemeye tam iade, koltuklar boşalır, bileti olan yolculara bildirim (push) gider | `departure_not_found`, `not_allowed`, `departure_not_cancellable` |
 | `register_device_token` | Giriş yapmış kullanıcı | Telefonun push kaydını hesaba bağlar (başka hesaptaysa bu hesaba geçirir) | `not_allowed`, `invalid_token` |
 
 **Aynı anda iki kişi son koltuğu alırsa ne olur?** `book_ticket` satış yapmadan önce o tarihin satırını kilitler. İkinci kişi bekletilir; sıra ona gelince koltuk kalmadığı için `no_seats_left` hatası alır. Aynı koltuk iki kişiye satılamaz.
@@ -692,6 +735,8 @@ Web panelinden firma yöneticisi, tur sorumlusu ve dışarıdan müşteri hesab�
 
 Bu kurallar ayrı bir dosyada (`rules.ts`) tutulur ve ayrıca test edilir.
 
+**Firma yöneticilerinin e-postaları (Faz 6):** `{ action: 'admin_emails', company_id }` sadece aktif sistem yöneticisine çalışır ve `{ admins: [{ user_id, email }] }` döner. E-postalar `profiles` tablosunda tutulmadığı için Supabase Auth'tan okunur; panelde firma detayındaki yöneticiler tablosunda "E-posta" sütunu olarak görünür.
+
 ### 16.1 Push gönderme fonksiyonu (send-push)
 
 - Bildirim kutusuna satır yazılınca veritabanı bu fonksiyonu `{ notification_ids: [...] }` ile çağırır.
@@ -729,6 +774,8 @@ Bu kurallar ayrı bir dosyada (`rules.ts`) tutulur ve ayrıca test edilir.
 | `invalid_phone` | Telefon biçimi hatalı | Telefon numarası geçersiz |
 | `not_resettable` | Şifresi panelden sıfırlanamayan hesap | Bu hesabın şifresi panelden sıfırlanamaz |
 | `account_not_found` | Şifresi sıfırlanacak hesap yok | Kayıt bulunamadı |
+| `departure_not_cancellable` | Tarih başlamış, tamamlanmış ya da zaten iptal | Bu tarih iptal edilemez |
+| `same_password` *(Auth)* | Yeni şifre eskisiyle aynı | Yeni şifre eskisiyle aynı olamaz |
 | `rate_limited` | Dakikada 20 mesaj / 5 duyuru sınırı aşıldı | Çok hızlı gönderiyorsun; biraz bekleyip tekrar dene |
 | `invalid_token` | Push cihaz kaydı geçersiz | (Kullanıcıya gösterilmez; push sessizce kapalı kalır) |
 | RLS reddi *(sohbet)* | Tur bitti ya da QR okutulmadı | Bu sohbete yazamazsın |
@@ -747,10 +794,10 @@ Bu kurallar ayrı bir dosyada (`rules.ts`) tutulur ve ayrıca test edilir.
 | Bölüm | Neyi test ediyor | Test sayısı |
 |---|---|---|
 | Ortak paket | İl listesinin saklanması, giriş kimliği | 13 |
-| Mobil uygulama | Yönlendirme kuralları, oturum (çıkış temizliği), giriş, şehir seçimi, tur listesi ve önbelleği, biletler (canlı "Tura katıldı"), satın alma, iptal, tur sorumlusu, aktif tur, sohbet (sayfalama, sahte canlı kanal, hız sınırı, salt okunur), duyurular, bildirim kutusu, push kaydı, çıkışta önbellek silme, ekran akışları | 150 |
-| Web paneli | Panel girişi, sayfa yenileme ve yetkiler, firmalar, turlar, personel ve şifre sıfırlama, biletler, sohbet denetimi, firma duyuruları, geri bildirim, hata mesajları | 76 |
-| Veritabanı | Tablolar, yetki kuralları, bilet alma, telefon, kontenjan, iptal süresi, iade, QR, elle Geldi, tur sorumlusunun tarih listesi, turu bitirme, dosya yetkileri, sohbet (kim görür/yazar/siler, tur bitince gizlenme, hız sınırı), duyuru dağıtımı ve tek istekli push tetikleyicisi, aktif tur bilgisi, cihaz kaydı, Realtime yayını, firma duyuruları, geri bildirim | 142 |
-| Hesap açma fonksiyonu | `rules.ts` içindeki kurallar (hesap açma ve şifre sıfırlama) | 29 |
+| Mobil uygulama | Yönlendirme kuralları, oturum (çıkış temizliği), giriş, şehir seçimi, tur listesi ve önbelleği, biletler (canlı "Tura katıldı"), satın alma, iptal, tur sorumlusu, aktif tur, sohbet (sayfalama, sahte canlı kanal, hız sınırı, salt okunur), duyurular, bildirim kutusu, push kaydı, çıkışta önbellek silme, şifre sıfırlama, ekran akışları | 158 |
+| Web paneli | Panel girişi, sayfa yenileme ve yetkiler, firmalar, turlar, personel ve şifre sıfırlama, biletler, sohbet denetimi, firma duyuruları, geri bildirim, tarih iptali, firma yöneticisi e-postaları, hata mesajları | 80 |
+| Veritabanı | Tablolar, yetki kuralları, bilet alma, telefon, kontenjan, iptal süresi, iade, QR, elle Geldi, tur sorumlusunun tarih listesi, turu bitirme, dosya yetkileri, sohbet (kim görür/yazar/siler, tur bitince gizlenme, hız sınırı), duyuru dağıtımı ve tek istekli push tetikleyicisi, aktif tur bilgisi, cihaz kaydı, Realtime yayını, firma duyuruları, geri bildirim, tarih iptali (iade, bildirim, yetki) | 153 |
+| Hesap açma fonksiyonu | `rules.ts` içindeki kurallar (hesap açma, şifre sıfırlama, yönetici e-postaları) | 34 |
 | Push fonksiyonu | `send-push/rules.ts`: kimlik süzme, service account okuma, imza anahtarı, FCM mesajı, geçersiz token | 20 |
 
 **Veritabanı testleri nasıl çalışıyor?** Testler gerçek Supabase'e bağlanmaz. Bilgisayarda küçük bir PostgreSQL (PGlite) açılır, Supabase'in giriş ve depolama kısımları taklit edilir, bütün veritabanı dosyaları sırayla kurulur ve senaryolar farklı kullanıcılar olarak denenir. Yeni Supabase projelerinin "erişim varsayılan kapalı" davranışı da taklit edildiği için unutulan bir yetki testte yakalanır.
@@ -780,6 +827,7 @@ Veritabanındaki her değişiklik sıralı bir SQL dosyası olarak saklanır. Ç
 | 13 | `guide` | Yolcu telefonu, katılım yöntemi (QR / elle), elle "Geldi", tur sorumlusunun tarih listesi |
 | 14 | `chat` | Sohbetin tur bitince gizlenmesi, gönderen rolü, mesaj/duyuru hız sınırı, aktif tur bilgisi, cihaz kaydı, Realtime yayını, push tetikleyicisi (pg_net), firma duyuruları |
 | 15 | `pg_net_schema` | pg_net eklentisinin `extensions` şemasına taşınması |
+| 16 | `departure_cancel` | Panelden tarih iptali (`cancel_departure`): biletler iptal, tam iade, yolculara bildirim |
 
 ---
 
@@ -808,6 +856,9 @@ Veritabanındaki her değişiklik sıralı bir SQL dosyası olarak saklanır. Ç
 | Çıkışta önbellek | Kişisel önbellek silinir | Paylaşılan telefonda önceki hesabın verisi kalmaz |
 | Koltuk seçimi | Sonraki sürüm | Veritabanı yapısı buna hazır |
 | Web paneli | Flutter Web | Mobille aynı dil ve ortak kod |
+| Tasarım | Google Stitch ekranları; fontlar uygulamaya gömülü | Tutarlı ve sakin bir görünüm; internet olmadan da doğru font |
+| Tarih iptali | Panelden, sadece başlamamış tarih; tam iade ve yolculara bildirim | Hava/araç sorunu gibi durumlarda firma tek işlemle tarihi kapatabilsin |
+| Uygulamada şifre sıfırlama | E-postaya bağlantı; bağlantı uygulamayı açar, yeni şifre orada belirlenir | Web sayfası barındırmadan çalışır; giriş kimlikli hesaplarda şifreyi firma sıfırlar |
 
 ---
 
@@ -823,13 +874,12 @@ Veritabanındaki her değişiklik sıralı bir SQL dosyası olarak saklanır. Ç
 | 3 | Bilet satın alma, Turlarım, iptal ve iade, panelde katılımcılar ve "Bilet kes" | Bitti |
 | 4 | Tur sorumlusu ekranları: atanmış tarihler, katılımcılar, QR okutma, elle "Geldi", turu bitirme; yolcu telefonu; panelde şifre sıfırlama; yan yana kayan tur listesi | Bitti |
 | 5 | Aktif tur ekranı, tur sohbeti (canlı), duyurular, bildirim kutusu, Android push, canlı "Tura katıldı", panelde sohbet denetimi, firma duyuruları ve geri bildirim, çıkışta önbellek temizliği | Bitti |
-| 6 | Ekran tasarımı ve demo hazırlığı | Sırada |
+| 6 | Stitch tasarımının uygulanması (yeni tema, gömülü fontlar, uygulama ikonu), panelde tarih iptali, firma yöneticisi e-postaları, uygulamada şifre sıfırlama, demo hazırlığı | Bitti |
 
 ### 21.2 Bilinen eksikler
 
-- Uygulamadan kayıt olan müşteri şifresini unutursa e-postayla sıfırlama yok (e-posta bağlantısı ayarı sonra yapılacak).
+- Şifre sıfırlama bağlantısının çalışması için Supabase panelinde (Authentication → URL Configuration → Redirect URLs) `com.turla.app://login-callback` adresi ekli olmalı. Bağlantı aynı telefonda açılmalı.
 - QR okutma internet ister; internetsiz okutma kuyruğu yok.
-- Panelde bir tarihi "iptal edildi" yapma yok.
 - Push sadece Android'de; iOS yok.
 - Gerçek push uçtan uca henüz denenmedi: test bilgisayarındaki emülatör Google sunucularına ulaşamadığı için cihaz kaydı alınamadı. Sunucu tarafı (duyuru → bildirim → push fonksiyonu) çalışır durumda doğrulandı; gerçek bir Android telefonda denenecek.
 - Sohbette silinen mesaj karşı tarafta canlı kaybolmaz; sohbet yeniden açılınca kaybolur (silme olayları kota için dinlenmiyor).

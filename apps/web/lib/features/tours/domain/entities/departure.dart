@@ -33,6 +33,24 @@ class Departure extends Equatable {
   bool get isEditable =>
       status == DepartureStatus.scheduled || status == DepartureStatus.finishRequested;
 
+  /// Panelden iptal edilebilir mi: planlanmış ve henüz başlamamış (asıl kontrol sunucuda).
+  bool canBeCancelledAt(DateTime now) =>
+      status == DepartureStatus.scheduled && departureAt.isAfter(now);
+
+  /// Sunucuda iptal edildikten sonraki hali: tüm koltuklar boş.
+  Departure cancelled() => Departure(
+    id: id,
+    tourId: tourId,
+    departureAt: departureAt,
+    capacity: capacity,
+    seatsLeft: capacity,
+    status: DepartureStatus.cancelled,
+    guideId: guideId,
+    busPlate: busPlate,
+    driverName: driverName,
+    driverPhone: driverPhone,
+  );
+
   /// Bilet satışı / iptali sonrası boş koltuk sayısı (sunucudaki seats_left ile aynı kural).
   Departure withSoldSeats(int soldSeats) => Departure(
     id: id,
@@ -92,4 +110,15 @@ class DepartureDraft extends Equatable {
 
   @override
   List<Object?> get props => [departureAt, capacity, guideId, busPlate, driverName, driverPhone];
+}
+
+/// Tarih iptalinin sonucu: kaç bilet iptal edildi ve toplam iade.
+class DepartureCancellation extends Equatable {
+  const DepartureCancellation({required this.cancelledTickets, required this.refundedTotal});
+
+  final int cancelledTickets;
+  final double refundedTotal;
+
+  @override
+  List<Object?> get props => [cancelledTickets, refundedTotal];
 }

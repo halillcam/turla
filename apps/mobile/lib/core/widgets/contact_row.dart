@@ -26,7 +26,9 @@ class ContactRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Expanded(child: InfoRow(icon: icon, label: label, value: value)),
+        Expanded(
+          child: InfoRow(icon: icon, label: label, value: value),
+        ),
         if (onCall != null)
           IconButton.filledTonal(
             onPressed: onCall,

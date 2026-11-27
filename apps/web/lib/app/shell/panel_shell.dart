@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:turla_core/turla_core.dart';
 
 import '../../core/di/injection.dart';
 import '../../features/auth/presentation/bloc/session_bloc.dart';
@@ -8,7 +7,7 @@ import '../../features/companies/domain/entities/company.dart';
 import '../router/app_routes.dart';
 import 'company_context_cubit.dart';
 import 'widgets/panel_sidebar.dart';
-import 'widgets/panel_top_bar.dart';
+import 'widgets/panel_context_banners.dart';
 
 /// Giriş sonrası tüm ekranların kabuğu: solda menü, üstte firma / kullanıcı.
 class PanelShell extends StatelessWidget {
@@ -25,22 +24,21 @@ class PanelShell extends StatelessWidget {
     final companyId = AppRoutes.companyIdOf(location);
     final body = Scaffold(
       body: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           PanelSidebar(
             location: location,
             companyId: companyId,
             showCompanies: session.isSuperAdmin,
+            userName: session.profile.fullName,
+            roleLabel: session.profile.role.label,
+            onSignOut: () => context.read<SessionBloc>().add(const SessionSignOutRequested()),
           ),
-          const VerticalDivider(width: AppSizes.borderWidth),
           Expanded(
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                PanelTopBar(
-                  userName: session.profile.fullName,
-                  roleLabel: session.profile.role.label,
-                  onSignOut: () => context.read<SessionBloc>().add(const SessionSignOutRequested()),
-                ),
-                const Divider(height: AppSizes.borderWidth),
+                PanelContextBanners(isSuperAdmin: session.isSuperAdmin),
                 Expanded(child: child),
               ],
             ),

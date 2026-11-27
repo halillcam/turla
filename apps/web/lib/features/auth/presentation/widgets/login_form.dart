@@ -48,9 +48,14 @@ class _LoginFormState extends State<LoginForm> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(AppStrings.panelTitle, style: textTheme.headlineSmall),
+          const Text(AppStrings.panelTitle, style: PanelTextStyles.wordmark),
+          const SizedBox(height: AppSpacing.sm),
+          const Text(AppStrings.loginTitle, style: PanelTextStyles.pageTitle),
           const SizedBox(height: AppSpacing.xs),
-          Text(AppStrings.loginSubtitle, style: textTheme.bodyMedium),
+          Text(
+            AppStrings.loginSubtitle,
+            style: textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
+          ),
           const SizedBox(height: AppSpacing.xl),
           TextFormField(
             controller: _email,
@@ -60,7 +65,7 @@ class _LoginFormState extends State<LoginForm> {
             validator: Validators.email,
             textInputAction: TextInputAction.next,
           ),
-          const SizedBox(height: AppSpacing.md),
+          const SizedBox(height: AppSpacing.lg),
           TextFormField(
             controller: _password,
             decoration: const InputDecoration(labelText: AppStrings.passwordLabel),
@@ -70,10 +75,11 @@ class _LoginFormState extends State<LoginForm> {
             onFieldSubmitted: (_) => _submit(),
           ),
           if (widget.errorMessage != null) ...[
-            const SizedBox(height: AppSpacing.md),
-            Text(
-              widget.errorMessage!,
-              style: textTheme.bodyMedium?.copyWith(color: AppColors.error),
+            const SizedBox(height: AppSpacing.lg),
+            ToneBanner(
+              message: widget.errorMessage!,
+              tone: AppTone.error,
+              icon: Icons.error_outline,
             ),
           ],
           const SizedBox(height: AppSpacing.xl),
@@ -82,7 +88,10 @@ class _LoginFormState extends State<LoginForm> {
             child: widget.isSubmitting
                 ? const SizedBox.square(
                     dimension: AppSizes.iconMd,
-                    child: CircularProgressIndicator(strokeWidth: AppSizes.progressStroke),
+                    child: CircularProgressIndicator(
+                      strokeWidth: AppSizes.progressStroke,
+                      color: AppColors.textSecondary,
+                    ),
                   )
                 : const Text(AppStrings.loginButton),
           ),

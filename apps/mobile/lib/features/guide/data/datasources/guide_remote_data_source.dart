@@ -43,7 +43,7 @@ class GuideRemoteDataSourceImpl implements GuideRemoteDataSource {
         .select(ParticipantModel.columns)
         .eq('departure_id', departureId)
         .neq('status', TicketStatus.cancelled.value)
-        .order('passenger_name');
+        .order('passenger_name', ascending: true);
     return rows.map(ParticipantModel.fromRow).toList();
   }
 

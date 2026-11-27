@@ -25,6 +25,7 @@ extension PanelFailureMessage on PanelFailureReason {
     PanelFailureReason.noSeatsLeft => AppStrings.errorNoSeatsLeft,
     PanelFailureReason.departureNotBookable => AppStrings.errorDepartureNotBookable,
     PanelFailureReason.ticketNotCancellable => AppStrings.errorTicketNotCancellable,
+    PanelFailureReason.departureNotCancellable => AppStrings.errorDepartureNotCancellable,
     PanelFailureReason.notResettable => AppStrings.errorNotResettable,
     PanelFailureReason.rateLimited => AppStrings.errorChatRateLimited,
     PanelFailureReason.unknown => CoreStrings.unexpectedError,
@@ -49,6 +50,7 @@ extension AuthFailureMessage on AuthFailureReason {
     AuthFailureReason.roleNotAllowed => AppStrings.errorRoleNotAllowed,
     AuthFailureReason.userAlreadyExists ||
     AuthFailureReason.weakPassword ||
+    AuthFailureReason.samePassword ||
     AuthFailureReason.unknown => CoreStrings.unexpectedError,
   };
 }

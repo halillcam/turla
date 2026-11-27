@@ -68,6 +68,7 @@ class _DepartureChatDialogState extends State<_DepartureChatDialog> {
       title: AppStrings.chatDeleteTitle,
       message: '${senderLabel(message)}\n\n${message.body}',
       confirmLabel: AppStrings.delete,
+      isDestructive: true,
     );
     if (!confirmed) return;
     final result = await cubit.delete(message);

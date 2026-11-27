@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:turla_core/turla_core.dart';
 
+import '../../../tours/presentation/widgets/tour_image.dart';
 import '../../domain/entities/ticket.dart';
 import '../utils/ticket_display.dart';
 import 'ticket_status_chip.dart';
 
-/// Turlarım listesindeki bilet satırı.
+/// Turlarım listesindeki bilet satırı: küçük görsel, tur, tarih, firma ve durum.
 class TicketTile extends StatelessWidget {
   const TicketTile({required this.ticket, required this.onTap, super.key});
 
@@ -18,16 +19,17 @@ class TicketTile extends StatelessWidget {
     return Card(
       margin: AppMargins.cardList,
       child: InkWell(
-        borderRadius: AppRadius.mdAll,
         onTap: onTap,
         child: Padding(
-          padding: AppPaddings.card,
+          padding: AppPaddings.allMd,
           child: Row(
             children: [
-              Icon(
-                ticket.showsQr ? Icons.qr_code_2 : Icons.confirmation_number_outlined,
-                size: AppSizes.iconXl,
-                color: ticket.isActive ? AppColors.primary : AppColors.textMuted,
+              ClipRRect(
+                borderRadius: AppRadius.mdPlusAll,
+                child: SizedBox.square(
+                  dimension: AppSizes.thumbnail,
+                  child: TourImage(imageUrl: ticket.tourImageUrl),
+                ),
               ),
               const SizedBox(width: AppSpacing.md),
               Expanded(
@@ -36,7 +38,12 @@ class TicketTile extends StatelessWidget {
                   children: [
                     Text(ticket.tourTitle, style: textTheme.titleMedium),
                     const SizedBox(height: AppSpacing.xxs),
-                    Text(ticket.shortDepartureLabel, style: textTheme.bodySmall),
+                    Text(
+                      ticket.shortDepartureLabel,
+                      style: textTheme.bodySmall?.copyWith(
+                        fontFeatures: AppTextStyles.tabularFigures,
+                      ),
+                    ),
                     Text(ticket.companyName, style: textTheme.bodySmall),
                   ],
                 ),

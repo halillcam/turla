@@ -1,38 +1,48 @@
 import 'package:flutter/material.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 import 'package:turla_core/turla_core.dart';
 
-import '../../../../core/constants/strings.dart';
+import 'ticket_perforation.dart';
+import 'ticket_qr_ticket_section.dart';
 
-/// Biletin QR kodu. Değer cihazdaki kayıttan gelir; internet gerekmez.
+/// Basılı bilet görünümünde QR kartı: üstte tur ve tarih, delikli kesim çizgisi, altta QR ve kod.
 class TicketQrCard extends StatelessWidget {
-  const TicketQrCard({required this.qrToken, super.key});
+  const TicketQrCard({required this.qrToken, required this.title, this.subtitle, super.key});
 
   final String qrToken;
+  final String title;
+  final String? subtitle;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: AppPaddings.card,
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: AppRadius.lgAll,
-        border: Border.all(color: AppColors.border),
-      ),
+    final textTheme = Theme.of(context).textTheme;
+    final subtitleText = subtitle;
+    return Card(
+      // Kenarlık arkada çizilir ki çentikler kenarlığın üstünü örtsün.
+      borderOnForeground: false,
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          QrImageView(
-            data: qrToken,
-            size: AppSizes.qrCode,
-            backgroundColor: AppColors.surface,
-            semanticsLabel: AppStrings.showQrToGuide,
+          Padding(
+            padding: AppPaddings.ticketStubTop,
+            child: Column(
+              children: [
+                Text(title, style: textTheme.titleLarge, textAlign: TextAlign.center),
+                if (subtitleText != null) ...[
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(
+                    subtitleText,
+                    style: textTheme.bodySmall?.copyWith(
+                      fontFeatures: AppTextStyles.tabularFigures,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ],
+            ),
           ),
-          const SizedBox(height: AppSpacing.sm),
-          Text(
-            AppStrings.showQrToGuide,
-            style: Theme.of(context).textTheme.bodySmall,
-            textAlign: TextAlign.center,
-          ),
+          const TicketPerforation(),
+          const SizedBox(height: AppSpacing.lg),
+          TicketQrSection(qrToken: qrToken),
         ],
       ),
     );

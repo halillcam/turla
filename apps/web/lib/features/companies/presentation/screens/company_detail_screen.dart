@@ -126,6 +126,7 @@ class _CompanyDetailView extends StatelessWidget {
               members: state.admins,
               emptyMessage: AppStrings.companyAdminsEmpty,
               showLoginId: false,
+              emails: state.adminEmails,
               enabled: !state.isBusy,
               onToggleActive: (admin) => _show(context, cubit.toggleAdminActive(admin)),
             ),
